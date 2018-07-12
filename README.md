@@ -1,7 +1,7 @@
 # Semaphore
 General Zero Knoledge Identity and Signaling, on and off chain.
 
-[![Join the chat at https://gitter.im/barrywhitehat/Semaphore](https://gitter.im/barrywhitehat/Semaphore.svg)](https://gitter.im/barrywhitehat/miximus_eth?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/barrywhitehat/Semaphore](https://gitter.im/barrywhitehat/Semaphore.svg)](https://gitter.im/barrywhitehat/Semaphore?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
 # Zero Knowledge Identity and Signaling
 
