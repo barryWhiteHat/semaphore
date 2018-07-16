@@ -53,7 +53,7 @@ All we need to do is replace step 1, and use a merkle tree that only includes le
 
 Each leaf is 256 bits, which is the hash of another input nullifier = 256 bits, sk = 256 bits. The merkle tree depth is 29.
 
-The creation of these trees if trivial and I have a python script to do it (here)[].
+The creation of these trees if trivial for an example see (`initMerkleTree`)[https://github.com/barryWhiteHat/semaphore/blob/master/examples/helpers.py].
 
 The curation of these trees is outside the scope of this post tho I have some ideas of some ways to do it.
 
@@ -152,7 +152,7 @@ The signal is specified as a JSON document which describes its constraints and p
 
 ## Future direction
 
-I made a proof of concept for this [here]() which allows both on chain (ethereum) and offchain signalling. **This code is a research-quality proof of concept, and has not yet undergone extensive review or testing. It is thus not suitable, as is, for use in critical or production systems.**
+I made a proof of concept for this [here](https://github.com/barryWhiteHat/semaphore) which allows both on chain (ethereum) and offchain signalling. **This code is a research-quality proof of concept, and has not yet undergone extensive review or testing. It is thus not suitable, as is, for use in critical or production systems.**
 
 I am really excited to see what others build using this signalling system. I am particualy excited to see a zk social network and applications to blockchain governance. Unfortently I cannot take the lead on either of these projects. But I am more than happy to donate my time to anyone undertaking these noble endvours.
 
