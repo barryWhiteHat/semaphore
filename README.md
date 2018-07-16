@@ -8,10 +8,10 @@ General Zero Knoledge Identity and Signaling, on and off chain.
 ## Motiation
 Having finished Miximus and deployed iit to the testnet I was planning to move onto my next zksnark project. However, given that I am able to make proofs about merkle trees I decided that it would be a good idea to hack together an anonymous Identity and signaling protocol using zkSNARKs because is seemed it would take quite a little amount of work after having figure out how to make Miximus. And it would be fun if a zero knoledge social network existed. This is a generatlization of Miximus.
 
-## What is Miximus 
+## What is Miximus
 Miximus allows private transaction on Ethereum using zkSNARKs.
 
-## What is a zkSNARK 
+## What is a zkSNARK
 
 A zkSNARK is a way of proving that a computation was done correctly without reavealing what some or all of inputs to the computation are. Here we prove that a leaf is a member of a merkel tree without reavealing which leaf it is or the leaf pre-image.
 
@@ -25,7 +25,7 @@ Each leaf can only be used once, the uniqueness tag prevents double-spends witho
 The leaf in defined as being the hash of two peices of information
 
 1.  the nullfier (256 bits) which we will reveal later to prevent double spends
-2.  The secret key (256 bits) which is a random number that we will never reveal. 
+2.  The secret key (256 bits) which is a random number that we will never reveal.
 
 ```
 public(leaf) = HASH(private(nullifier) || shared(secret))
@@ -38,7 +38,7 @@ A user creates a proof that they know the secret information of a leaf, and prov
 2. No information is revealed. Except the information that we specifically decide the reveal.
 
 They send the proof to the contract which verifies that:
-1. The computation is correct 
+1. The computation is correct
 2. That the merkle root that the zksnark produces is the same as the merkle root in the smart contract
 3. That nullifier was not used before (to prevent double spends)
 
@@ -47,23 +47,23 @@ Then it sends the ether and saves to nullifier so it can't be used again.
 
 ## Using merkle tree for identity
 
-All we need to do is replace step 1, and use a merkle tree that only includes leaves of people who have a reputation. Then a user can prove if they are a member of a group or not without revealing who they are. 
+All we need to do is replace step 1, and use a merkle tree that only includes leaves of people who have a reputation. Then a user can prove if they are a member of a group or not without revealing who they are.
 
 ### Identitiy merkle root examples
 
-Each leaf is 256 bits, which is the hash of another input nullifier = 256 bits, sk = 256 bits. The merkle tree depth is 29. 
+Each leaf is 256 bits, which is the hash of another input nullifier = 256 bits, sk = 256 bits. The merkle tree depth is 29.
 
 The creation of these trees if trivial and I have a python script to do it (here)[]
 
-The curation of these trees is outside the scope of this post tho I have some ideas of some ways to do it. 
+The curation of these trees is outside the scope of this post tho I have some ideas of some ways to do it.
 
 1. Have a log in with github button and allow anyone who uses it to add a single leaf to a merkle tree. This is a basically proof of github identity but could be useful for testing.
 
-3. Take a biometric of people and hash this at the second layer 28 with their public key. Then publish the hash of their biometric signed by their private key. This will produce a proof of individuality system. Please note that a persons membership in this merkle tree would be public to anyone who can get that biometric. I am unsure about the implications of this. At first thought it seems like acceptable. But need to consider more carefully. 
+3. Take a biometric of people and hash this at the second layer 28 with their public key. Then publish the hash of their biometric signed by their private key. This will produce a proof of individuality system. Please note that a persons membership in this merkle tree would be public to anyone who can get that biometric. I am unsure about the implications of this. At first thought it seems like acceptable. But need to consider more carefully.
 
 ## Signalling
 
-If we used the system of signing that miximus uses we would have two problems 
+If we used the system of signing that miximus uses we would have two problems
 
 1. We could link a users signatures together because the same `nullifier` would be revealed twice.
 2. We are not able to "sign" any data. We can only prove we are part of the merkel tree.
@@ -78,7 +78,7 @@ The leaf preimage must never be revealed, this is the users "secret key", howeve
 
 It is possible for a malicious actor to use the same nullifier in multiple signals, this could be used to reveal somebodys identity by providing them with a signal description that has the same `external_nullifier` as one you know they participated in - when they publish a SNARK proof the `unique_tag` will be the same - e.g. if you give signal to two people, one whom you know participated in vote A and one who didn't, if both publish their proofs the identity of the person you know who participated in vote A will be revealed - in addition to revealing which of the two signals that was published was theirs.
 
-To avoid this a user could insist that all `external_nullifiers` that they sign include a timestamp and refuse to sign an `external_nullifier` that has a time stamp they had already signed. Or better still track the external\_nullifiers they signed and refuse to sign duplicates. 
+To avoid this a user could insist that all `external_nullifiers` that they sign include a timestamp and refuse to sign an `external_nullifier` that has a time stamp they had already signed. Or better still track the external\_nullifiers they signed and refuse to sign duplicates.
 
 Finally we add the idea of a `signal_variables` which is the sha256 of input variables so we can have to idea of a nonce or signal weight. The signal variables hash is included as an input to the SNARK circuit, if the signal variables are changed the circuit validation will fail.
 
@@ -96,7 +96,7 @@ With the generalized system, the following statements are true:
 The `external_nullifier` is constructed using a hash of the signal JSON description and any variables included in the unique constraint. e.g. for a one-signature-per-day rule the `external_nullifier` includes the signal GUID and the date (year-month-day).
 
 
-## Examples 
+## Examples
 
 ### Voting
 
@@ -158,32 +158,29 @@ I made a proof of concept for this [here]() which allows both on chain (ethereum
 I am really excited to see what others build using this signalling system. I a particualy excited to see a zk social network and applications to blockchain governance. Unfortently I cannot take the lead on either of these projects. But I am more than happy to donate my time to anyone undertaking these noble endvours.
 
 There are some limitation here
-1. We only support binary reputation. As in all users have the same reputation in the merkle tree. We could hack together non binary reputation by adding a user multiple times into the Merkle tree. So user 1 would have reputation 1 and user 2 who has two entries in teh merkle tree has reputation 2. 
-2. There is no way to burn reputation. 
+1. We only support binary reputation. As in all users have the same reputation in the merkle tree. We could hack together non binary reputation by adding a user multiple times into the Merkle tree. So user 1 would have reputation 1 and user 2 who has two entries in teh merkle tree has reputation 2.
+2. There is no way to burn reputation.
 3. There is no way to risk reputation.
 
 ## build instructions:
 
 ### build libsnark gadget and getting the proving key
 get dependencies `git submodule update --init --recursive`
-`mkdir build` 
+`mkdir build`
 `cd build`
 `cmake .. && make`
 
 
 
 ### Running the tests
-Start your prefered ethereum node, `cd tests` and run `python3 test.py` This will 
+Start your prefered ethereum node, `cd tests` and run `python3 test.py` This will
 1. Generate verification keys, proving keys, This step takes a lot of ram and its likely your OS will kill it if you have a bunch of windows open.
 2. Create a bunch of identies
 3. Use thoes identiteis to create proofs
-4. Verifity these proofs. 
+4. Verifity these proofs.
 
 ## Examples
-1. off\_chain\_signal.py is an example of how to create a merkle tree of identity's, create signals using these identity's, verify these proofs off chain. 
-2. on\_chain\_verification.py creates a merkle tree of identity's makes proofs about these identity's and verifies them on chain. 
+1. off\_chain\_signal.py is an example of how to create a merkle tree of identity's, create signals using these identity's, verify these proofs off chain.
+2. on\_chain\_verification.py creates a merkle tree of identity's makes proofs about these identity's and verifies them on chain.
 
 ## References
-
-
-
