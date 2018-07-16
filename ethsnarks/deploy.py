@@ -20,20 +20,19 @@
 
 import pdb
 import json
-from solc import compile_source, compile_files, link_code
-from bitstring import BitArray
 import random 
 
 from ctypes import cdll
 import ctypes as c
 
-import sys
-sys.path.insert(0, '../snarkWrapper')
-import utils 
+from solc import compile_source, compile_files, link_code
+from bitstring import BitArray
+
+from .utils import genMerkelTree, getMerkelProof
 
 
-tree_depth = 29
-lib = cdll.LoadLibrary('../src/libmiximus.so')
+tree_depth = 2
+lib = cdll.LoadLibrary('build/src/libmiximus.so')
 
 
 prove = lib.prove
@@ -87,8 +86,8 @@ def genWitness(leaves, nullifier, sk, signal, signal_variables, external_nullifi
     path = []
     address_bits = []
 
-    root , merkle_tree = utils.genMerkelTree(tree_depth, leaves)
-    path1 , address_bits1 = utils.getMerkelProof(leaves, address, tree_depth)
+    root , merkle_tree = genMerkelTree(tree_depth, leaves)
+    path1 , address_bits1 = getMerkelProof(leaves, address, tree_depth)
 
     try:
         path = [hexToBinary(x) for x in path1] 

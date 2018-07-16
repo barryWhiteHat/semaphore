@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(libsnark-tutorial)
+project(ethsnarks)
 
 set(
   CURVE
@@ -85,7 +85,6 @@ if("${MULTICORE}")
 endif()
 
 
-add_definitions(-DDEBUG=1)
 add_compile_options(-fPIC)
 
 if("${CPPDEBUG}")

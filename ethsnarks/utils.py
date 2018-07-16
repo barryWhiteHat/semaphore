@@ -72,7 +72,7 @@ def genMerkelTree(tree_depth, leaves):
         for j in range(0, len(tree_layers[i]), 2):
             tree_layers[i+1].append(hashPadded(tree_layers[i][j], tree_layers[i][j+1]))
 
-    return(tree_layers[tree_depth][0] , tree_layers)
+    return(tree_layers[tree_depth][0], tree_layers)
 
 def getMerkelRoot(tree_depth, leaves):
     genMerkelTree(tree_depth, leaves)  

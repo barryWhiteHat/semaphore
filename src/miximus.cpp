@@ -407,7 +407,7 @@ char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , 
         path[i] = init;
         for (int j =0; j<sizeof(_path[0]); j++) {
             path[i][j] = _path[i][j];
-       } 
+       }
     }
 
     for (int j = 0 ; j <256 ; j++) { 
@@ -417,15 +417,15 @@ char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , 
         signal[j] = _signal[j];
         signal_variables[j] = _signal_variables[j]; 
         external_nullifier[j] = _external_nullifier[j];
-    } 
+    }
 
     size_t address = 0;
     for (long level = tree_depth-1; level >= 0; level--)
-    {  
+    {
         const bool computed_is_right = _address_bits[level];
         address |= (computed_is_right ? 1ul << (tree_depth-1-level) : 0);
         address_bits.push_back(computed_is_right);
-    } 
+    }
 
     libff::alt_bn128_pp::init_public_params();
     Miximus<FieldT, sha256_ethereum> c(tree_depth);
