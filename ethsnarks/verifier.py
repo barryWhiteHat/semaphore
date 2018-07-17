@@ -1,7 +1,6 @@
-"""
-Copyright (c) 2018 HarryR.
-License: LGPL-3.0+
-"""
+# Copyright (c) 2018 HarryR.
+# License: LGPL-3.0+
+
 
 import json
 from functools import reduce
@@ -12,8 +11,11 @@ from py_ecc import bn128
 from py_ecc.bn128 import pairing, G1, G2, FQ, FQ2, FQ12, neg, multiply, add
 
 
-_VerifyingKeyStruct = namedtuple('VerifyingKey', ('a', 'b', 'c', 'g', 'gb1', 'gb2', 'z', 'IC'))
-_ProofStruct = namedtuple('Proof', ('a', 'a_p', 'b', 'b_p', 'c', 'c_p', 'k', 'h', 'input'))
+_VerifyingKeyStruct = namedtuple('_VerifyingKeyStruct',
+    ('a', 'b', 'c', 'g', 'gb1', 'gb2', 'z', 'IC'))
+
+_ProofStruct = namedtuple('_ProofStruct',
+    ('a', 'a_p', 'b', 'b_p', 'c', 'c_p', 'k', 'h', 'input'))
 
 
 def _bigint_bytes_to_int(x):
@@ -81,6 +83,10 @@ def pairingProd(*inputs):
 
 
 class Proof(_ProofStruct):
+    """
+    Object for zkSNARK proofs
+    """
+
     def to_json(self):
         return json.dumps(self._asdict())
 
