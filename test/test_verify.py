@@ -15,7 +15,6 @@ VK_FILENAME = 'zksnark_element/vk.json'
 class VerifyTests(unittest.TestCase):
     def test_load(self):
         vk = VerifyingKey.from_file(VK_FILENAME)
-        print(vk)
 
     def test_gen_verify(self):
         proof_data = {
@@ -32,7 +31,6 @@ class VerifyTests(unittest.TestCase):
         proof = Proof.from_dict(proof_data)
         vk = VerifyingKey.from_file(VK_FILENAME)
         vk.verify(proof)
-        print(proof)
 
         """
         pk_output = "zksnark_element/pk.raw"

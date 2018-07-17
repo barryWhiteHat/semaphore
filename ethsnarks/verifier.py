@@ -8,7 +8,8 @@ from functools import reduce
 from binascii import unhexlify
 from collections import namedtuple
 
-from py_ecc.bn128 import pairing, G1, G2, FQ12, neg, multiply, add
+from py_ecc import bn128
+from py_ecc.bn128 import pairing, G1, G2, FQ, FQ2, FQ12, neg, multiply, add
 
 
 _VerifyingKeyStruct = namedtuple('VerifyingKey', ('a', 'b', 'c', 'g', 'gb1', 'gb2', 'z', 'IC'))
@@ -20,7 +21,7 @@ def _bigint_bytes_to_int(x):
     return reduce(lambda o, b: (o << 8) + b if isinstance(b, int) else ord(b), [0] + list(x))
 
 
-def _eth_uint256_hex_to_int(x):
+def _filter_int(x):
     """Decode an optionally hex-encoded big-endian string to a integer"""
     if isinstance(x, int):
         return x
@@ -34,18 +35,33 @@ def _eth_uint256_hex_to_int(x):
 def _load_g1_point(point):
     """Unserialize a G1 point, from Ethereum hex encoded 0x..."""
     if len(point) != 2:
-        raise RuntimeError("Invalid G1 point", point)
-    # TODO: verify G1 point
-    return [_eth_uint256_hex_to_int(_) for _ in point]
+        raise RuntimeError("Invalid G1 point - not 2 vals", point)
+
+    out = tuple(FQ(_filter_int(_)) for _ in point)
+
+    if not bn128.is_on_curve(out, bn128.b):
+        raise ValueError("Invalid G1 point - not on curve", out)
+
+    return out
 
 
 def _load_g2_point(point):
     """Unserialize a G2 point, from Ethereum hex encoded 0x..."""
-    if len(point) != 2:
-        raise RuntimeError("Invalid G2 point", point)
-    # TODO: verify G2 point
-    # neg(G2.one()) * p + p != G2.zero()
-    return [_load_g1_point(_) for _ in point]
+    x, y = point
+    if len(x) != 2 or len(y) != 2:
+        raise RuntimeError("Invalid G2 point x or y", point)
+
+    # Points are provided as X.c1, X.c0, Y.c1, Y.c2
+    # As in, each component is a 512 bit big-endian number split in two
+    out = (FQ2([_filter_int(x[1]), _filter_int(x[0])]),
+           FQ2([_filter_int(y[1]), _filter_int(y[0])]))
+
+    if not bn128.is_on_curve(out, bn128.b2):
+        raise ValueError("Invalid G2 point - not on curve:", out)
+
+    # TODO: verify G2 point with another algorithm?
+    #   neg(G2.one()) * p + p != G2.zero()
+    return out
 
 
 def pairingProd(*inputs):
@@ -74,7 +90,8 @@ class Proof(_ProofStruct):
         The G1 points in the proof JSON are affine X,Y,Z coordinates
         Because they're affine we can ignore the Z coordinate
 
-        For G2 points, they're: X.c1, X.c0, Y.c1, Y.c0, Z.c1, Z.c0
+        For G2 points on-chain, they're: X.c1, X.c0, Y.c1, Y.c0, Z.c1, Z.c0
+
         However, py_ecc is little endian, so it needs [X.c0, X.c1]
         """
         fields = []
@@ -82,15 +99,9 @@ class Proof(_ProofStruct):
             val = in_data[name]
             if name == 'b':
                 # See note above about endian conversion
-                fields.append(_load_g2_point([val[:2][::-1], val[2:4][::-1]]))
+                fields.append(_load_g2_point([val[:2], val[2:4]]))
             elif name == 'input':
-                it = iter(val)
-                points = list()
-                for x in it:
-                    y = next(it)
-                    points.append(_load_g1_point([x, y]))
-                #fields.append(list([_load_g1_point(_)] for _ in in_data[name]))
-                fields.append(points)
+                fields.append(val)
             else:
                 fields.append(_load_g1_point(val[:2]))
         return cls(*fields)
@@ -119,7 +130,7 @@ class VerifyingKey(_VerifyingKeyStruct):
             if name in cls._g1_points:
                 fields.append(_load_g1_point(val))
             elif name == 'IC':
-                fields.append(list([_load_g1_point(_)] for _ in val))
+                fields.append(list([_load_g1_point(_) for _ in val]))
             else:
                 fields.append(_load_g2_point(val))
         # Order is necessary to pass to constructor of self
@@ -128,34 +139,34 @@ class VerifyingKey(_VerifyingKeyStruct):
     def verify(self, proof):
         """Verify if a proof is correct for the given inputs"""
 
-        # Compute the linear combination vk_x
         if not isinstance(proof, Proof):
             raise TypeError("Invalid proof type")
-        vk_x = None
+
+        # Compute the linear combination vk_x
+        vk_x = self.IC[0]
         for i, x in enumerate(proof.input):
             IC_mul_x = multiply(self.IC[i + 1], x)
-            vk_x = add(vk_x, y) if vk_x else IC_mul_x
-        vk_x = add(vk_x, self.IC[0])
+            vk_x = add(vk_x, IC_mul_x)
 
-        if not pairingProd((proof.A, self.a), (neg(proof.A_p), G2)):
+        if not pairingProd((proof.a, self.a), (neg(proof.a_p), bn128.G2)):
             raise RuntimeError("Proof step 1 failed")
 
-        if not pairingProd((self.b, proof.B), (neg(proof.B_p), G2)):
+        if not pairingProd((self.b, proof.b), (neg(proof.b_p), bn128.G2)):
             raise RuntimeError("Proof step 2 failed")
 
-        if not pairingProd((proof.C, self.c), (neg(proof.C_p), G2)):
+        if not pairingProd((proof.c, self.c), (neg(proof.c_p), bn128.G2)):
             raise RuntimeError("Proof step 3 failed")
 
         if not pairingProd(
-            (proof.K, self.g),
-            (neg(add(vk_x, add(proof.A, proof.C))), self.gb2),
-            (neg(self.gb1), proof.B)):
+            (proof.k, self.g),
+            (neg(add(vk_x, add(proof.a, proof.c))), self.gb2),
+            (neg(self.gb1), proof.b)):
             raise RuntimeError("Proof step 4 failed")
 
         if not pairingProd(
-            (add(vk_x, proof.A), proof.B),
-            (neg(proof.H), self.z),
-            (neg(proof.C), G2)):
+            (add(vk_x, proof.a), proof.b),
+            (neg(proof.h), self.z),
+            (neg(proof.c), bn128.G2)):
             raise RuntimeError("Proof step 5 failed")
 
         return True
