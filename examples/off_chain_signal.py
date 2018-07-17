@@ -48,7 +48,7 @@ if __name__ == "__main__":
     signal1 = sha256({"NomimatedSpokesPersonFor":root , "candidate": "Candidate1" })
     # You "sign" signal 2 to vote for candidate 2
     signal2 = sha256({"NomimatedSpokesPersonFor":root , "candidate": "Candidate2" })
-    # You use external_nullifier to enforce one person (merkle tree memeber) one vote
+    # You use external_nullifier to enforce one person (merkle tree member) one vote
     external_nullifier = sha256("nomimatedSpokesPerson"+root+str(time.time()))
     # We use signal_variables as a nonce so that you can update your vote.
     # But we do not implment this logic when counting votes as it makes to flow a little complicated
