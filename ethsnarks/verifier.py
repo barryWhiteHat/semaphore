@@ -149,26 +149,32 @@ class VerifyingKey(_VerifyingKeyStruct):
             raise TypeError("Invalid proof type")
 
         # Compute the linear combination vk_x
+        # vk_x = IC[0] + IC[1]^x[0] + ... + IC[n+1]^x[n]
         vk_x = self.IC[0]
         for i, x in enumerate(proof.input):
             IC_mul_x = multiply(self.IC[i + 1], x)
             vk_x = add(vk_x, IC_mul_x)
 
+        # e(V_a,P_a) * e(G2,-P_a_p) == 1
         if not pairingProd((proof.a, self.a), (neg(proof.a_p), bn128.G2)):
             raise RuntimeError("Proof step 1 failed")
 
+        # e(P_b,V_b) * e(G2,-P_b_p) == 1
         if not pairingProd((self.b, proof.b), (neg(proof.b_p), bn128.G2)):
             raise RuntimeError("Proof step 2 failed")
 
+        # e(V_c,P_c) * e(G2,-P_c_p) == 1
         if not pairingProd((proof.c, self.c), (neg(proof.c_p), bn128.G2)):
             raise RuntimeError("Proof step 3 failed")
 
+        # e(V_g,P_k) * e(V_gb2,-(vk_x+P_a+P_c)) * e(P_b,-P_gb1) == 1
         if not pairingProd(
             (proof.k, self.g),
             (neg(add(vk_x, add(proof.a, proof.c))), self.gb2),
             (neg(self.gb1), proof.b)):
             raise RuntimeError("Proof step 4 failed")
 
+        # e(P_b, vk_x+P_a) * e(V_z,-P_h) * e(G2,-P_c) == 1
         if not pairingProd(
             (add(vk_x, proof.a), proof.b),
             (neg(proof.h), self.z),
