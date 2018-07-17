@@ -22,8 +22,8 @@ from ethsnarks.utils import hashPadded, libsnark2python
 
 if __name__ == "__main__":
 
-    pk_output = "../zksnark_element/pk.raw"
-    vk_output = "../zksnark_element/vk.json"
+    pk_output = "zksnark_element/pk.raw"
+    vk_output = "zksnark_element/vk.json"
 
     genKeys(c.c_int(tree_depth), c.c_char_p(pk_output.encode()) , c.c_char_p(vk_output.encode())) 
     nullifiers = []
