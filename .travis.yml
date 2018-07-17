@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.6"
+install:
+  - sudo make ubuntu-dependencies requirements-dev
+script:
+  - make
+  - make test
+after_success:
+  - make coverage

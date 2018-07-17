@@ -7,3 +7,5 @@ depends/Makefile
 *.pc
 src/Makefile
 __pycache__
+.coverage
+.coverage.*
