@@ -3,7 +3,6 @@ python:
   - "3.6"
 install:
   - sudo apt-get install cmake make g++ libgmp-dev libboost-dev
-  - make requirements-dev
 script:
   - make
   - make test
