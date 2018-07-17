@@ -28,8 +28,8 @@ from .utils import genMerkelTree, sha256
 
 if __name__ == "__main__":
 
-    pk_output = "../zksnark_element/pk.raw"
-    vk_output = "../zksnark_element/vk.json"
+    pk_output = "zksnark_element/pk.raw"
+    vk_output = "zksnark_element/vk.json"
 
     # perform the trusted setup making hte proving key ,  verification key
     print("Generating keys")
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         else:
             signal = signal2
         print("Generating witness")
-        proof, root = genWitness(leaves, nullifier, sk, signal , signal_variables, external_nullifier, address, tree_depth, 0, "../zksnark_element/pk.raw", True)
+        proof, root = genWitness(leaves, nullifier, sk, signal , signal_variables, external_nullifier, address, tree_depth, 0, "zksnark_element/pk.raw", True)
         proofs.append(proof)
 
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     signal2_count = 0 
     for proof in proofs:
         print("Checking proof")
-        isTrue = checkProof("../zksnark_element/vk.raw", proof)
+        isTrue = checkProof("zksnark_element/vk.raw", proof)
         output = utils.libsnark2python(proof["input"])
         # Check the proof is correct
         assert(isTrue)

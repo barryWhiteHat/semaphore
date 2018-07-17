@@ -169,14 +169,14 @@ public:
         vk2json(keypair, vk);
 
         writeToFile(pk, keypair.pk);
-        writeToFile("../zksnark_element/vk.raw", keypair.vk); 
+        writeToFile("zksnark_element/vk.raw", keypair.vk); 
     }
 
-    char* prove(std::vector<merkle_authentication_node> path, int address, libff::bit_vector address_bits , 
+    r1cs_ppzksnark_proof<libff::alt_bn128_pp> prove(std::vector<merkle_authentication_node> path, int address, libff::bit_vector address_bits , 
                 libff::bit_vector _nullifier , libff::bit_vector secret , libff::bit_vector root,
                 libff::bit_vector _signal, libff::bit_vector _signal_variables, libff::bit_vector _external_nullifier , 
-                int fee, char* pk , bool isInt
-                ) { 
+                int fee, char* pk , bool isInt)
+    { 
 
         cm->generate_r1cs_witness(_nullifier);
         sk->generate_r1cs_witness(secret);
@@ -201,22 +201,20 @@ public:
         unpacker->generate_r1cs_witness_from_bits();
             
         r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair;
+        // TODO: verify file exists
         keypair.pk = loadFromFile<r1cs_ppzksnark_proving_key<alt_bn128_pp>> (pk);
-
-        pb.primary_input();
-        pb.auxiliary_input();
 
         r1cs_primary_input <FieldT> primary_input = pb.primary_input();
         std::cout << "primary_input " << primary_input;
         r1cs_auxiliary_input <FieldT> auxiliary_input = pb.auxiliary_input();
         r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = r1cs_ppzksnark_prover<libff::alt_bn128_pp>(keypair.pk, primary_input, auxiliary_input);
 
-        auto json = proof_to_json (proof, primary_input, isInt);     
+        return proof;
+    }
 
-        auto result = new char[json.size()];
-        memcpy(result, json.c_str(), json.size() + 1);     
-        return result; 
-
+    bool verify( r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> vk, r1cs_ppzksnark_primary_input <libff::alt_bn128_pp> primary_input )
+    {
+        return r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (vk, primary_input, proof);
     }
 };
 
@@ -331,21 +329,6 @@ bool verify( char* vk, char* _g_A_0, char* _g_A_1, char* _g_A_2 ,  char* _g_A_P_
     r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = r1cs_ppzksnark_proof<libff::alt_bn128_pp>(std::move(g_A), std::move(g_B), std::move(g_C), std::move(g1_H), std::move(g1_K));
   
     r1cs_ppzksnark_primary_input <libff::alt_bn128_pp> primary_input(0, 5);
-    libff::bigint<libff::alt_bn128_r_limbs> input0;
-    libff::bigint<libff::alt_bn128_r_limbs> input1;
-    libff::bigint<libff::alt_bn128_r_limbs> input2;
-    libff::bigint<libff::alt_bn128_r_limbs> input3;
-    libff::bigint<libff::alt_bn128_r_limbs> input4;
-    libff::bigint<libff::alt_bn128_r_limbs> input5;
-
-
-    input0 = bigint_r(_input0);
-    input1 = bigint_r(_input1);
-    input2 = bigint_r(_input2);
-    input3 = bigint_r(_input3);
-    input4 = bigint_r(_input4);
-    input4 = bigint_r(_input5);
-
 
     primary_input.resize(6);
     primary_input[0] = bigint_r(_input0);
@@ -357,11 +340,14 @@ bool verify( char* vk, char* _g_A_0, char* _g_A_1, char* _g_A_2 ,  char* _g_A_P_
 
 
     r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair;
+    // TODO: verify file exists
     keypair.vk = loadFromFile<r1cs_ppzksnark_verification_key<libff::alt_bn128_pp>> (vk);
-    r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof1 = loadFromFile<r1cs_ppzksnark_proof<libff::alt_bn128_pp>> ("../zksnark_element/proof.raw");
+
+    /*
+    r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof1 = loadFromFile<r1cs_ppzksnark_proof<libff::alt_bn128_pp>> ("zksnark_element/proof.raw");
     r1cs_ppzksnark_primary_input <libff::alt_bn128_pp> primary_input1(0, 5);
 
-    std::cout  << "outptu " << std::endl << outputPointG2AffineAsHex(proof.g_B.g) << std::endl << outputPointG2AffineAsHex(proof1.g_B.g) << std::endl;
+    std::cout  << "output " << std::endl << outputPointG2AffineAsHex(proof.g_B.g) << std::endl << outputPointG2AffineAsHex(proof1.g_B.g) << std::endl;
     bool test = proof == proof1;
     bool test0 = proof.g_A.g == proof1.g_A.g;
     bool test1 = proof.g_A.h == proof1.g_A.h;
@@ -373,8 +359,9 @@ bool verify( char* vk, char* _g_A_0, char* _g_A_1, char* _g_A_2 ,  char* _g_A_P_
     bool test7 = proof.g_K == proof1.g_K;
  
     std::cout << " test out " << test << test0 << test1 << test2<< test3<<test4<<test5<<test6<<test7;
-    return r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (keypair.vk, primary_input, proof);  
+    */
 
+    return r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (keypair.vk, primary_input, proof);
 }
 
 char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , bool _external_nullifier[256],  int _address, bool _address_bits[], int tree_depth, int fee, char* pk, bool isInt) { 
@@ -432,6 +419,10 @@ char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , 
 
     auto out = c.prove(path, address , address_bits, _nullifier, _secret, _root, signal, signal_variables, external_nullifier, fee, pk, isInt);
 
-    return(out); 
+    auto json = proof_to_json (out, c.pb.primary_input(), isInt);     
+
+    auto result = new char[json.size()];
+    memcpy(result, json.c_str(), json.size() + 1);     
+    return result; 
 }
 

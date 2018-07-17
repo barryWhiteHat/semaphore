@@ -74,12 +74,9 @@ def checkProof(vk, proof):
 
     primary_inputs = [ c.c_char_p(str(x).encode()) for x in proof["input"]]
 
-    try:
-        isTrue = verify(c.c_char_p(vk.encode()), g_a_0, g_a_1 , g_a_2, g_a_p_0, g_a_p_1 , g_a_p_2, g_b, g_b_p, g_c, g_c_p, g_h, g_k, primary_inputs)
-    except:
-        pdb.set_trace()
+    isTrue = verify(c.c_char_p(vk.encode()), g_a_0, g_a_1 , g_a_2, g_a_p_0, g_a_p_1 , g_a_p_2, g_b, g_b_p, g_c, g_c_p, g_h, g_k, primary_inputs)
 
-    return(isTrue)
+    return isTrue
     
 def genWitness(leaves, nullifier, sk, signal, signal_variables, external_nullifier, address, tree_depth, fee, pk_dir, isInt):
 

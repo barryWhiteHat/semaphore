@@ -1,3 +1,4 @@
 py-solc
 bitstring
 web3
+py_ecc

@@ -169,6 +169,7 @@ T loadFromFile(std::string path) {
     std::stringstream ss;
     std::ifstream fh(path, std::ios::binary);
 
+    // TODO: more useful error if file not found
     assert(fh.is_open());
 
     ss << fh.rdbuf();
