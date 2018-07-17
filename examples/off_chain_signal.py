@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # You use external_nullifier to enforce one person (merkle tree member) one vote
     external_nullifier = sha256("nomimatedSpokesPerson"+root+str(time.time()))
     # We use signal_variables as a nonce so that you can update your vote.
-    # But we do not implment this logic when counting votes as it makes to flow a little complicated
+    # But we do not implement this logic when counting votes as it makes to flow a little complicated
     signal_variables = sha256(str(1))
 
 
