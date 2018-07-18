@@ -1,50 +1,101 @@
+#include <cassert>
+
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 namespace pt = boost::property_tree;
+
+
+/**
+* Create a G1 point from X and Y coords (integers as strings)
+*
+* This assumes the coordinates are affine.
+*/
+template<typename ppT>
+typename ppT::G1_type create_G1(const char *in_X, const char *in_Y)
+{
+	// This assumes the coordinates are affine
+	typedef typename ppT::Fq_type Fq_T;
+	typedef typename ppT::G1_type G1_T;
+	return G1_T(Fq_T(in_X), Fq_T(in_Y), Fq_T("1"));
+}
+
+
+/**
+* Create a G2 point from 512bit big-endian X and Y coords (integers as strings)
+*
+* 	X.c1, X.c0, Y.c1, Y.c0
+*
+* This assumes the coordinates are affine.
+*/
+template<typename ppT>
+typename ppT::G2_type create_G2(const char *in_X_c1, const char *in_X_c0, const char *in_Y_c1, const char *in_Y_c0)
+{
+	typedef typename ppT::Fq_type Fq_T;
+	typedef typename ppT::Fqe_type Fq2_T;
+	typedef typename ppT::G2_type G2_T;
+
+	return G2_T(
+		Fq2_T(Fq_T(in_X_c0), Fq_T(in_X_c1)),
+		Fq2_T(Fq_T(in_Y_c0), Fq_T(in_Y_c1)),
+		Fq2_T(Fq_T("0"), Fq_T("1")));
+}
+
+
+/**
+* Retrieve all children of a given key as a vector of a given type
+*/
+template <typename T>
+std::vector<T> as_vector(pt::ptree const& in_tree, pt::ptree::key_type const& in_key)
+{
+	std::vector<T> vars;
+	for (auto& item : in_tree)
+		vars.push_back(item.second.get_value<T>());
+	return vars;
+}
+
+
+template<typename ppT>
+typename ppT::G1_type create_G1_from_ptree( pt::ptree &in_tree, const char *in_key )
+{
+	auto vars = as_vector<std::string>(in_tree, in_key);
+	assert(vars.size() >= 2);
+	return create_G1<ppT>(vars[0].c_str(), vars[1].c_str());
+}
+
+
+template<typename ppT>
+typename ppT::G2_type create_G2_from_ptree( pt::ptree &in_tree, const char *in_key )
+{
+	auto vars = as_vector<std::string>(in_tree, in_key);
+	assert(vars.size() >= 4);
+	return create_G2<ppT>(vars[0].c_str(), vars[1].c_str(), vars[2].c_str(), vars[3].c_str());
+}
+
 
 template<typename ppT>
 libsnark::r1cs_ppzksnark_verification_key<ppT> vk_from_tree( pt::ptree &in_tree )
 {
-	// Types for G1 points
-	typedef libff::alt_bn128_G1 g1_T;
-	typedef typename ppT::Fq_type Fq_T;
-
-	// Types for G2 points
-	typedef libff::alt_bn128_G2 g2_T;
-	typedef typename ppT::Fqe_type Fq2_T;
-
-	/* 'b': [2176926483688270737604805316604149338548240493746606043711627318561627294738,
-			 4335753396000479850511244511395459655604643962993127739109076544960626016058,
-			 6733379360687434701495634533645959788516357809577212658549681841828052113963,
-			 7936470743960650903017393429910639797545189564045419640593553489332135223906,
-			 0, 1],
-	*/
-	auto testg2 = g2_T(
-		Fq2_T(Fq_T("4335753396000479850511244511395459655604643962993127739109076544960626016058"), Fq_T("2176926483688270737604805316604149338548240493746606043711627318561627294738")),
-		Fq2_T(Fq_T("7936470743960650903017393429910639797545189564045419640593553489332135223906"), Fq_T("6733379360687434701495634533645959788516357809577212658549681841828052113963")),
-		Fq2_T(Fq_T("0"), Fq_T("1")));
-
 	// Array of IC G2 points
-	// a G2 point
-	// b G1 point
-	auto b = g1_T(Fq_T("1"), Fq_T("2"), Fq_T("1"));
-	// c G2 point
-	// g G2 point
-	// gb1 G1 point
-	auto gb1 = g1_T(Fq_T("1"), Fq_T("2"), Fq_T("1"));
-	// gb2 G2 point
-	// z G2 point
+
+	auto alphaA_g2 = create_G2_from_ptree<ppT>(in_tree, "a");
+	auto alphaB_g1 = create_G1_from_ptree<ppT>(in_tree, "b");
+	auto alphaC_g2 = create_G2_from_ptree<ppT>(in_tree, "c");
+	auto gamma_g2 = create_G2_from_ptree<ppT>(in_tree, "g");
+	auto gamma_beta_g1 = create_G1_from_ptree<ppT>(in_tree, "gb1");
+	auto gamma_beta_g2 = create_G2_from_ptree<ppT>(in_tree, "gb2");
+	auto rC_Z_g2 = create_G2_from_ptree<ppT>(in_tree, "z");
 }
 
+
 template<typename ppT>
-libsnark::r1cs_ppzksnark_verification_key<ppT> vk_from_json( std::string in_json )
+libsnark::r1cs_ppzksnark_verification_key<ppT> vk_from_json( std::stringstream &in_json )
 {
 	pt::ptree root;
 	pt::read_json(in_json, root);
 	return vk_from_tree<ppT>(root);
 }
+

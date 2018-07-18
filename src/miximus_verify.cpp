@@ -24,7 +24,7 @@ int main( int argc, char **argv )
 	}
 
 	// Read input file (or stdin) into vk_stream;
-	ostringstream vk_stream;
+	stringstream vk_stream;
 	if( 0 == ::strcmp(argv[1], "-") ) {
 		vk_stream << cin.rdbuf();
 	}
@@ -38,7 +38,7 @@ int main( int argc, char **argv )
 		vk_input.close();
 	}
 
-	auto vk = vk_from_json<ppT>(vk_stream.str());
+	auto vk = vk_from_json<ppT>(vk_stream);
 
 	return 0;
 }
