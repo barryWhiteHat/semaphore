@@ -2,10 +2,8 @@ language: python
 python:
   - "3.6"
 install:
-  - sudo apt-get install cmake make g++ libgmp-dev libboost-dev
-  - ls -la
-  - pwd
-  - env
+  - sudo make ubuntu-dependencies
+  - make requirements-dev
 script:
   - make
   - make test
