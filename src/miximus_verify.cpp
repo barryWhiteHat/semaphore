@@ -6,6 +6,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 #include "import.cpp"
+#include "export.cpp"
 
 using namespace std;
 
@@ -17,11 +18,13 @@ struct noop {
 
 int main( int argc, char **argv )
 {
-	if( argc < 2 )
+	if( argc < 3 )
 	{
 		::fprintf(stderr, "Usage: %s <vk.json> [proof.json]\n", argv[0]);
 		return 1;
 	}
+
+	libff::alt_bn128_pp::init_public_params();
 
 	// Read input file (or stdin) into vk_stream;
 	stringstream vk_stream;
@@ -39,6 +42,8 @@ int main( int argc, char **argv )
 	}
 
 	auto vk = vk_from_json<ppT>(vk_stream);
+
+	vk2json<ppT>(vk, argv[2]);
 
 	return 0;
 }

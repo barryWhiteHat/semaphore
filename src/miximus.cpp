@@ -166,7 +166,7 @@ public:
         r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair = generateKeypair(this->pb.get_constraint_system());
 
         //save keys
-        vk2json(keypair, vk);
+        vk2json<libff::alt_bn128_pp>(keypair.vk, vk);
 
         writeToFile(pk, keypair.pk);
         writeToFile("zksnark_element/vk.raw", keypair.vk); 

@@ -223,27 +223,29 @@ string proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_prima
     return(ss.str());
 }
 
-void vk2json(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, std::string path ) {
+
+template<typename ppT>
+void vk2json(r1cs_ppzksnark_verification_key<ppT> &vk, std::string path ) {
 
     std::stringstream ss;
     std::ofstream fh;
     fh.open(path, std::ios::binary);
-    unsigned icLength = keypair.vk.encoded_IC_query.rest.indices.size() + 1;
+    unsigned icLength = vk.encoded_IC_query.rest.indices.size() + 1;
     
     ss << "{\n";
-    ss << " \"a\" :[" << outputPointG2AffineAsHex(keypair.vk.alphaA_g2) << "],\n";
-    ss << " \"b\"  :[" << outputPointG1AffineAsHex(keypair.vk.alphaB_g1) << "],\n";
-    ss << " \"c\" :[" << outputPointG2AffineAsHex(keypair.vk.alphaC_g2) << "],\n";
-    ss << " \"g\" :[" << outputPointG2AffineAsHex(keypair.vk.gamma_g2)<< "],\n";
-    ss << " \"gb1\" :[" << outputPointG1AffineAsHex(keypair.vk.gamma_beta_g1)<< "],\n";
-    ss << " \"gb2\" :[" << outputPointG2AffineAsHex(keypair.vk.gamma_beta_g2)<< "],\n";
-    ss << " \"z\" :[" << outputPointG2AffineAsHex(keypair.vk.rC_Z_g2)<< "],\n";
+    ss << " \"a\" :[" << outputPointG2AffineAsHex(vk.alphaA_g2) << "],\n";
+    ss << " \"b\"  :[" << outputPointG1AffineAsHex(vk.alphaB_g1) << "],\n";
+    ss << " \"c\" :[" << outputPointG2AffineAsHex(vk.alphaC_g2) << "],\n";
+    ss << " \"g\" :[" << outputPointG2AffineAsHex(vk.gamma_g2)<< "],\n";
+    ss << " \"gb1\" :[" << outputPointG1AffineAsHex(vk.gamma_beta_g1)<< "],\n";
+    ss << " \"gb2\" :[" << outputPointG2AffineAsHex(vk.gamma_beta_g2)<< "],\n";
+    ss << " \"z\" :[" << outputPointG2AffineAsHex(vk.rC_Z_g2)<< "],\n";
 
-    ss <<  "\"IC\" :[[" << outputPointG1AffineAsHex(keypair.vk.encoded_IC_query.first) << "]";
+    ss <<  "\"IC\" :[[" << outputPointG1AffineAsHex(vk.encoded_IC_query.first) << "]";
     
     for (size_t i = 1; i < icLength; ++i)
     {   
-        auto vkICi = outputPointG1AffineAsHex(keypair.vk.encoded_IC_query.rest.values[i - 1]);
+        auto vkICi = outputPointG1AffineAsHex(vk.encoded_IC_query.rest.values[i - 1]);
         ss << ",[" <<  vkICi << "]";
     } 
     ss << "]";
@@ -253,6 +255,8 @@ void vk2json(r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair, std::string pa
     fh.flush();
     fh.close();
 }
+
+
 template<typename FieldT>
 //void dump_key(r1cs_constraint_system<FieldT> cs)
 char* dump_key(protoboard<FieldT> pb, std::string path)
@@ -267,7 +271,7 @@ char* dump_key(protoboard<FieldT> pb, std::string path)
     r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair = generateKeypair(pb.get_constraint_system());
 
     //save keys
-    vk2json(keypair, "vk.json");
+    vk2json(keypair.vk, "vk.json");
     writeToFile("../zksnark_element/pk.raw", keypair.pk);
     writeToFile("../zksnark_element/vk.raw", keypair.vk);
 

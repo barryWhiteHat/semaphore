@@ -58,10 +58,10 @@ std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)
 {
         libff::alt_bn128_G1 aff = _p;
         aff.to_affine_coordinates();
-        std::stringstream ss; 
-        ss << "0x"  << aff.X.as_bigint() << "," << aff.Y.as_bigint() << "," << aff.Z.as_bigint();    
+        //std::stringstream ss; 
+        //ss << "0x"  << aff.X.as_bigint() << "," << aff.Y.as_bigint() << "," << aff.Z.as_bigint();
 
-        return       "\"" + 
+        return       "\"0x" + 
                HexStringFromLibsnarkBigint(aff.X.as_bigint()) +
                 "\", \"0x"+
                 HexStringFromLibsnarkBigint(aff.Y.as_bigint()) +
