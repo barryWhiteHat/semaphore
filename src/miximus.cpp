@@ -23,7 +23,7 @@
 //hash
 
 #include <sha256/sha256_ethereum.cpp>
-#include <export.cpp>
+#include "export.cpp"
 #include "miximus.hpp"
 //key gen 
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp" //hold key

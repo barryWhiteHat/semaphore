@@ -16,9 +16,17 @@ add_executable(
   miximus_genKeys
   miximus_genKeys.cpp
 )
-
 target_link_libraries(
   miximus_genKeys
+  miximus
+)
+
+add_executable(
+  miximus_verify
+  miximus_verify.cpp
+)
+target_link_libraries(
+  miximus_verify
   miximus
 )
 

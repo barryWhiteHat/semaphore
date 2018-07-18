@@ -293,11 +293,7 @@ char* dump_key(protoboard<FieldT> pb, std::string path)
     auto result = new char[json.size()];
     memcpy(result, json.c_str(), json.size() + 1);
 
-
-
     return result;
-
-
 }
 
 
