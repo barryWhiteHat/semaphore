@@ -22,11 +22,11 @@ target_link_libraries(
 )
 
 add_executable(
-  miximus_verify
-  miximus_verify.cpp
+  verify
+  verify.cpp
 )
 target_link_libraries(
-  miximus_verify
+  verify
   miximus
 )
 

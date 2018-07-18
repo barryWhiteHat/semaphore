@@ -212,7 +212,7 @@ public:
         return proof;
     }
 
-    bool verify( r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> vk, r1cs_ppzksnark_primary_input <libff::alt_bn128_pp> primary_input )
+    bool verify( r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> vk, r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_ppzksnark_primary_input <libff::alt_bn128_pp> primary_input )
     {
         return r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (vk, primary_input, proof);
     }

@@ -2,6 +2,7 @@ language: python
 python:
   - "3.6"
 install:
+  - sudo apt-get update
   - sudo make ubuntu-dependencies
   - make requirements requirements-dev
 script:

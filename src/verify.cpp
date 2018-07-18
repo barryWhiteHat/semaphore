@@ -42,7 +42,6 @@ int main( int argc, char **argv )
 		vk_stream << vk_input.rdbuf();
 		vk_input.close();
 	}
-
 	auto vk = vk_from_json<ppT>(vk_stream);
 
 	// Load proof from JSON
@@ -54,12 +53,14 @@ int main( int argc, char **argv )
 	}
 	proof_stream << proof_input.rdbuf();
 	proof_input.close();
+	auto proof_pair = proof_from_json<ppT>(proof_stream);
 
-	auto proof = proof_from_json<ppT>(proof_stream);
+	auto status = r1cs_ppzksnark_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
+	if( status ) {
+		printf("OK\n");
+		return 0;
+	}
 
-	/*
-	vk2json<ppT>(vk, argv[2]);
-	*/
-
-	return 0;
+	fprintf(stderr, "FAIL\n");
+	return 1;
 }

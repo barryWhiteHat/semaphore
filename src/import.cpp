@@ -192,7 +192,7 @@ typename ppT::G2_type create_G2_from_ptree( pt::ptree &in_tree, const char *in_k
     assert(items.size() == 2);
 
     return create_G2<ppT>(items[0][0], items[0][1],
-                         items[1][0], items[1][1]);
+                          items[1][0], items[1][1]);
 }
 
 
@@ -200,7 +200,7 @@ typename ppT::G2_type create_G2_from_ptree( pt::ptree &in_tree, const char *in_k
 * Pair which represents a proof and its inputs
 */
 template <typename ppT>
-using ProofPairType = std::pair< libsnark::r1cs_ppzksnark_primary_input<ppT>, libsnark::r1cs_ppzksnark_proof<ppT> >;
+using InputProofPairType = std::pair< libsnark::r1cs_ppzksnark_primary_input<ppT>, libsnark::r1cs_ppzksnark_proof<ppT> >;
 
 
 /**
@@ -216,7 +216,7 @@ using ProofPairType = std::pair< libsnark::r1cs_ppzksnark_primary_input<ppT>, li
 *    "input": [N, N, N ...]}
 */
 template<typename ppT>
-ProofPairType<ppT> proof_from_tree( pt::ptree &in_tree )
+InputProofPairType<ppT> proof_from_tree( pt::ptree &in_tree )
 {
     typedef const libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT> > kc_G1G1_T;
     typedef const libsnark::knowledge_commitment<libff::G2<ppT>, libff::G1<ppT> > kc_G2G1_T;
@@ -237,7 +237,7 @@ ProofPairType<ppT> proof_from_tree( pt::ptree &in_tree )
 
     libsnark::r1cs_ppzksnark_proof<ppT> proof(std::move(A), std::move(B), std::move(C), std::move(h), std::move(k));
 
-    ProofPairType<ppT> out(input, proof);
+    InputProofPairType<ppT> out(input, proof);
 
     return out;
 }
@@ -247,7 +247,7 @@ ProofPairType<ppT> proof_from_tree( pt::ptree &in_tree )
 * Parse the witness/proof from a stream of JSON encoded data
 */
 template<typename ppT>
-ProofPairType<ppT> proof_from_json( std::stringstream &in_json )
+InputProofPairType<ppT> proof_from_json( std::stringstream &in_json )
 {
     pt::ptree root;
 
@@ -294,8 +294,7 @@ libsnark::r1cs_ppzksnark_verification_key<ppT> vk_from_tree( pt::ptree &in_tree 
         gamma_beta_g1,
         gamma_beta_g2,
         rC_Z_g2,
-        IC_vec
-        );
+        IC_vec);
 }
 
 
@@ -311,4 +310,3 @@ libsnark::r1cs_ppzksnark_verification_key<ppT> vk_from_json( std::stringstream &
 
     return vk_from_tree<ppT>(root);
 }
-
