@@ -144,7 +144,6 @@ class VerifyingKey(_VerifyingKeyStruct):
 
     def verify(self, proof):
         """Verify if a proof is correct for the given inputs"""
-
         if not isinstance(proof, Proof):
             raise TypeError("Invalid proof type")
 
