@@ -105,9 +105,9 @@ class Proof(_ProofStruct):
             val = in_data[name]
             if name == 'b':
                 # See note above about endian conversion
-                fields.append(_load_g2_point([val[:2], val[2:4]]))
+                fields.append(_load_g2_point(val))
             elif name == 'input':
-                fields.append(val)
+                fields.append([_filter_int(_) for _ in val])
             else:
                 fields.append(_load_g1_point(val[:2]))
         return cls(*fields)

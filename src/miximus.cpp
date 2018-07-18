@@ -175,7 +175,7 @@ public:
     r1cs_ppzksnark_proof<libff::alt_bn128_pp> prove(std::vector<merkle_authentication_node> path, int address, libff::bit_vector address_bits , 
                 libff::bit_vector _nullifier , libff::bit_vector secret , libff::bit_vector root,
                 libff::bit_vector _signal, libff::bit_vector _signal_variables, libff::bit_vector _external_nullifier , 
-                int fee, char* pk , bool isInt)
+                int fee, char* pk)
     { 
 
         cm->generate_r1cs_witness(_nullifier);
@@ -364,7 +364,7 @@ bool verify( char* vk, char* _g_A_0, char* _g_A_1, char* _g_A_2 ,  char* _g_A_P_
     return r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (keypair.vk, primary_input, proof);
 }
 
-char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , bool _external_nullifier[256],  int _address, bool _address_bits[], int tree_depth, int fee, char* pk, bool isInt) { 
+char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , bool _external_nullifier[256],  int _address, bool _address_bits[], int tree_depth, int fee, char* pk) { 
 
     libff::alt_bn128_pp::init_public_params();
     libff::bit_vector init(0,256);
@@ -392,7 +392,7 @@ char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , 
     std::cout << "tree depth: " << tree_depth << std::endl;
     for (int i =tree_depth - 1; i>=0 ; i--) {
         path[i] = init;
-        for (int j =0; j<sizeof(_path[0]); j++) {
+        for (size_t j =0; j<sizeof(_path[0]); j++) {
             path[i][j] = _path[i][j];
        }
     }
@@ -417,9 +417,9 @@ char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , 
     libff::alt_bn128_pp::init_public_params();
     Miximus<FieldT, sha256_ethereum> c(tree_depth);
 
-    auto out = c.prove(path, address , address_bits, _nullifier, _secret, _root, signal, signal_variables, external_nullifier, fee, pk, isInt);
+    auto out = c.prove(path, address , address_bits, _nullifier, _secret, _root, signal, signal_variables, external_nullifier, fee, pk);
 
-    auto json = proof_to_json (out, c.pb.primary_input(), isInt);     
+    auto json = proof_to_json (out, c.pb.primary_input());
 
     auto result = new char[json.size()];
     memcpy(result, json.c_str(), json.size() + 1);     

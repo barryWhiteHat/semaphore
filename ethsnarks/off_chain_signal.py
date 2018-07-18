@@ -32,8 +32,8 @@ if __name__ == "__main__":
     vk_output = "zksnark_element/vk.json"
 
     # perform the trusted setup making hte proving key ,  verification key
-    print("Generating keys")
-    genKeys(c.c_int(tree_depth), c.c_char_p(pk_output.encode()) , c.c_char_p(vk_output.encode()))
+    #print("Generating keys")
+    #genKeys(c.c_int(tree_depth), c.c_char_p(pk_output.encode()) , c.c_char_p(vk_output.encode()))
 
 
     #part 1 merkel tree setup which act as the census of the vote
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         else:
             signal = signal2
         print("Generating witness")
-        proof, root = genWitness(leaves, nullifier, sk, signal , signal_variables, external_nullifier, address, tree_depth, 0, "zksnark_element/pk.raw", True)
+        proof, root = genWitness(leaves, nullifier, sk, signal , signal_variables, external_nullifier, address, tree_depth, 0, "zksnark_element/pk.raw")
         proofs.append(proof)
 
 

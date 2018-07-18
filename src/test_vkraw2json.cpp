@@ -13,7 +13,6 @@ int main( int argc, char **argv )
 	}
 
 	auto vk = loadFromFile<r1cs_ppzksnark_verification_key<ppT>> (argv[1]);
-	writeToFile("test.raw", vk);
 	vk2json<ppT>(vk, argv[2]);
 
 	return 0;

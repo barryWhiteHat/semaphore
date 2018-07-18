@@ -36,7 +36,7 @@ lib = cdll.LoadLibrary('build/src/libmiximus.so')
 
 
 prove = lib.prove
-prove.argtypes = [((c.c_bool*256)*(tree_depth + 3)), (c.c_bool*256), (c.c_bool*256) , (c.c_bool*256), c.c_int, ((c.c_bool*tree_depth)), c.c_int, c.c_int, c.c_char_p, c.c_bool] 
+prove.argtypes = [((c.c_bool*256)*(tree_depth + 3)), (c.c_bool*256), (c.c_bool*256) , (c.c_bool*256), c.c_int, ((c.c_bool*tree_depth)), c.c_int, c.c_int, c.c_char_p] 
 prove.restype = c.c_char_p
 genKeys = lib.genKeys
 genKeys.argtypes = [c.c_int, c.c_char_p, c.c_char_p]
@@ -78,7 +78,7 @@ def checkProof(vk, proof):
 
     return isTrue
     
-def genWitness(leaves, nullifier, sk, signal, signal_variables, external_nullifier, address, tree_depth, fee, pk_dir, isInt):
+def genWitness(leaves, nullifier, sk, signal, signal_variables, external_nullifier, address, tree_depth, fee, pk_dir):
 
     path = []
     address_bits = []
@@ -111,7 +111,7 @@ def genWitness(leaves, nullifier, sk, signal, signal_variables, external_nullifi
     signal_variables = (c.c_bool*256) (*hexToBinary(signal_variables))
     external_nullifier = (c.c_bool*256) (*hexToBinary(external_nullifier))
     fee =  c.c_int(fee)
-    proof = prove(path, signal, signal_variables, external_nullifier, address, address_bits, tree_depth, fee,  c.c_char_p(pk_dir.encode()), c.c_bool(isInt))
+    proof = prove(path, signal, signal_variables, external_nullifier, address, address_bits, tree_depth, fee,  c.c_char_p(pk_dir.encode()))
     proof = json.loads(proof.decode("utf-8"))
 
     return(proof, root)

@@ -3,7 +3,7 @@ python:
   - "3.6"
 install:
   - sudo make ubuntu-dependencies
-  - make requirements-dev
+  - make requirements requirements-dev
 script:
   - make
   - make test

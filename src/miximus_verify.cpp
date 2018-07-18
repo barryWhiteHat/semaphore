@@ -20,11 +20,13 @@ int main( int argc, char **argv )
 {
 	if( argc < 3 )
 	{
-		::fprintf(stderr, "Usage: %s <vk.json> [proof.json]\n", argv[0]);
+		::fprintf(stderr, "Usage: %s <vk.json> <proof.json>\n", argv[0]);
 		return 1;
 	}
 
-	libff::alt_bn128_pp::init_public_params();
+	ppT::init_public_params();
+
+	// XXX: if argv[1] and argv[2] are both "-" do we read combined input from stdin?
 
 	// Read input file (or stdin) into vk_stream;
 	stringstream vk_stream;
@@ -43,7 +45,21 @@ int main( int argc, char **argv )
 
 	auto vk = vk_from_json<ppT>(vk_stream);
 
+	// Load proof from JSON
+	stringstream proof_stream;
+	ifstream proof_input(argv[2]);
+	if( ! proof_input ) {
+		::fprintf(stderr, "Error: cannot open %s\n", argv[2]);
+		return 3;
+	}
+	proof_stream << proof_input.rdbuf();
+	proof_input.close();
+
+	auto proof = proof_from_json<ppT>(proof_stream);
+
+	/*
 	vk2json<ppT>(vk, argv[2]);
+	*/
 
 	return 0;
 }

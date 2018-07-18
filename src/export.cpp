@@ -154,67 +154,32 @@ void r1cs_to_json(protoboard<FieldT> pb, uint input_variables, std::string path)
 }
 
 template<typename FieldT>
-string proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_primary_input<FieldT> input, bool isInt) {
-    std::cout << "proof.A = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.g)<< ");" << endl;
-    std::cout << "proof.A_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_A.h)<< ");" << endl;
-    std::cout << "proof.B = Pairing.G2Point(" << outputPointG2AffineAsHex(proof.g_B.g)<< ");" << endl;
-    std::cout << "proof.B_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_B.h)<<");" << endl;
-    std::cout << "proof.C = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.g)<< ");" << endl;
-    std::cout << "proof.C_p = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_C.h)<<");" << endl;
-    std::cout << "proof.H = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_H)<<");"<< endl;
-    std::cout << "proof.K = Pairing.G1Point(" << outputPointG1AffineAsHex(proof.g_K)<<");"<< endl; 
-
-
+string proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_primary_input<FieldT> input) {
     std::string path = "../zksnark_element/proof.json";
     std::stringstream ss;
     std::ofstream fh;
     fh.open(path, std::ios::binary);
-    if(isInt) { 
-        ss << "{\n";
-        ss << " \"a\" :[" << outputPointG1AffineAsInt(proof.g_A.g) << "],\n";
-        ss << " \"a_p\"  :[" << outputPointG1AffineAsInt(proof.g_A.h)<< "],\n";
-        ss << " \"b\"  :[" << outputPointG2AffineAsInt(proof.g_B.g)<< "],\n";
-        ss << " \"b_p\" :[" << outputPointG1AffineAsInt(proof.g_B.h)<< "],\n";
-        ss << " \"c\" :[" << outputPointG1AffineAsInt(proof.g_C.g)<< "],\n";
-        ss << " \"c_p\" :[" << outputPointG1AffineAsInt(proof.g_C.h)<< "],\n";
-        ss << " \"h\" :[" << outputPointG1AffineAsInt(proof.g_H)<< "],\n";
-        ss << " \"k\" :[" << outputPointG1AffineAsInt(proof.g_K)<< "],\n";
-        ss << " \"input\" :" << "["; //1 should always be the first variavle passed
 
-        for (size_t i = 0; i < input.size(); ++i)
-        {   
-            ss << input[i].as_bigint() ; 
-            if ( i < input.size() - 1 ) { 
-                ss<< ", ";
-            }
+    ss << "{\n";
+    ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A.g) << "],\n";
+    ss << " \"a_p\"  :[" << outputPointG1AffineAsHex(proof.g_A.h)<< "],\n";
+    ss << " \"b\"  :[" << outputPointG2AffineAsHex(proof.g_B.g)<< "],\n";
+    ss << " \"b_p\" :[" << outputPointG1AffineAsHex(proof.g_B.h)<< "],\n";
+    ss << " \"c\" :[" << outputPointG1AffineAsHex(proof.g_C.g)<< "],\n";
+    ss << " \"c_p\" :[" << outputPointG1AffineAsHex(proof.g_C.h)<< "],\n";
+    ss << " \"h\" :[" << outputPointG1AffineAsHex(proof.g_H)<< "],\n";
+    ss << " \"k\" :[" << outputPointG1AffineAsHex(proof.g_K)<< "],\n";
+    ss << " \"input\" :" << "["; //1 should always be the first variavle passed
+
+    for (size_t i = 0; i < input.size(); ++i)
+    {   
+        ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\""; 
+        if ( i < input.size() - 1 ) { 
+            ss<< ", ";
         }
-        ss << "]\n";
-        ss << "}";
     }
-    else {
-
-        ss << "{\n";
-        ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A.g) << "],\n";
-        ss << " \"a_p\"  :[" << outputPointG1AffineAsHex(proof.g_A.h)<< "],\n";
-        ss << " \"b\"  :[" << outputPointG2AffineAsHex(proof.g_B.g)<< "],\n";
-        ss << " \"b_p\" :[" << outputPointG1AffineAsHex(proof.g_B.h)<< "],\n";
-        ss << " \"c\" :[" << outputPointG1AffineAsHex(proof.g_C.g)<< "],\n";
-        ss << " \"c_p\" :[" << outputPointG1AffineAsHex(proof.g_C.h)<< "],\n";
-        ss << " \"h\" :[" << outputPointG1AffineAsHex(proof.g_H)<< "],\n";
-        ss << " \"k\" :[" << outputPointG1AffineAsHex(proof.g_K)<< "],\n";
-        ss << " \"input\" :" << "["; //1 should always be the first variavle passed
-
-        for (size_t i = 0; i < input.size(); ++i)
-        {   
-            ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\""; 
-            if ( i < input.size() - 1 ) { 
-                ss<< ", ";
-            }
-        }
-        ss << "]\n";
-        ss << "}";
-    }
-
+    ss << "]\n";
+    ss << "}";
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::out);
     fh << ss.rdbuf();
