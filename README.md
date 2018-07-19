@@ -4,6 +4,8 @@ This is a collection of zkSNARK circuits and libraries to use them with Ethereum
 
 ## Building
 
+[![Build Status](https://travis-ci.org/HarryR/ethsnarks.svg?branch=master)](https://travis-ci.org/HarryR/ethsnarks)
+
 Type `make` - the first time you run it will retrieve submodules, setup cmake and build everything.
 
 The following dependencies (for Linux) are needed:
