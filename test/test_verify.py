@@ -37,7 +37,7 @@ class VerifyTests(unittest.TestCase):
     def test_load(self):
         vk = VerifyingKey.from_dict(VK_STATIC)
 
-    #"""
+    """
     def test_verify_python(self):
         # Static test data for proof verification
         proof_data = {
@@ -60,7 +60,7 @@ class VerifyTests(unittest.TestCase):
         proof = Proof.from_dict(proof_data)
         vk = VerifyingKey.from_dict(VK_STATIC)
         vk.verify(proof)
-    #"""
+    """
 
     #"""
     def test_proof_gen(self):

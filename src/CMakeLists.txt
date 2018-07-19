@@ -49,6 +49,16 @@ target_link_libraries(
   miximus
 )
 
+
+add_executable(
+  test_proof_raw2json
+  test_proof_raw2json.cpp
+)
+target_link_libraries(
+  test_proof_raw2json
+  miximus
+)
+
 set_property(TARGET miximus PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(

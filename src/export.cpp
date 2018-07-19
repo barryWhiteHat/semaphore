@@ -153,10 +153,11 @@ void r1cs_to_json(protoboard<FieldT> pb, uint input_variables, std::string path)
     fh.close();
 }
 
-template<typename FieldT>
-string proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_primary_input<FieldT> input) {
-    std::string path = "../zksnark_element/proof.json";
+template<typename ppT>
+string proof_to_json(r1cs_ppzksnark_proof<ppT> &proof, r1cs_primary_input<libff::Fr<ppT>> &input) {
     std::stringstream ss;
+
+    std::string path = "proof-test1234.json";
     std::ofstream fh;
     fh.open(path, std::ios::binary);
 
@@ -182,9 +183,11 @@ string proof_to_json(r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_prima
     ss << "}";
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::out);
+
     fh << ss.rdbuf();
     fh.flush();
     fh.close();
+
     return(ss.str());
 }
 

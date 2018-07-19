@@ -55,6 +55,8 @@ int main( int argc, char **argv )
 	proof_input.close();
 	auto proof_pair = proof_from_json<ppT>(proof_stream);
 
+	std::cout << proof_to_json<ppT>(proof_pair.second, proof_pair.first) << "\n";
+
 	auto status = r1cs_ppzksnark_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
 	if( status ) {
 		printf("OK\n");

@@ -47,6 +47,11 @@ coverage-html:
 
 #######################################################################
 
+python-dependencies: requirements requirements-dev
+
+requirements:
+	$(PYTHON) -m pip install -r requirements.txt
+
 requirements-dev:
 	$(PYTHON) -m pip install -r requirements-dev.txt
 

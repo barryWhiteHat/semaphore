@@ -4,7 +4,7 @@ python:
 install:
   - sudo apt-get update
   - sudo make ubuntu-dependencies
-  - make requirements requirements-dev
+  - make python-dependencies
 script:
   - make
   - make test

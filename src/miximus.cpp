@@ -24,6 +24,7 @@
 
 #include <sha256/sha256_ethereum.cpp>
 #include "export.cpp"
+#include "import.cpp"
 #include "miximus.hpp"
 //key gen 
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp" //hold key
@@ -419,7 +420,58 @@ char* prove(bool _path[][256], bool _signal[256], bool _signal_variables[256] , 
 
     auto out = c.prove(path, address , address_bits, _nullifier, _secret, _root, signal, signal_variables, external_nullifier, fee, pk);
 
-    auto json = proof_to_json (out, c.pb.primary_input());
+    auto primary_input = c.pb.primary_input();
+
+    // Test verify
+    r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair;
+    keypair.vk = loadFromFile<r1cs_ppzksnark_verification_key<libff::alt_bn128_pp>> ("zksnark_element/vk.raw");
+
+    auto verify_status = r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (keypair.vk, primary_input, out);
+    if( ! verify_status ) {
+        std::cout << "\nProof Verification failed!\n";
+    }
+
+    writeToFile("proof-1234.raw", out); 
+
+    auto json = proof_to_json(out, primary_input);
+    std::stringstream json_ss(json);
+
+    auto proof_pair = proof_from_json<libff::alt_bn128_pp>(json_ss);
+
+    if( proof_pair.first != primary_input ) {
+        std::cout << "\nInput mismatch\n";
+    }
+
+    auto proof2 = proof_pair.second;
+
+    if( ! (proof2 == out) ) {
+        std::cout << "\nProof data mismatch\n";
+    }
+
+    if( ! (proof2.g_A == out.g_A) ) {
+        std::cout << "\nProof g_A mismatch!\n";
+    }
+
+    if( ! (proof2.g_B == out.g_B) ) {
+        std::cout << "\nProof g_B mismatch!\n";
+    }
+
+    if( ! (proof2.g_C == out.g_C) ) {
+        std::cout << "\nProof g_C mismatch!\n";
+    }
+
+    if( ! (proof2.g_H == out.g_H) ) {
+        std::cout << "\nProof g_H mismatch!\n";
+    }
+
+    if( ! (proof2.g_K == out.g_K) ) {
+        std::cout << "\nProof g_K mismatch!\n";
+    }
+
+    auto verify_status2 = r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (keypair.vk, proof_pair.first, proof_pair.second);
+    if( ! verify_status2 ) {
+        std::cout << "\nProof (after load from JSON) Verification failed!\n";
+    }
 
     auto result = new char[json.size()];
     memcpy(result, json.c_str(), json.size() + 1);     

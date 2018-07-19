@@ -105,7 +105,7 @@ typename ppT::G2_type create_G2(std::string &in_X_c1, std::string &in_X_c0, std:
     return G2_T(
         Fq2_T(parse_Fq<ppT>(in_X_c0), parse_Fq<ppT>(in_X_c1)),
         Fq2_T(parse_Fq<ppT>(in_Y_c0), parse_Fq<ppT>(in_Y_c1)),
-        Fq2_T(Fq_T("0"), Fq_T("1")));   // Z is hard-coded, coordinates are affine
+        Fq2_T(Fq_T("1"), Fq_T("0")));   // Z is hard-coded, coordinates are affine
 
     // TODO: verify well_formed
 }
@@ -235,7 +235,12 @@ InputProofPairType<ppT> proof_from_tree( pt::ptree &in_tree )
     auto B = kc_G2G1_T(b, b_p);
     auto C = kc_G1G1_T(c, c_p);
 
-    libsnark::r1cs_ppzksnark_proof<ppT> proof(std::move(A), std::move(B), std::move(C), std::move(h), std::move(k));
+    libsnark::r1cs_ppzksnark_proof<ppT> proof(
+        std::move(A),
+        std::move(B),
+        std::move(C),
+        std::move(h),
+        std::move(k));
 
     InputProofPairType<ppT> out(input, proof);
 
