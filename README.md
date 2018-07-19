@@ -2,11 +2,18 @@
 
 This is a collection of zkSNARK circuits and libraries to use them with Ethereum smart contracts.
 
+It aims to:
+
+ * support creating proofs using 'common-spec' smart phones
+ * be very easy for developers to integrate into their projects
+ * be easily auditable, have comprehensive code coverage and automagic tests
+ * support a wide variety of use cases, flexibly
+
 ## Building
 
 [![Build Status](https://travis-ci.org/HarryR/ethsnarks.svg?branch=master)](https://travis-ci.org/HarryR/ethsnarks)
 
-Type `make` - the first time you run it will retrieve submodules, setup cmake and build everything.
+Type `make` - the first time you run it will retrieve submodules, setup cmake and build everything, for more information about the build process see the Travis logs.
 
 The following dependencies (for Linux) are needed:
 
@@ -15,6 +22,7 @@ The following dependencies (for Linux) are needed:
  * g++ or clang++
  * gmp
  * boost
+ * npm / nvm
 
 # Components
 

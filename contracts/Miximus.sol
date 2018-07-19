@@ -26,7 +26,9 @@ contract Miximus{
     mapping (bytes32 => bool) nullifiers;
     event Withdraw (address); 
     Verifier public zksnark_verify;
-    function Miximus (address _zksnark_verify, bytes32 _root) {
+
+
+    constructor (address _zksnark_verify, bytes32 _root) {
         zksnark_verify = Verifier(_zksnark_verify);
         root = _root;
     }

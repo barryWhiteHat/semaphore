@@ -8,3 +8,5 @@ src/Makefile
 __pycache__
 .coverage
 .coverage.*
+/node_modules
+package-lock.json

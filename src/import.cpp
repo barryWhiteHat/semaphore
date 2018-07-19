@@ -33,6 +33,7 @@ FieldT parse_F(std::string &input)
     assert( input != NULL );
     ::mpz_init(value);
 
+    // the '0' flag means auto-detect, e.g. '0x' or '0b' prefix for hex/binary
     value_error = ::mpz_set_str(value, input.c_str(), 0);
     assert( ! value_error );    // XXX: abort on error?
 

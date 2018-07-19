@@ -34,7 +34,7 @@ library Pairing {
         return G1Point(p.X, q - (p.Y % q));
     }
     /// @return the sum of two points of G1
-    function add(G1Point p1, G1Point p2) internal returns (G1Point r) {
+    function pointAdd(G1Point p1, G1Point p2) internal returns (G1Point r) {
         uint[4] memory input;
         input[0] = p1.X;
         input[1] = p1.Y;
@@ -50,7 +50,7 @@ library Pairing {
     }
     /// @return the product of a point on G1 and a scalar, i.e.
     /// p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
-    function mul(G1Point p, uint s) internal returns (G1Point r) {
+    function pointMul(G1Point p, uint s) internal returns (G1Point r) {
         uint[3] memory input;
         input[0] = p.X;
         input[1] = p.Y;
