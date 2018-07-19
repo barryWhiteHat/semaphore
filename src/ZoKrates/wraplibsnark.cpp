@@ -38,27 +38,30 @@ libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(const uint8_t* _
 std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> _x){
     uint8_t x[32];
     for (unsigned i = 0; i < 4; i++)
-        for (unsigned j = 0; j < 8; j++)
-                        x[i * 8 + j] = uint8_t(uint64_t(_x.data[3 - i]) >> (8 * (7 - j)));
-
-        std::stringstream ss;
-        ss << std::setfill('0');
-        for (unsigned i = 0; i<32; i++) {
-                ss << std::hex << std::setw(2) << (int)x[i];
+    {
+        for (unsigned j = 0; j < 8; j++) {          
+            x[i * 8 + j] = uint8_t(uint64_t(_x.data[3 - i]) >> (8 * (7 - j)));
         }
+    }
 
-                std:string str = ss.str();
-                return str.erase(0, min(str.find_first_not_of('0'), str.size()-1));
+    std::stringstream ss;
+    ss << std::setfill('0');
+    for (unsigned i = 0; i<32; i++) {
+        ss << std::hex << std::setw(2) << (int)x[i];
+    }
+
+    std::string str = ss.str();
+    return str.erase(0, min(str.find_first_not_of('0'), str.size()-1));
 }
 
 std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)
 {
         libff::alt_bn128_G1 aff = _p;
         aff.to_affine_coordinates();
-        std::stringstream ss; 
-        ss << "0x"  << aff.X.as_bigint() << "," << aff.Y.as_bigint() << "," << aff.Z.as_bigint();    
+        //std::stringstream ss; 
+        //ss << "0x"  << aff.X.as_bigint() << "," << aff.Y.as_bigint() << "," << aff.Z.as_bigint();
 
-        return       "\"" + 
+        return       "\"0x" + 
                HexStringFromLibsnarkBigint(aff.X.as_bigint()) +
                 "\", \"0x"+
                 HexStringFromLibsnarkBigint(aff.Y.as_bigint()) +
@@ -169,6 +172,7 @@ T loadFromFile(std::string path) {
     std::stringstream ss;
     std::ifstream fh(path, std::ios::binary);
 
+    // TODO: more useful error if file not found
     assert(fh.is_open());
 
     ss << fh.rdbuf();

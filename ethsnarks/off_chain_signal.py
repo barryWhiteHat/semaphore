@@ -17,31 +17,31 @@
     along with Semaphore.  If not, see <https://www.gnu.org/licenses/>.
 '''
 
-import sys
-sys.path.insert(0, '../snarkWrapper')
-from deploy import *
-from helpers import initMerkleTree
-from utils import genMerkelTree, sha256
 import hashlib
 import time
 import random
 
+from .deploy import *
+from .helpers import initMerkleTree
+from .utils import genMerkelTree, sha256
+
 
 if __name__ == "__main__":
 
-    pk_output = "../zksnark_element/pk.raw"
-    vk_output = "../zksnark_element/vk.json"
+    pk_output = "zksnark_element/pk.raw"
+    vk_output = "zksnark_element/vk.json"
 
     # perform the trusted setup making hte proving key ,  verification key
-    genKeys(c.c_int(tree_depth), c.c_char_p(pk_output.encode()) , c.c_char_p(vk_output.encode()))
+    #print("Generating keys")
+    #genKeys(c.c_int(tree_depth), c.c_char_p(pk_output.encode()) , c.c_char_p(vk_output.encode()))
 
 
     #part 1 merkel tree setup which act as the census of the vote
     #make merkel Tree with 10 members
     #This is a trusted part but it can be varified by the users before teh 
     
-    leaves, nullifiers, sks = initMerkleTree(5) 
-    root, layers = genMerkelTree(29, leaves) 
+    leaves, nullifiers, sks = initMerkleTree(2) 
+    root, layers = genMerkelTree(tree_depth, leaves) 
 
     #part 2 definition of the vote properties.
     # You "sign" signal 1 to vote for canditate 1
@@ -64,14 +64,16 @@ if __name__ == "__main__":
             signal = signal1
         else:
             signal = signal2
-        proof, root = genWitness(leaves, nullifier, sk, signal , signal_variables, external_nullifier, address, tree_depth, 0, "../zksnark_element/pk.raw", True)
+        print("Generating witness")
+        proof, root = genWitness(leaves, nullifier, sk, signal , signal_variables, external_nullifier, address, tree_depth, 0, "zksnark_element/pk.raw")
         proofs.append(proof)
 
 
     signal1_count = 0
     signal2_count = 0 
     for proof in proofs:
-        isTrue = checkProof("../zksnark_element/vk.raw", proof)
+        print("Checking proof")
+        isTrue = checkProof("zksnark_element/vk.raw", proof)
         output = utils.libsnark2python(proof["input"])
         # Check the proof is correct
         assert(isTrue)

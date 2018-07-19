@@ -18,12 +18,8 @@
 '''
 
 
-
-import sys
-sys.path.insert(0, '../snarkWrapper')
-
-import utils
-from deploy import genSalt
+from .utils import hashPadded
+from .deploy import genSalt
 
 
 def initMerkleTree(i):
@@ -33,5 +29,5 @@ def initMerkleTree(i):
     for j in range (0,i):
         nullifiers.append("0x" + genSalt(64))
         sks.append("0x" + genSalt(64))
-        leaves.append(utils.hashPadded(nullifiers[j], sks[j]))
+        leaves.append(hashPadded(nullifiers[j], sks[j]))
     return(leaves, nullifiers, sks)

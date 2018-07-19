@@ -17,17 +17,13 @@
     along with Semaphore.  If not, see <https://www.gnu.org/licenses/>.
 '''
 
-
-import sys
-sys.path.insert(0, '../snarkWrapper')
-
-
-from deploy import *
+from ethsnarks.deploy import *
+from ethsnarks.utils import hashPadded, libsnark2python
 
 if __name__ == "__main__":
 
-    pk_output = "../zksnark_element/pk.raw"
-    vk_output = "../zksnark_element/vk.json"
+    pk_output = "zksnark_element/pk.raw"
+    vk_output = "zksnark_element/vk.json"
 
     genKeys(c.c_int(tree_depth), c.c_char_p(pk_output.encode()) , c.c_char_p(vk_output.encode())) 
     nullifiers = []
@@ -41,20 +37,20 @@ if __name__ == "__main__":
         signal = ("0x" + genSalt(64))
         signal_variables = ("0x" + genSalt(64))
         external_nullifier = ("0x" + genSalt(64))
-        leaves.append(utils.hashPadded(nullifiers[j], sks[j]))
+        leaves.append(hashPadded(nullifiers[j], sks[j]))
     
     for address, (nullifier , sk) in enumerate(zip(nullifiers, sks)):
 
         proof, root = genWitness(leaves, nullifier, sk, signal , signal_variables, external_nullifier, address, tree_depth, fee, "../zksnark_element/pk.raw", True)              
         isTrue = checkProof("../zksnark_element/vk.raw", proof)
-        output = utils.libsnark2python(proof["input"])
+        output = libsnark2python(proof["input"])
         try:
             assert(isTrue)
             assert(output[0] == root)
             assert(output[1] == signal) 
             assert(output[2] == signal_variables)
             assert(output[3] == external_nullifier)
-            assert(utils.hashPadded(nullifier, output[3]) == output[4])
+            assert(hashPadded(nullifier, output[3]) == output[4])
         except:
             pdb.set_trace()
 

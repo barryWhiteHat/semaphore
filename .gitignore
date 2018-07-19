@@ -1,11 +1,10 @@
-CMakeCache.txt
-CMakeFiles/
+build/
+*.pyc
 *.swp
 *.swo
-/Makefile
 depends/Makefile
 *.pc
 src/Makefile
-cmake_install.cmake
-src/*.so
 __pycache__
+.coverage
+.coverage.*

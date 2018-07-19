@@ -1,0 +1,12 @@
+language: python
+python:
+  - "3.6"
+install:
+  - sudo apt-get update
+  - sudo make ubuntu-dependencies
+  - make python-dependencies
+script:
+  - make
+  - make test
+after_success:
+  - make coverage

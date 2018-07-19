@@ -17,18 +17,14 @@
     along with Semaphore.  If not, see <https://www.gnu.org/licenses/>.
 '''
 
-import sys
-sys.path.insert(0, '../snarkWrapper')
-from deploy import *
-from helpers import initMerkleTree
-from utils import genMerkelTree, sha256
 import hashlib
 import time
 import random
 
-
-sys.path.insert(0, '../contracts')
-from contract_deploy import *  
+from .deploy import *
+from .helpers import initMerkleTree
+from .utils import genMerkelTree, sha256
+from .contract_deploy import *  
 
 if __name__ == "__main__":
 
