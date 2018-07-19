@@ -18,6 +18,19 @@ _ProofStruct = namedtuple('_ProofStruct',
     ('a', 'a_p', 'b', 'b_p', 'c', 'c_p', 'k', 'h', 'input'))
 
 
+class CustomEncoder(json.JSONEncoder):
+    """Encodes FQ and FQ2 elements in same format as native library and Ethereum"""
+    def default(self, o):
+        if isinstance(o, FQ2):
+            c0hex = hex(o.coeffs[0].n)
+            c1hex = hex(o.coeffs[1].n)
+            return [c1hex, c0hex]
+        elif isinstance(o, FQ):
+            return hex(o.n)
+        else:
+            raise RuntimeError("Unknown type", (type(o), o))
+
+
 def _bigint_bytes_to_int(x):
     """Convert big-endian bytes to integer"""
     return reduce(lambda o, b: (o << 8) + b if isinstance(b, int) else ord(b), [0] + list(x))
@@ -88,7 +101,7 @@ class Proof(_ProofStruct):
     """
 
     def to_json(self):
-        return json.dumps(self._asdict())
+        return json.dumps(self._asdict(), cls=CustomEncoder)
 
     @classmethod
     def from_dict(cls, in_data):
@@ -118,7 +131,7 @@ class VerifyingKey(_VerifyingKeyStruct):
 
     def to_json(self):
         # TODO: encode fields as hex
-        return json.dumps(self._asdict())
+        return json.dumps(self._asdict(), cls=CustomEncoder)
 
     @classmethod
     def from_file(cls, filename):

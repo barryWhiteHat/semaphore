@@ -2,10 +2,11 @@
 #include "import.cpp"
 #include "ZoKrates/wraplibsnark.hpp"
 
-typedef libff::alt_bn128_pp ppT;
 
 int main( int argc, char **argv )
 {
+	typedef libff::alt_bn128_pp ppT;
+
 	ppT::init_public_params();
 
 	if( argc < 3 ) {
@@ -31,7 +32,7 @@ int main( int argc, char **argv )
 
 	// Verify serialisation is correct
 	if( ! (proof_json.second == proof) ) {
-		cout << "FAIL (proof)\n";
+		cout << "FAIL\n";
 		return 1;
 	}
 

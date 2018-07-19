@@ -27,7 +27,7 @@ add_executable(
 )
 target_link_libraries(
   verify
-  miximus
+  snark
 )
 
 
@@ -60,6 +60,14 @@ target_link_libraries(
 )
 
 set_property(TARGET miximus PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(
+  verify
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libff
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
 
 target_include_directories(
   miximus
