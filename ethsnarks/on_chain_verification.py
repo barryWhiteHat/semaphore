@@ -22,7 +22,6 @@ import time
 import random
 
 from .deploy import *
-from .helpers import initMerkleTree
 from .utils import genMerkelTree, sha256
 from .contract_deploy import *  
 

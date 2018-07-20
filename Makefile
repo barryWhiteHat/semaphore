@@ -83,6 +83,7 @@ zksnark_element/pk.json: ./build/src/miximus_genKeys
 
 #######################################################################
 
+
 nvm-install:
 	./utils/nvm-install
 	nvm install --lts
@@ -100,3 +101,13 @@ truffle-test: $(TRUFFLE)
 
 truffle-compile: $(TRUFFLE)
 	$(TRUFFLE) compile
+
+
+#######################################################################
+
+
+python-pyflakes:
+	$(PYTHON) -mpyflakes $(NAME)
+
+python-pylint:
+	$(PYTHON) -mpylint $(NAME)

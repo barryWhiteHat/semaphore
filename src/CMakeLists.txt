@@ -22,6 +22,10 @@ add_executable(test_vk_raw2json test_vk_raw2json.cpp)
 target_link_libraries(test_vk_raw2json snark)
 
 
+add_executable(test_load_proofkey test_load_proofkey.cpp)
+target_link_libraries(test_load_proofkey snark)
+
+
 add_executable(test_proof_raw2json test_proof_raw2json.cpp)
 target_link_libraries(test_proof_raw2json snark)
 

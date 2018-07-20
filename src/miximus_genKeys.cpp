@@ -6,7 +6,7 @@
 int main( int argc, char **argv )
 {
 	if( argc < 4 ) {
-		fprintf(stderr, "Usage: %s <tree-depth> <pk-output.json> <vk-output.json>\n", argv[0]);
+		fprintf(stderr, "Usage: %s <tree-depth> <pk-output.raw> <vk-output.json>\n", argv[0]);
 		return 1;
 	}
 

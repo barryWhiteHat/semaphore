@@ -3,7 +3,7 @@ import json
 
 from ..verifier import Proof
 
-from .utils import g2_to_sol, g1_to_sol, fq_to_sol
+from .utils import g2_to_sol, g1_to_sol
 
 
 def main(vk_filename, name='_getStaticProof'):

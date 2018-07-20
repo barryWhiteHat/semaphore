@@ -4,13 +4,8 @@ import time
 import random
 
 from ethsnarks.verifier import VerifyingKey, Proof
-from ethsnarks.deploy import genWitness, tree_depth, verify
-from ethsnarks.helpers import initMerkleTree
-from ethsnarks.utils import genMerkelTree, sha256
+from ethsnarks.deploy import native_verify
 
-
-VK_FILENAME = 'zksnark_element/vk.json'
-PK_FILENAME = 'zksnark_element/pk.json'
 
 VK_STATIC = {
  "a" :[["0xd5aabf07943df51a3bb40b84a4379291cbec540ff959a1f5b23630a0012e8f2", "0x686b4f193e8bd85536d66ca633239cc3dab8c4e844bc9d56f00ab1e09ac3f0f"],
@@ -53,42 +48,18 @@ class VerifyTests(unittest.TestCase):
         self.assertEqual(vk, vk2)
 
     def test_verify_native(self):
+        """Verify using fast native library"""
         vk = VerifyingKey.from_dict(VK_STATIC)
         proof = Proof.from_dict(PROOF_STATIC)
-        self.assertTrue(verify(vk.to_json(), proof.to_json()))
+        self.assertTrue(native_verify(vk.to_json(), proof.to_json()))
 
     """
     def test_verify_python(self):
-        # Static test data for proof verification
-        
-        proof = Proof.from_dict(proof_data)
+        # Verify using sloooow python implementation
         vk = VerifyingKey.from_dict(VK_STATIC)
-        vk.verify(proof)
+        proof = Proof.from_dict(PROOF_STATIC)
+        self.assertTrue(vk.verify(proof))
     """
-
-    #"""
-    def test_proof_gen(self):
-        leaves, nullifiers, sks = initMerkleTree(2) 
-        root, layers = genMerkelTree(tree_depth, leaves)
-        signal_variables = sha256(str(1))
-        external_nullifier = sha256("nomimatedSpokesPerson"+root+str(time.time()))
-        signal1 = sha256({"NomimatedSpokesPersonFor":root , "candidate": "Candidate1" })
-        proof = None
-
-        with open('zksnark_element/vk.json', 'r') as handle:
-            vk = VerifyingKey.from_dict(json.load(handle))
-
-        for address, (nullifier , sk) in enumerate(zip(nullifiers, sks)):
-            rand = int(random.uniform(1, 3)) 
-            print("Generating witness")
-            proof_data, proof_root = genWitness(leaves, nullifier, sk, signal1 , signal_variables, external_nullifier, address, tree_depth, 0, PK_FILENAME)
-            proof = Proof.from_dict(proof_data)
-            print("Proof:", proof)
-            self.assertTrue(verify(vk.to_json(), proof.to_json()))
-            with open('zksnark_element/proof.json', 'w') as handle:
-                handle.write(proof.to_json())
-            break
-    #"""
 
 if __name__ == "__main__":
     unittest.main()
