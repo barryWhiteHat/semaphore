@@ -7,17 +7,18 @@ contract TestVerifier
 {
 	function testVerifyProof () public
 	{
-		Verifier.Proof memory proof = _getStaticProof();
-		Verifier.VerifyingKey memory vk = _getVerifyingKey();
+		Verifier.Proof memory proof;
+		_getStaticProof(proof);
+
+		Verifier.VerifyingKey memory vk;
+		_getVerifyingKey(vk);
 
 		Assert.equal(Verifier.Verify(vk, proof), 0, "Verification failed");
 	}
 
-	function _getVerifyingKey ()
-		internal pure returns (Verifier.VerifyingKey memory)
+	function _getVerifyingKey (Verifier.VerifyingKey memory vk)
+		internal pure
 	{
-		Verifier.VerifyingKey memory vk;
-
 		vk.A = Pairing.G2Point([0x15db410ed85d147107bf18189f702db5732c5f8449f849100fc45c30848c75d1, 0x285524a0e41ff88d4e57f2c8c971cae8cb35b031696466cedb858d1532c2ea4f], [0x1b7489842ff2554309e44ce63e4cb66fdcc4c3a83bc400f6834205a4be09046a, 0x1797aa701401a69b906795d22b5d41e4cb33bed662fbe8895cc434ccd9d5be1a]);
 		vk.C = Pairing.G2Point([0x27e8238b4796cb309f7d46e185e28ef3c07fb595294c6961edf1dad98e2a78db, 0xcbbeef3c5c19c09c48a1de8220fe33458be7c5e6fb8bdf19d3e629fa36e5c9c], [0x11e8b35561297a87ed558eff4611ee0d058b44e60845231de140e3eccdb8c452, 0x2a10fb04d7749f4a49723ce29610ada523b28c1666f13fe732fce5cce467bcf]);
 		vk.gamma = Pairing.G2Point([0x57003511bcfa952f92c48fdc76aa145f0e01707b3478299f590ad6f991abb4e, 0xcae8d1b4e5e192b2cd19bf4879c82b3a22879de606b23a5dc4fdf07d061b3db], [0x17aa8bdbd4142e5c3b6936f4bd8cf44375607b9bea3c34a05f0597a369843f13, 0x156881f27d03a492dc35415767e9ffa21b6ad916b7d65ad72c76d88bdc4db8fb]);
@@ -35,11 +36,9 @@ contract TestVerifier
 		vk.IC[6] = Pairing.G1Point(0x207fc8d938b493f80599f9a2de9151737e83bb90f5b5fa80dcb784241a0f249, 0x22701769add5560d69d095f4f36b79d6ba5208b63941283bdafbb2caf1ebffe3);
 	}
 
-	function _getStaticProof ()
-		internal pure returns (Verifier.Proof memory)
+	function _getStaticProof (Verifier.Proof memory proof)
+		internal pure
 	{
-		Verifier.Proof memory proof;
-
 		proof.B = Pairing.G2Point([0x1961d2922856ee44c4569d96d4bea44dea521710a5bdff2a74c9829a8912606, 0x18cf09156ac382e4ecf9b986fc765585b400f85ef8dce257eb35fa1f6d105dda], [0x9fd2b8a64b363fb3111a8a776757fb610f3fd8414cf8d18ed5cd892c98ec7b2, 0x301efd7f933eb1ec85bb09e80a210b44eeda9067cf5767db271c8acf4c556869]);
 		proof.A = Pairing.G1Point(0x1ca1ece0613d754d65a965df74427e2ff12d4cc24b9744ee90dea80345cb9525, 0x7ee9be0a1f35d1af16784d309b85f492385594b84e1633ee3cdcfe0a2cb91d0);
 		proof.A_p = Pairing.G1Point(0x1a0f62069dc47b5eb2afed3d064b8066315de4b2ddb9a3de0e93dab57a4aa3f, 0x1fa54adc003093633ab44763734cea88be90f44200dd536f04519f5e6c9b1d78);

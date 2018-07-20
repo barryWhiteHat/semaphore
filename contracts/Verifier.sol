@@ -34,33 +34,6 @@ library Verifier
         uint256[] input;
     }
 
-    function CreateVerifyingKeyFromArgs (
-        uint[2] A1, uint[2] A2, uint[2] B, uint[2] C1, uint[2] C2, 
-        uint[2] gamma1, uint[2] gamma2, uint[2] gammaBeta1, 
-        uint[2] gammaBeta2_1, uint[2] gammaBeta2_2, uint[2] Z1, uint[2] Z2,
-        uint[] input)
-        internal pure returns (VerifyingKey memory)
-    {
-        VerifyingKey memory verifyKey;
-
-        verifyKey.A = Pairing.G2Point(A1,A2);
-        verifyKey.B = Pairing.G1Point(B[0], B[1]);
-        verifyKey.C = Pairing.G2Point(C1, C2);
-        verifyKey.gamma = Pairing.G2Point(gamma1, gamma2);
-
-        verifyKey.gammaBeta1 = Pairing.G1Point(gammaBeta1[0], gammaBeta1[1]);
-        verifyKey.gammaBeta2 = Pairing.G2Point(gammaBeta2_1, gammaBeta2_2);
-        verifyKey.Z = Pairing.G2Point(Z1,Z2);
-
-        uint i = 0;
-        uint j = 0;
-        while (verifyKey.IC.length != input.length/2) {
-            verifyKey.IC[j] = Pairing.G1Point(input[i], input[i+1]);
-            i += 2;
-            j += 1;
-        }
-    }
-
     function Verify (VerifyingKey memory vk, Proof memory proof)
         internal returns (uint)
     {
@@ -96,7 +69,8 @@ library Verifier
         return 0;
     }
 
-    function CreateProofFromArgs(
+    function InitProofFromArgs(
+            Proof memory proof,
             uint[2] a,
             uint[2] a_p,
             uint[2][2] b,
@@ -107,10 +81,8 @@ library Verifier
             uint[2] k,
             uint[] input
         )
-        internal pure returns (Proof memory)
+        internal pure
     {
-        Proof memory proof;
-
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.A_p = Pairing.G1Point(a_p[0], a_p[1]);
         proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);
@@ -120,6 +92,9 @@ library Verifier
         proof.H = Pairing.G1Point(h[0], h[1]);
         proof.K = Pairing.G1Point(k[0], k[1]);
 
-        return proof;
+        proof.input = new uint256[](input.length);
+        for( uint i = 0; i < input.length; i++ ) {
+            proof.input[i] = input[i];
+        }
     } 
 }

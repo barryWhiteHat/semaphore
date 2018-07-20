@@ -15,10 +15,9 @@ def main(vk_filename, name='_getVerifyingKey'):
         indent = "\t\t";
         varname = "vk";
         out = [
-            "\tfunction %s ()" % (name,),
-            "\t\tinternal pure returns (Verifier.VerifyingKey memory)",
+            "\tfunction %s (Verifier.VerifyingKey memory %s)" % (name, varname),
+            "\t\tinternal pure",
             "\t{",
-            "\t\tVerifier.VerifyingKey memory %s;\n" % (varname,)
         ]
         for k, v in g2.items():
             x = getattr(vk, v)

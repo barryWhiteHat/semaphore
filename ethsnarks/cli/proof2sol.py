@@ -16,10 +16,9 @@ def main(vk_filename, name='_getStaticProof'):
         varname = "proof";
 
         out = [
-            "\tfunction %s ()" % (name,),
-            "\t\tinternal pure returns (Verifier.Proof memory)",
+            "\tfunction %s (Verifier.Proof memory %s)" % (name, varname),
+            "\t\tinternal pure",
             "\t{",
-            "\t\tVerifier.Proof memory %s;\n" % (varname,)
         ]
 
         for k, v in g2.items():
