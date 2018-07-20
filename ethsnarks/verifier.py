@@ -27,8 +27,7 @@ class CustomEncoder(json.JSONEncoder):
             return [c1hex, c0hex]
         elif isinstance(o, FQ):
             return hex(o.n)
-        else:
-            raise RuntimeError("Unknown type", (type(o), o))
+        raise RuntimeError("Unknown type", (type(o), o))
 
 
 def _bigint_bytes_to_int(x):

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.4.24;
 
-import "../contracts/Pairing.sol";
+import "./Pairing.sol";
 
 library Verifier
 {
@@ -31,6 +31,7 @@ library Verifier
         Pairing.G1Point C_p;
         Pairing.G1Point K;
         Pairing.G1Point H;
+        uint256[] input;
     }
 
     function CreateVerifyingKeyFromArgs (
@@ -38,7 +39,7 @@ library Verifier
         uint[2] gamma1, uint[2] gamma2, uint[2] gammaBeta1, 
         uint[2] gammaBeta2_1, uint[2] gammaBeta2_2, uint[2] Z1, uint[2] Z2,
         uint[] input)
-        internal returns (VerifyingKey memory)
+        internal pure returns (VerifyingKey memory)
     {
         VerifyingKey memory verifyKey;
 
@@ -60,16 +61,16 @@ library Verifier
         }
     }
 
-    function Verify (VerifyingKey memory vk, uint[] memory input, Proof memory proof)
+    function Verify (VerifyingKey memory vk, Proof memory proof)
         internal returns (uint)
     {
-        require(input.length + 1 == vk.IC.length);
+        require(proof.input.length + 1 == vk.IC.length);
 
         // Compute the linear combination vk_x
         Pairing.G1Point memory vk_x = vk.IC[0];
 
-        for (uint i = 0; i < input.length; i++)
-            vk_x = Pairing.pointAdd(vk_x, Pairing.pointMul(vk.IC[i + 1], input[i]));
+        for (uint i = 0; i < proof.input.length; i++)
+            vk_x = Pairing.pointAdd(vk_x, Pairing.pointMul(vk.IC[i + 1], proof.input[i]));
 
         if (!Pairing.pairingProd2(proof.A, vk.A, Pairing.negate(proof.A_p), Pairing.P2()))
             return 1;
@@ -106,7 +107,7 @@ library Verifier
             uint[2] k,
             uint[] input
         )
-        internal returns (Proof memory)
+        internal pure returns (Proof memory)
     {
         Proof memory proof;
 

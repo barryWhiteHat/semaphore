@@ -4,7 +4,7 @@ import time
 import random
 
 from ethsnarks.verifier import VerifyingKey, Proof
-from ethsnarks.deploy import genWitness, tree_depth, checkProof, verify
+from ethsnarks.deploy import genWitness, tree_depth, verify
 from ethsnarks.helpers import initMerkleTree
 from ethsnarks.utils import genMerkelTree, sha256
 
@@ -55,7 +55,7 @@ class VerifyTests(unittest.TestCase):
     def test_verify_native(self):
         vk = VerifyingKey.from_dict(VK_STATIC)
         proof = Proof.from_dict(PROOF_STATIC)
-        self.assertTrue(checkProof(VK_STATIC, PROOF_STATIC))
+        self.assertTrue(verify(vk.to_json(), proof.to_json()))
 
     """
     def test_verify_python(self):
@@ -66,7 +66,7 @@ class VerifyTests(unittest.TestCase):
         vk.verify(proof)
     """
 
-    """
+    #"""
     def test_proof_gen(self):
         leaves, nullifiers, sks = initMerkleTree(2) 
         root, layers = genMerkelTree(tree_depth, leaves)
@@ -74,14 +74,21 @@ class VerifyTests(unittest.TestCase):
         external_nullifier = sha256("nomimatedSpokesPerson"+root+str(time.time()))
         signal1 = sha256({"NomimatedSpokesPersonFor":root , "candidate": "Candidate1" })
         proof = None
+
+        with open('zksnark_element/vk.json', 'r') as handle:
+            vk = VerifyingKey.from_dict(json.load(handle))
+
         for address, (nullifier , sk) in enumerate(zip(nullifiers, sks)):
             rand = int(random.uniform(1, 3)) 
             print("Generating witness")
             proof_data, proof_root = genWitness(leaves, nullifier, sk, signal1 , signal_variables, external_nullifier, address, tree_depth, 0, PK_FILENAME)
             proof = Proof.from_dict(proof_data)
             print("Proof:", proof)
+            self.assertTrue(verify(vk.to_json(), proof.to_json()))
+            with open('zksnark_element/proof.json', 'w') as handle:
+                handle.write(proof.to_json())
             break
-    """
+    #"""
 
 if __name__ == "__main__":
     unittest.main()

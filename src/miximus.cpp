@@ -178,6 +178,7 @@ public:
                 libff::bit_vector _signal, libff::bit_vector _signal_variables, libff::bit_vector _external_nullifier , 
                 int fee, char* pk)
     { 
+        cout << "BEGIN R1CS WITNESS\n";
 
         cm->generate_r1cs_witness(_nullifier);
         sk->generate_r1cs_witness(secret);
@@ -200,15 +201,21 @@ public:
         address_bits_va.fill_with_bits(pb, address_bits);
         root_digest->generate_r1cs_witness(root);
         unpacker->generate_r1cs_witness_from_bits();
+
+        cout << "END R1CS WITNESS\n";
             
+        cout << "BEGIN LOAD PROVING KEY\n";
         r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair;
         // TODO: verify file exists
         keypair.pk = loadFromFile<r1cs_ppzksnark_proving_key<alt_bn128_pp>> (pk);
+        cout << "END LOAD PROVING KEY\n";
 
+        cout << "BEGIN R1CS PROOF\n";
         r1cs_primary_input <FieldT> primary_input = pb.primary_input();
         std::cout << "primary_input " << primary_input;
         r1cs_auxiliary_input <FieldT> auxiliary_input = pb.auxiliary_input();
         r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = r1cs_ppzksnark_prover<libff::alt_bn128_pp>(keypair.pk, primary_input, auxiliary_input);
+        cout << "END R1CS PROOF\n";
 
         return proof;
     }
@@ -218,6 +225,7 @@ public:
         return r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (vk, primary_input, proof);
     }
 };
+
 
 void genKeys(int tree_depth, char* pkOutput, char* vkOuput) {
 
