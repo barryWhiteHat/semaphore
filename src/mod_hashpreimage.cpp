@@ -63,7 +63,7 @@ public:
 
     void generate_r1cs_constraints()
     {
-        //unpacker.generate_r1cs_constraints(true);
+        unpacker.generate_r1cs_constraints(true);
 
         full_hasher.generate_r1cs_constraints();
     }
