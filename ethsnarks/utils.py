@@ -64,7 +64,7 @@ def sha256(data):
 
 def getUniqueLeaf(depth):
     inputHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
-    for i in range(0,depth):
+    for i in range(0, depth):
         inputHash = hashPadded(inputHash, inputHash)
     return(inputHash)
 

@@ -212,7 +212,7 @@ public:
 
         cout << "BEGIN R1CS PROOF\n";
         r1cs_primary_input <FieldT> primary_input = pb.primary_input();
-        std::cout << "primary_input " << primary_input;
+        //std::cout << "primary_input " << primary_input;
         r1cs_auxiliary_input <FieldT> auxiliary_input = pb.auxiliary_input();
         r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = r1cs_ppzksnark_prover<libff::alt_bn128_pp>(keypair.pk, primary_input, auxiliary_input);
         cout << "END R1CS PROOF\n";

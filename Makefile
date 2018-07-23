@@ -42,10 +42,16 @@ depends/libsnarks/CMakeLists.txt:
 
 
 .PHONY: test
-test: truffle-test python-test
+test: cxx-tests truffle-test python-test
 
 python-test:
 	$(COVERAGE) -m unittest discover test/
+
+cxx-tests:
+	./build/src/test_sha256_full_gadget
+
+#######################################################################
+
 
 coverage: coverage-combine coverage-report
 

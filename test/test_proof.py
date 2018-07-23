@@ -26,12 +26,16 @@ class ProofTests(unittest.TestCase):
             vk = VerifyingKey.from_dict(json.load(handle))
 
         for address, (nullifier , sk) in enumerate(zip(nullifiers, sks)):
-            rand = int(random.uniform(1, 3)) 
             print("Generating witness")
             proof_data, proof_root = genWitness(leaves, nullifier, sk, signal1 , signal_variables, external_nullifier, address, tree_depth, 0, PK_FILENAME)
+
+            # Verify proof is correct
             proof = Proof.from_dict(proof_data)
-            print("Proof:", proof)
             self.assertTrue(native_verify(vk.to_json(), proof.to_json()))
+
+            # Verify modifying proof results in False state
+            proof.input[n] -= 1
+            self.assertFalse(native_verify(vk.to_json(), proof.to_json()))
             break
 
 

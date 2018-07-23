@@ -4,11 +4,15 @@ import unittest
 from ethsnarks.utils import genMerkelTree, getMerkelProof, sha256, initMerkleTree, hashPadded, libsnark2python
 
 
-def verifyMerkleProof(root, path, address_bits):
+def verifyMerkleProof(root, leaf, path, address_bits):
+    item = leaf
     for i, node in enumerate(path):
         bit = address_bits[i]
-        if bit:
-            the_node = sha256(node, )
+        if not bit:
+            item = hashPadded(node, item)
+        else:
+            item = hashPadded(item, node)
+    return root == node
 
 
 class TestMerkleTree(unittest.TestCase):
@@ -16,10 +20,15 @@ class TestMerkleTree(unittest.TestCase):
         tree_depth = 5
         leaves, nullifiers, sks = initMerkleTree(tree_depth) 
         root, tree = genMerkelTree(tree_depth, leaves)
+        print("Leaves", leaves)
+        print("Tree", tree)
+        print("Root", root)
         for address, (nullifier , sk) in enumerate(zip(nullifiers, sks)):
             path, address_bits = getMerkelProof(leaves, address, tree_depth)
             print(root, path, address_bits)
-            #print(verifyMerkleProof(root, path, address_bits))
+            leaf = hashPadded(nullifier, sk)
+            print(verifyMerkleProof(root, leaf, path, address_bits))
+            break
             # TODO: verify merkle proof
 
     def test_getMerkelProof(self):
