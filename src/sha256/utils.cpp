@@ -1,3 +1,4 @@
+#pragma once
 
 // Copied from `int_list_to_bits`
 libff::bit_vector bytes_to_bv(const uint8_t *in_bytes, const size_t in_count)
@@ -44,4 +45,18 @@ pb_variable_array<FieldT> block_from_left_right (
     block.insert(block.end(), left.bits.begin(), left.bits.end());
     block.insert(block.end(), right.bits.begin(), right.bits.end());	
     return block;
+}
+
+
+void print_bv( const char *prefix, libff::bit_vector &vec )
+{
+    std::cout << prefix << ": ";
+    for (size_t i = 0; i < vec.size(); ++i)
+    {
+        std::cout << vec[i];
+        if( i > 0 && i % 8 == 0 ) {
+            std::cout << " ";
+        }
+    }
+    std::cout << "\n";
 }

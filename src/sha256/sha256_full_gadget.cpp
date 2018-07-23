@@ -1,6 +1,8 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
+#pragma once
+
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>                   // digest_variable

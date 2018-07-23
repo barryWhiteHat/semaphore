@@ -8,20 +8,6 @@
 #include <openssl/rand.h>
 
 
-static void print_bv( const char *prefix, libff::bit_vector &vec )
-{
-    std::cout << prefix << ": ";
-    for (size_t i = 0; i < vec.size(); ++i)
-    {
-        std::cout << vec[i];
-        if( i > 0 && i % 8 == 0 ) {
-            std::cout << " ";
-        }
-    }
-    std::cout << "\n";
-}
-
-
 static const size_t SHA256_digest_size_bytes = SHA256_digest_size / 8;
 static const size_t SHA256_block_size_bytes = SHA256_block_size / 8;
 
