@@ -19,7 +19,7 @@ pb_variable_array<FieldT> pb_variable_array_allocate( protoboard<FieldT> &in_pb,
 
 
 /**
-* Verify that SHA256(private<512bit_block>) == public<expected>
+* Verify that SHA256(private<512bit_block>) == public<output>
 */
 template<typename FieldT>
 class mod_hashpreimage : public gadget<FieldT>
@@ -29,17 +29,19 @@ public:
 
     static const size_t SHA256_block_size_bytes = SHA256_block_size / 8;
 
-    const size_t input_size_in_bits = SHA256_block_size;
+    const size_t input_size_in_bits = SHA256_digest_size;
 
     const size_t input_size_in_fields;
 
     const pb_variable_array<FieldT> input_as_field_elements;
 
-    block_variable<FieldT> input_block;
+    digest_variable<FieldT> input_digest;
 
     const pb_variable_array<FieldT> input_as_bits;
 
     multipacking_gadget<FieldT> unpacker;
+
+    block_variable<FieldT> input_block;
 
     digest_variable<FieldT> output;
 
@@ -58,14 +60,17 @@ public:
         // packed input, given to prover/verifier
         input_as_field_elements( pb_variable_array_allocate<FieldT>(in_pb, input_size_in_fields, FMT(annotation_prefix, " input_as_field_elements")) ),
 
-        // input block for hashing, 512 bits
-        input_block(in_pb, SHA256_block_size, FMT(annotation_prefix, " input_block")),
+        // public input digest, must match output
+        input_digest(in_pb, SHA256_digest_size, FMT(annotation_prefix, " input_digest")),
 
-        // unpacked input bits, mapped to the input block
-        input_as_bits(input_block.bits.begin(), input_block.bits.end()),
+        // unpacked input bits, mapped to the input digest
+        input_as_bits(input_digest.bits.begin(), input_digest.bits.end()),
 
         // unpack from field elements (packed bits)
         unpacker(in_pb, input_as_bits, input_as_field_elements, FieldT::capacity(), "unpacker"),
+
+        // private input block for hashing, 512 bits
+        input_block(in_pb, SHA256_block_size, FMT(annotation_prefix, " input_block")),
 
         // output digest, 256 bits
         output(in_pb, SHA256_digest_size, FMT(annotation_prefix, " output")),
@@ -96,6 +101,8 @@ public:
         input_block.generate_r1cs_witness(in_block);
 
         full_hasher.generate_r1cs_witness();
+
+        input_digest.generate_r1cs_witness(in_expected_bv);
 
         output.generate_r1cs_witness(in_expected_bv);
 
