@@ -5,7 +5,8 @@
  * @date 2017
  */
 
-#include "wraplibsnark.hpp"
+#pragma once
+
 #include <fstream>
 #include <iostream>
 #include <cassert>

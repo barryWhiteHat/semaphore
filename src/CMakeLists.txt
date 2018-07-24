@@ -17,7 +17,10 @@ target_link_libraries(mod_hashpreimage snark)
 set_property(TARGET mod_hashpreimage PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_executable(mod_hashpreimage_genKeys mod_hashpreimage_genKeys.cpp)
-target_link_libraries(mod_hashpreimage_genKeys mod_hashpreimage)
+target_link_libraries(mod_hashpreimage_genKeys snark)
+
+add_executable(mod_hashpreimage_prove mod_hashpreimage_prove.cpp)
+target_link_libraries(mod_hashpreimage_prove snark)
 
 
 
