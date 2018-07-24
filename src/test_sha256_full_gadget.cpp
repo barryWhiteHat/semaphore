@@ -8,9 +8,6 @@
 #include <openssl/rand.h>
 
 
-static const size_t SHA256_digest_size_bytes = SHA256_digest_size / 8;
-static const size_t SHA256_block_size_bytes = SHA256_block_size / 8;
-
 
 /**
 * Verifies that the SHA256_full gadget matches a reference implementation
@@ -32,11 +29,27 @@ bool test_sha256_full_gadget()
     uint8_t input_buffer[SHA256_block_size_bytes];
     uint8_t output_digest[SHA256_digest_size_bytes];
     assert( SHA256_block_size / 2 == SHA256_digest_size );
-    RAND_bytes(input_buffer, sizeof(input_buffer));
 
-    // Then perform a full round of SHA256
+    // Perform full round of SHA256 using the test vector
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, "test", 4);
+    SHA256_Final(input_buffer, &ctx);
+    memcpy(&input_buffer[SHA256_digest_size_bytes], input_buffer, SHA256_digest_size_bytes);
+    // 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08'
+
+    // Then verify the result is as expected
+    SHA256_Init(&ctx);
     SHA256_Update(&ctx, input_buffer, sizeof(input_buffer));    
     SHA256_Final(output_digest, &ctx);
+    uint8_t output_expected[] = {
+        0xD2, 0x94, 0xF6, 0xE5, 0x85, 0x87, 0x4F, 0xE6,
+        0x40, 0xBE, 0x4C, 0xE6, 0x36, 0xE6, 0xEF, 0x9E,
+        0x3A, 0xDC, 0x27, 0x62, 0x0A, 0xA3, 0x22, 0x1F,
+        0xDC, 0xF5, 0xC0, 0xA7, 0xC1, 0x1C, 0x6F, 0x67};
+    if( memcmp(output_digest, output_expected, sizeof(output_digest)) != 0 ) {
+        printf("output_digest mismatch!\n");
+        return false;
+    }
 
     // ----------------------------------------------------------------
     // Setup circuit to do full_output = SHA256(left, right)
@@ -68,8 +81,16 @@ bool test_sha256_full_gadget()
     auto output_digest_bits = bytes_to_bv(output_digest, SHA256_digest_size_bytes);
 	full_output.generate_r1cs_witness(output_digest_bits);
 
-	// Show the two side-by-side
-	auto full_output_bits = full_output.get_digest();
+    // Verify the result matches what we computed
+    auto full_output_bits = full_output.get_digest();
+    uint8_t full_output_bytes[SHA256_digest_size_bytes];
+    bv_to_bytes(full_output_bits, full_output_bytes);
+    if( memcmp(full_output_bytes, output_digest, sizeof(output_digest)) != 0 ) {
+        printf("full_output_bytes mismatch\n");
+        return false;
+    }
+
+	// Show the two, as bits, side-by-side
     print_bv("full (r1cs)", full_output_bits);
     print_bv("full (SHA2)", output_digest_bits);
 

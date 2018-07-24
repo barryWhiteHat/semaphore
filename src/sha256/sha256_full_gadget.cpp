@@ -9,7 +9,15 @@
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp>  // SHA256_default_IV
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>      // sha256_compression_function_gadget
 
+#include <openssl/sha.h>    // SHA256_CTX
+
+#include "utils.cpp"
+
 using namespace libsnark;
+
+static const size_t SHA256_digest_size_bytes = SHA256_digest_size / 8;
+
+static const size_t SHA256_block_size_bytes = SHA256_block_size / 8;
 
 
 /**
@@ -72,23 +80,34 @@ class sha256_full_gadget_512 : public gadget<FieldT>
 {
 public:
     digest_variable<FieldT> intermediate_hash;
+
+    const block_variable<FieldT> input_block;
+
+    const digest_variable<FieldT> output;
+
     sha256_compression_function_gadget<FieldT> input_hasher;
+
     const pb_variable_array<FieldT> length_padding;
+
     sha256_compression_function_gadget<FieldT> final_hasher;
 
     sha256_full_gadget_512(
         protoboard<FieldT> &in_pb,
-        const block_variable<FieldT> &input_block,
-        const digest_variable<FieldT> &output,
+        const block_variable<FieldT> &in_input_block,
+        const digest_variable<FieldT> &in_output,
         const std::string &annotation_prefix
     ) :
         gadget<FieldT>(in_pb, FMT(annotation_prefix, "sha256_full_gadget_512")),
 
         intermediate_hash(in_pb, SHA256_digest_size, FMT(annotation_prefix, " intermediate_hash")),
 
+        input_block(in_input_block),
+
+        output(in_output),
+
         input_hasher(in_pb,
                      SHA256_default_IV(in_pb),  // prev_output
-                     input_block.bits,          // new_block
+                     in_input_block.bits,       // new_block
                      intermediate_hash,         // output
                      FMT(annotation_prefix, " input_hasher")),
 
@@ -97,10 +116,10 @@ public:
         final_hasher(in_pb,
                      intermediate_hash.bits,    // prev_output
                      length_padding,            // new_block
-                     output,                    // output
+                     in_output,                 // output
                      FMT(annotation_prefix, " final_hasher"))
     {
-        assert( input_block.size() == 512 );
+        assert( in_input_block.size() == 512 );
     }
 
     void generate_r1cs_constraints()
@@ -113,4 +132,42 @@ public:
         input_hasher.generate_r1cs_witness();
         final_hasher.generate_r1cs_witness();
     }
+
+
+    void generate_r1cs_witness(
+        const libff::bit_vector &in_block,
+        const libff::bit_vector &in_expected_bv
+    ) {
+        assert( in_block.size() == SHA256_block_size );
+
+        assert( in_expected_bv.size() == SHA256_digest_size );
+
+        input_block.generate_r1cs_witness(in_block);
+
+        input_hasher.generate_r1cs_witness();
+
+        output.generate_r1cs_witness(in_expected_bv);
+    }
+
+
+    /**
+    * Given input bytes of SHA256 block size, generate the witness for the expected output
+    */
+    void generate_r1cs_witness(
+        const uint8_t in_bytes[SHA256_block_size_bytes]
+    ) {
+        SHA256_CTX ctx;
+        uint8_t output_digest[SHA256_digest_size_bytes];
+
+        SHA256_Init(&ctx);
+        SHA256_Update(&ctx, in_bytes, SHA256_block_size_bytes);
+        SHA256_Final(output_digest, &ctx);
+
+        const auto input_bv = bytes_to_bv(in_bytes, SHA256_block_size_bytes);
+
+        const auto output_bv = bytes_to_bv(output_digest, SHA256_digest_size_bytes);
+
+        this->generate_r1cs_witness( input_bv, output_bv );
+    }
+
 };
