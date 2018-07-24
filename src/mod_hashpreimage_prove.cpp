@@ -35,8 +35,8 @@ int main( int argc, char **argv )
     }
 
     // ----------------------------------------------------------------
-
     // Types for board
+
     typedef libff::alt_bn128_pp ppT;
     typedef libff::Fr<ppT> FieldT;
     ppT::init_public_params();
@@ -44,6 +44,7 @@ int main( int argc, char **argv )
     auto proving_key = loadFromFile<r1cs_ppzksnark_proving_key<ppT>> (argv[1]);
 
     // ----------------------------------------------------------------
+    // Setup circuit to prove SHA256(private<input_buffer>) == public<output>
 
     protoboard<FieldT> pb;
 
@@ -59,12 +60,27 @@ int main( int argc, char **argv )
         return 4;
     }
 
+    // ----------------------------------------------------------------
+    // Prove the circuit
+
     auto primary_input = pb.primary_input();
     auto proof = r1cs_ppzksnark_prover<ppT>(proving_key, primary_input, pb.auxiliary_input());
 
+    // ----------------------------------------------------------------
+    // Then output the proof as JSON
     auto json = proof_to_json(proof, primary_input);
 
-    std::cout << json << "\n";
+    if( ! out_filename )
+    {
+        std::cout << json << "\n";
+    }
+    else {
+        std::ofstream fh;
+        fh.open(out_filename, std::ios::binary);
+        fh << json;
+        fh.flush();
+        fh.close();
+    }
 
     return 0;
 }
