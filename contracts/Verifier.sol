@@ -31,19 +31,30 @@ library Verifier
         Pairing.G1Point C_p;
         Pairing.G1Point K;
         Pairing.G1Point H;
+    }
+
+    struct ProofWithInput
+    {
+        Proof proof;
         uint256[] input;
     }
 
-    function Verify (VerifyingKey memory vk, Proof memory proof)
+    function Verify (VerifyingKey memory vk, ProofWithInput memory pwi)
         internal returns (uint)
     {
-        require(proof.input.length + 1 == vk.IC.length);
+        return Verify(vk, pwi.proof, pwi.input);
+    }
+
+    function Verify (VerifyingKey memory vk, Proof memory proof, uint256[] memory input)
+        internal returns (uint)
+    {
+        require(input.length + 1 == vk.IC.length);
 
         // Compute the linear combination vk_x
         Pairing.G1Point memory vk_x = vk.IC[0];
 
-        for (uint i = 0; i < proof.input.length; i++)
-            vk_x = Pairing.pointAdd(vk_x, Pairing.pointMul(vk.IC[i + 1], proof.input[i]));
+        for (uint i = 0; i < input.length; i++)
+            vk_x = Pairing.pointAdd(vk_x, Pairing.pointMul(vk.IC[i + 1], input[i]));
 
         if (!Pairing.pairingProd2(proof.A, vk.A, Pairing.negate(proof.A_p), Pairing.P2()))
             return 1;
@@ -70,7 +81,7 @@ library Verifier
     }
 
     function InitProofFromArgs(
-            Proof memory proof,
+            ProofWithInput memory output,
             uint[2] a,
             uint[2] a_p,
             uint[2][2] b,
@@ -79,10 +90,12 @@ library Verifier
             uint[2] c_p,
             uint[2] h,
             uint[2] k,
-            uint[] input
+            uint256[] input
         )
         internal pure
     {
+        Proof memory proof = output.proof;
+
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.A_p = Pairing.G1Point(a_p[0], a_p[1]);
         proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);
@@ -92,9 +105,9 @@ library Verifier
         proof.H = Pairing.G1Point(h[0], h[1]);
         proof.K = Pairing.G1Point(k[0], k[1]);
 
-        proof.input = new uint256[](input.length);
+        output.input = new uint256[](input.length);
         for( uint i = 0; i < input.length; i++ ) {
-            proof.input[i] = input[i];
+            output.input[i] = input[i];
         }
     } 
 }

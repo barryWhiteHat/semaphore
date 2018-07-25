@@ -12,26 +12,25 @@ def main(vk_filename, name='_getStaticProof'):
         proof = Proof.from_dict(json.load(handle))
         g2 = {'B': 'b'}
         g1 = {'A': 'a', 'A_p': 'a_p', 'B_p': 'b_p', 'C': 'c', 'C_p': 'c_p', 'K': 'k', 'H': 'h'}
-        indent = "\t\t";
-        varname = "proof";
 
         out = [
-            "\tfunction %s (Verifier.Proof memory %s)" % (name, varname),
+            "\tfunction %s (Verifier.ProofWithInput memory output)" % (name),
             "\t\tinternal pure",
             "\t{",
+            "\t\tVerifier.Proof memory proof = output.proof;"
         ]
 
         for k, v in g2.items():
             x = getattr(proof, v)
-            out.append("%s%s.%s = %s;" % (indent, varname, k, g2_to_sol(x)))
+            out.append("\t\tproof.%s = %s;" % (k, g2_to_sol(x)))
 
         for k, v in g1.items():
             x = getattr(proof, v)
-            out.append("%s%s.%s = %s;" % (indent, varname, k, g1_to_sol(x)))
+            out.append("\t\tproof.%s = %s;" % (k, g1_to_sol(x)))
 
-        out.append("%s%s.input = new uint256[](%d);" % (indent, varname, len(proof.input)))
+        out.append("\t\toutput.input = new uint256[](%d);" % (len(proof.input),))
         for i, v in enumerate(proof.input):
-            out.append("%s%s.input[%d] = %s;" % (indent, varname, i, hex(v)))
+            out.append("\t\toutput.input[%d] = %s;" % (i, hex(v)))
 
         out.append("\t}");
         print('\n'.join(out))
