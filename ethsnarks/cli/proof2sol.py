@@ -7,7 +7,7 @@ from .utils import g2_to_sol, g1_to_sol
 
 
 def main(vk_filename, name='_getStaticProof'):
-    """Outputs the solidity code necessary to instansiate a Proof variable"""
+    """Outputs the solidity code necessary to instansiate a ProofWithInput variable"""
     with open(vk_filename, 'r') as handle:
         proof = Proof.from_dict(json.load(handle))
         g2 = {'B': 'b'}

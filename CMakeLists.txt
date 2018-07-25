@@ -33,6 +33,18 @@ option(
 )
 
 option(
+  BINARY_OUTPUT
+  "Use binary output for serialisation"
+  ON
+)
+
+option(
+  PERFORMANCE
+  "Enable link-time and aggressive optimizations"
+  OFF
+)
+
+option(
   WITH_PROCPS
   "Use procps for memory profiling"
   ON

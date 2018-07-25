@@ -51,7 +51,7 @@ int char2int( const char input )
         return input - 'A' + 10;
 
     if( input >= 'a' && input <= 'f')
-        return input - 'A' + 10;
+        return input - 'a' + 10;
 
     throw std::invalid_argument("Invalid hex: " + input);
 }

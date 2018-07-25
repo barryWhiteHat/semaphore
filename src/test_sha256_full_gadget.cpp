@@ -38,6 +38,7 @@ bool test_sha256_full_gadget()
     // 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08'
 
     // Then verify the result is as expected
+    // sha256(sha256('test').digest() + sha256('test').digest()).digest()
     SHA256_Init(&ctx);
     SHA256_Update(&ctx, input_buffer, sizeof(input_buffer));    
     SHA256_Final(output_digest, &ctx);
@@ -97,6 +98,20 @@ bool test_sha256_full_gadget()
     std::cout << "Constraints: " << pb.num_constraints() << "\n";
     std::cout << "Variables: " << pb.num_variables() << "\n";
     std::cout << "Inputs: " << pb.num_inputs() << "\n";
+
+    for( auto& var : pb.primary_input() )
+    {
+        std::cout << "  var " << var << "\n";
+    }
+
+    uint8_t output_buffer[SHA256_digest_size_bytes];
+    bv_to_bytes(full_output_bits, output_buffer);
+    printf("Output digest bytes: ");
+    for( uint8_t x : output_buffer )
+    {
+        printf("%02X", x);
+    }
+    printf("\n");
 
     return pb.is_satisfied();
 }

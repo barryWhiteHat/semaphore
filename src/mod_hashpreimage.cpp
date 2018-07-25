@@ -35,7 +35,7 @@ public:
 
     const pb_variable_array<FieldT> input_as_field_elements;
 
-    digest_variable<FieldT> input_digest;
+    digest_variable<FieldT> expected_digest;
 
     const pb_variable_array<FieldT> input_as_bits;
 
@@ -61,10 +61,10 @@ public:
         input_as_field_elements( pb_variable_array_allocate<FieldT>(in_pb, input_size_in_fields, FMT(annotation_prefix, " input_as_field_elements")) ),
 
         // public input digest, must match output
-        input_digest(in_pb, SHA256_digest_size, FMT(annotation_prefix, " input_digest")),
+        expected_digest(in_pb, SHA256_digest_size, FMT(annotation_prefix, " expected_digest")),
 
         // unpacked input bits, mapped to the input digest
-        input_as_bits(input_digest.bits.begin(), input_digest.bits.end()),
+        input_as_bits(expected_digest.bits.begin(), expected_digest.bits.end()),
 
         // unpack from field elements (packed bits)
         unpacker(in_pb, input_as_bits, input_as_field_elements, FieldT::capacity(), "unpacker"),
@@ -72,10 +72,10 @@ public:
         // private input block for hashing, 512 bits
         input_block(in_pb, SHA256_block_size, FMT(annotation_prefix, " input_block")),
 
-        // output digest, 256 bits
+        // output digest variable, 256 bits
         output(in_pb, SHA256_digest_size, FMT(annotation_prefix, " output")),
 
-        // hasher, HASH(input_block) -> output
+        // HASH(input_block) -> output
         full_hasher(in_pb, input_block, output, FMT(annotation_prefix, " full_hasher"))
     {
         in_pb.set_input_sizes( input_size_in_fields );
@@ -102,7 +102,7 @@ public:
 
         full_hasher.generate_r1cs_witness();
 
-        input_digest.generate_r1cs_witness(in_expected_bv);
+        expected_digest.generate_r1cs_witness(in_expected_bv);
 
         output.generate_r1cs_witness(in_expected_bv);
 
