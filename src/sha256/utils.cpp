@@ -1,6 +1,7 @@
 #pragma once
 
 #include <libsnark/gadgetlib1/pb_variable.hpp>
+#include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
 
 using libsnark::pb_variable_array;
 using libsnark::digest_variable;

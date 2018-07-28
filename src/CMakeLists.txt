@@ -43,3 +43,6 @@ target_link_libraries(test_sha256_full_gadget snark)
 add_executable(test_proof_raw2json test_proof_raw2json.cpp)
 target_link_libraries(test_proof_raw2json snark)
 
+
+add_executable(test_field_packing test_field_packing.cpp)
+target_link_libraries(test_field_packing snark)

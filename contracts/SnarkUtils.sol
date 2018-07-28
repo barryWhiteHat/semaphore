@@ -2,6 +2,15 @@ pragma solidity ^0.4.24;
 
 library SnarkUtils
 {
+    function _bits(uint self, uint index, uint numBits)
+        internal pure returns (uint)
+    {
+        if (index + numBits > 256)
+            throw;
+        return (self / 2**index) & (2**numBits - 1);
+    }
+
+
     /**
     * Given N input words of 256 bits each, output N words of 253 bits each
     * This works similarly to `libff::pack_int_vector_into_field_element_vector`
@@ -25,36 +34,54 @@ library SnarkUtils
     function PackWords (uint256[] in_words, uint256[] out_words)
         internal
     {
-        uint i;
-        uint o = 0;
-        uint256 leftover = 0;
-        uint leftover_bits = 0;
+        uint i = 0;
+        uint o;
 
-        for( i = 0; i < in_words.length; i++ )
+        uint source = ReverseBits(in_words[i]);
+        uint source_offset = 0;
+        uint FieldT_capacity = 253;
+        uint256 dest = 0;
+        uint dest_offset = 0;
+
+        for( o = 0; o < out_words.length; o++ )
         {
-            uint extra = in_words[i] & 15;      // lowest 4 bits (on right) are saved
-            uint256 item = ReverseBits(in_words[i]);
-            uint extra_bits = 4;
-            item = (item & (~uint(0) >> extra_bits));
+            while( dest_offset < FieldT_capacity )
+            {                
+                uint bits_needed = FieldT_capacity - dest_offset;
+                uint bits_avail = 256 - source_offset;
+                uint bits_to_copy;
 
-            if( leftover_bits > 0 ) {
-                //    item >> leftover_bits
-                //    item |= leftover
-                require( false );
-                leftover = 0;
-                leftover_bits = 0;
-            }
-            else {
-                out_words[o++] = item;
-                leftover = extra;
-                leftover_bits = extra_bits;
-            }
-        }
+                if( bits_needed < bits_avail )
+                {
+                    bits_to_copy = bits_needed;
+                }
+                else {
+                    bits_to_copy = bits_avail;
+                }
 
-        if( leftover_bits > 0 ) {
-            out_words[o++] = leftover;
+                dest |= _bits(source, source_offset, bits_to_copy) * (2**dest_offset);
+
+                source_offset += bits_to_copy;
+                dest_offset += bits_to_copy;
+
+                // When all bits in source have been read, go to next source
+                if( source_offset >= 256 )
+                {
+                    i += 1;
+                    if( i >= in_words.length ) {
+                        break;
+                    }
+                    source = ReverseBits(in_words[i]);
+                    source_offset = 0;
+                }
+            }
+
+            out_words[o] = dest;
+            dest = 0;
+            dest_offset = 0;
         }
     }
+
 
     /**
     * Reverse an N-bit quantity in parallel with 5 * lg(N) operations
