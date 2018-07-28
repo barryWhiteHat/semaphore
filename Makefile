@@ -49,9 +49,12 @@ python-test:
 
 cxx-tests:
 	./build/src/test_sha256_full_gadget
-	./build/src/mod_hashpreimage_genKeys zksnark_element/hpi.pk.raw zksnark_element/hpi.vk.json
-	./build/src/mod_hashpreimage_prove zksnark_element/hpi.pk.raw 0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08 zksnark_element/hpi.proof.json
-	./build/src/verify zksnark_element/hpi.vk.json zksnark_element/hpi.proof.json
+	./build/src/test_field_packing > /dev/null
+	time ./build/src/mod_hashpreimage_genKeys zksnark_element/hpi.pk.raw zksnark_element/hpi.vk.json
+	ls -lah zksnark_element/hpi.pk.raw
+	time ./build/src/mod_hashpreimage_prove zksnark_element/hpi.pk.raw 0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08 zksnark_element/hpi.proof.json
+	time ./build/src/verify zksnark_element/hpi.vk.json zksnark_element/hpi.proof.json
+	time ./build/src/test_load_proofkey zksnark_element/hpi.pk.raw
 
 #######################################################################
 
@@ -112,6 +115,9 @@ truffle-test: $(TRUFFLE)
 
 truffle-compile: $(TRUFFLE)
 	$(TRUFFLE) compile
+
+testrpc: $(TRUFFLE)
+	$(NPM) run testrpc
 
 
 #######################################################################

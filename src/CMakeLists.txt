@@ -12,16 +12,12 @@ add_executable(miximus_genKeys miximus_genKeys.cpp)
 target_link_libraries(miximus_genKeys miximus)
 
 
-add_library(mod_hashpreimage SHARED mod_hashpreimage.cpp)
-target_link_libraries(mod_hashpreimage snark)
-set_property(TARGET mod_hashpreimage PROPERTY POSITION_INDEPENDENT_CODE ON)
+add_library(hashpreimage SHARED mod/hashpreimage.cpp)
+target_link_libraries(hashpreimage snark)
+set_property(TARGET hashpreimage PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-add_executable(mod_hashpreimage_genKeys mod_hashpreimage_genKeys.cpp)
-target_link_libraries(mod_hashpreimage_genKeys snark)
-
-add_executable(mod_hashpreimage_prove mod_hashpreimage_prove.cpp)
-target_link_libraries(mod_hashpreimage_prove snark)
-
+add_executable(hashpreimage_cli hashpreimage_cli.cpp)
+target_link_libraries(hashpreimage_cli snark)
 
 
 add_executable(verify verify.cpp)

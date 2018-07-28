@@ -24,7 +24,19 @@ The following dependencies (for Linux) are needed:
  * boost
  * npm / nvm
 
+# Requests
+
+This project aims to help create an ecosystem where a small number of well tested but simple zkSNARK circuits can be easily integrated into your project without having to do all of the work up-front.
+
+If you have any ideas for new components, please file a ticket.
+
 # Components
+
+## SHA256 hash preimage
+
+This circuit allows you to prove that you know the preimage for a hash, without revealing the preimage.
+
+# Work-in-progress Components
 
 ## Unique Merkle Proof
 

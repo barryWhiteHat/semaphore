@@ -3,7 +3,11 @@
 
 #include "sha256/sha256_full_gadget.cpp"
 #include "sha256/utils.cpp"
+#include "ZoKrates/wraplibsnark.cpp"
+#include "export.cpp"
+#include "import.cpp"
 
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
 
 #include <openssl/sha.h>
@@ -138,3 +142,84 @@ public:
         return libff::pack_bit_vector_into_field_element_vector<FieldT>(in_block_bv);
     }
 };
+
+
+/**
+* Create a proof of a 64 byte preimage without revealing it to the verifier
+*
+* @param pk_file Path of file which contains the proving key
+* @param preimage_bytes64 512 bits, used as the input block to the hash
+* @returns Proof string, as a JSON-encoded dictionary
+*/
+char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
+{
+    typedef libff::alt_bn128_pp ppT;
+    typedef libff::Fr<ppT> FieldT;
+    ppT::init_public_params();
+
+    protoboard<FieldT> pb;
+    mod_hashpreimage<FieldT> mod(pb, "mod_hashpreimage");
+    mod.generate_r1cs_constraints();
+    mod.generate_r1cs_witness(preimage_bytes64);
+
+    if( ! pb.is_satisfied() )
+    {
+        return NULL;
+    }
+
+    auto proving_key = loadFromFile<r1cs_ppzksnark_proving_key<ppT>>(pk_file);
+    // TODO: verify if proving key was loaded correctly, if not return NULL
+
+    auto primary_input = pb.primary_input();
+    auto proof = r1cs_ppzksnark_prover<ppT>(proving_key, primary_input, pb.auxiliary_input());
+    auto json = proof_to_json(proof, primary_input);
+
+    return ::strdup(json.c_str());
+}
+
+
+int hashpreimage_genkeys( const char *pk_file, const char *vk_file )
+{
+    typedef libff::alt_bn128_pp ppT;
+    typedef libff::Fr<ppT> FieldT;
+    ppT::init_public_params();
+
+    protoboard<FieldT> pb;
+    mod_hashpreimage<FieldT> mod(pb, "mod_hashpreimage");
+    mod.generate_r1cs_constraints();
+
+    auto keypair = r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
+    vk2json<ppT>(keypair.vk, vk_file);
+    writeToFile(pk_file, keypair.pk);
+
+    return 0;
+}
+
+
+/**
+* Verify a supplied proof against the verifying key
+*
+* @param vk_json Verifing key, string of JSON encoded data
+* @param proof_json Proof, string of JSON encoded data
+* @return true if valid
+*/
+bool hashpreimage_verify( const char *vk_json, const char *proof_json )
+{
+    typedef libff::alt_bn128_pp ppT;
+    typedef libff::Fr<ppT> FieldT;
+    ppT::init_public_params();
+
+    stringstream vk_stream;
+    vk_stream << vk_json;
+    auto vk = vk_from_json<ppT>(vk_stream);
+
+    stringstream proof_stream;
+    proof_stream << proof_json;
+    auto proof_pair = proof_from_json<ppT>(proof_stream);
+
+    auto status = libsnark::r1cs_ppzksnark_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
+    if( status )
+        return true;
+
+    return false;
+}

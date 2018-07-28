@@ -32,22 +32,21 @@ library SnarkUtils
     *    (111)
     */
     function PackWords (uint256[] in_words, uint256[] out_words)
-        internal
+        internal pure
     {
         uint i = 0;
         uint o;
 
         uint source = ReverseBits(in_words[i]);
         uint source_offset = 0;
-        uint FieldT_capacity = 253;
         uint256 dest = 0;
         uint dest_offset = 0;
 
         for( o = 0; o < out_words.length; o++ )
         {
-            while( dest_offset < FieldT_capacity )
+            while( dest_offset < 253 )
             {                
-                uint bits_needed = FieldT_capacity - dest_offset;
+                uint bits_needed = 253 - dest_offset;
                 uint bits_avail = 256 - source_offset;
                 uint bits_to_copy;
 

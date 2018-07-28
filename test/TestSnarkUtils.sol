@@ -5,6 +5,17 @@ import "../contracts/SnarkUtils.sol";
 
 contract TestSnarkUtils
 {
+	function testReverseBits()
+		public
+	{
+		uint256 x = 0xD294F6E585874FE640BE4CE636E6EF9E3ADC27620AA3221FDCF5C0A7C11C6F67;
+		uint256 y = 0xe6f63883e503af3bf844c55046e43b5c79f7676c67327d0267f2e1a1a76f294b;
+		uint256 z = SnarkUtils.ReverseBits(x);
+
+		Assert.equal(z, y, "Reverse bits failed!");
+		Assert.equal(SnarkUtils.ReverseBits(z), x, "Double reverse bits failed!");
+	}
+
 	function _fillInputs( bytes32 in_what, uint256[] memory out_what )
 		internal pure
 	{
