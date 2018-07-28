@@ -26,8 +26,8 @@ static int main_prove( int argc, char **argv )
         return 1;
     }
 
-    const char *pk_filename = argv[2];
-    const char *input_hex = argv[3];
+    auto pk_filename = argv[2];
+    auto input_hex = argv[3];
 
     if( argc > 3 )
     {
@@ -66,8 +66,8 @@ static int main_genkeys( int argc, char **argv )
         return 1;
     }
 
-    const char *pk_file = argv[2];
-    const char *vk_file = argv[3];
+    auto pk_file = argv[2];
+    auto vk_file = argv[3];
 
     if( 0 != hashpreimage_genkeys( pk_file, vk_file ) )
     {
@@ -87,8 +87,8 @@ static int main_verify( int argc, char **argv )
         return 1;
     }
 
-    const char *vk_json_file = argv[2];
-    const char *proof_json_file = argv[3];
+    auto vk_json_file = argv[2];
+    auto proof_json_file = argv[3];
 
     // Read verifying key file
     stringstream vk_stream;
