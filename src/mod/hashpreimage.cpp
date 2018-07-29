@@ -1,6 +1,8 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
+#include "hashpreimage.hpp"
+
 #include "sha256/sha256_full_gadget.cpp"
 #include "sha256/utils.cpp"
 #include "ZoKrates/wraplibsnark.cpp"
@@ -144,13 +146,7 @@ public:
 };
 
 
-/**
-* Create a proof of a 64 byte preimage without revealing it to the verifier
-*
-* @param pk_file Path of file which contains the proving key
-* @param preimage_bytes64 512 bits, used as the input block to the hash
-* @returns Proof string, as a JSON-encoded dictionary
-*/
+
 char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
 {
     typedef libff::alt_bn128_pp ppT;
@@ -196,13 +192,6 @@ int hashpreimage_genkeys( const char *pk_file, const char *vk_file )
 }
 
 
-/**
-* Verify a supplied proof against the verifying key
-*
-* @param vk_json Verifing key, string of JSON encoded data
-* @param proof_json Proof, string of JSON encoded data
-* @return true if valid
-*/
 bool hashpreimage_verify( const char *vk_json, const char *proof_json )
 {
     typedef libff::alt_bn128_pp ppT;

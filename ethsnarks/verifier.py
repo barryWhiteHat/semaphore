@@ -103,6 +103,10 @@ class Proof(_ProofStruct):
         return json.dumps(self._asdict(), cls=CustomEncoder)
 
     @classmethod
+    def from_json(cls, json_data):
+        return cls.from_dict(json.loads(json_data))
+
+    @classmethod
     def from_dict(cls, in_data):
         """
         The G1 points in the proof JSON are affine X,Y,Z coordinates
@@ -131,6 +135,10 @@ class VerifyingKey(_VerifyingKeyStruct):
     def to_json(self):
         # TODO: encode fields as hex
         return json.dumps(self._asdict(), cls=CustomEncoder)
+
+    @classmethod
+    def from_json(cls, json_data):
+        return cls.from_dict(json.loads(json_data))
 
     @classmethod
     def from_file(cls, filename):

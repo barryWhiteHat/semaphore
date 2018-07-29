@@ -36,6 +36,18 @@ If you have any ideas for new components, please file a ticket.
 
 This circuit allows you to prove that you know the preimage for a hash, without revealing the preimage.
 
+### Circuit pseudo-code
+
+ * `root` public - Merkle tree root
+ * `path` secret - Merkle proof
+ * `preimage_alpha` public - Alice's pre-image for the leaf (uniqueness tag)
+ * `preimage_beta` secret - Bob's pre-image for the leaf
+
+```python
+def hashpreimage(preimage, expected):
+	return SHA256(preimage) == expected
+```
+
 # Work-in-progress Components
 
 ## Unique Merkle Proof
