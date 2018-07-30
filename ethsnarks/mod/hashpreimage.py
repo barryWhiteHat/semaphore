@@ -9,7 +9,7 @@ from ..verifier import Proof, VerifyingKey
 
 
 class HashPreimage(object):
-    def __init__(self, native_library_path, vk=None, pk_file=None):
+    def __init__(self, native_library_path, vk, pk_file=None):
         if pk_file:
             if not os.path.exists(pk_file):
                 raise RuntimeError("Proving key file doesnt exist: " + pk_file)
@@ -52,15 +52,11 @@ class HashPreimage(object):
         data = self._prove(pk_file_cstr, preimage_cstr)
         return Proof.from_json(data)
 
-    def verify(self, proof, vk=None):
-        if vk is None:
-            vk = self._vk
+    def verify(self, proof):
         if not isinstance(proof, Proof):
             raise TypeError("Invalid proof type")
-        if not isinstance(vk, VerifyingKey):
-            raise TypeError("Invalid verifying key type")
 
-        vk_cstr = ctypes.c_char_p(vk.to_json().encode('ascii'))
+        vk_cstr = ctypes.c_char_p(self._vk.to_json().encode('ascii'))
         proof_cstr = ctypes.c_char_p(proof.to_json().encode('ascii'))
 
         return self._verify( vk_cstr, proof_cstr )

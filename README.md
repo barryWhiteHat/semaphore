@@ -48,7 +48,14 @@ def hashpreimage(preimage, expected):
 	return SHA256(preimage) == expected
 ```
 
-# Work-in-progress Components
+# Work-in-progress Components / Ideas
+
+## Polyhash
+
+```python
+def polyhash_preimage(secret, nonce, message[], expected):
+	return expected == polyhash(secret, nonce, message[])
+```
 
 ## Unique Merkle Proof
 
