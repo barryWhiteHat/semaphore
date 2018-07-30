@@ -18,8 +18,20 @@
 '''
 
 
-import pdb
-import hashlib 
+import hashlib
+import random
+import math
+from binascii import hexlify
+
+
+def bytes_to_field_elements(in_bytes, chunk_size=253):
+    assert isinstance(in_bytes, bytes)
+    as_bits = ''.join([bin(_)[2:].rjust(8, '0') for _ in in_bytes])
+    num_bits = len(as_bits)
+    num_chunks = math.ceil(num_bits / chunk_size)
+    chunks = [as_bits[_:_+chunk_size][::-1] for _ in range(0, num_bits, chunk_size)]
+    return [int(_, 2) for _ in chunks]
+
 
 def libsnark2python (inputs):   
     #flip the inputs
@@ -27,7 +39,6 @@ def libsnark2python (inputs):
     bin_inputs = []
     for x in inputs:
         binary = bin(x)[2:][::-1]
-        print (len(binary))
         if len(binary) > 100:
             binary = binary.ljust(253, "0")          
         bin_inputs.append(binary)
@@ -47,22 +58,26 @@ def libsnark2python (inputs):
         i += 256
     return(output)
 
+
 def hashPadded(left, right):
     x1 = int(left , 16).to_bytes(32, "big")
     x2 = int(right , 16).to_bytes(32, "big")    
-    data = x1 + x2 
+    data = x1 + x2
     answer = hashlib.sha256(data).hexdigest()
     return("0x" + answer)
+
 
 def sha256(data):
     data = str(data).encode()
     return("0x" + hashlib.sha256(data).hexdigest())
 
+
 def getUniqueLeaf(depth):
     inputHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
-    for i in range(0,depth):
+    for i in range(0, depth):
         inputHash = hashPadded(inputHash, inputHash)
     return(inputHash)
+
 
 def genMerkelTree(tree_depth, leaves):
     tree_layers = [leaves ,[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]] 
@@ -74,8 +89,6 @@ def genMerkelTree(tree_depth, leaves):
 
     return(tree_layers[tree_depth][0], tree_layers)
 
-def getMerkelRoot(tree_depth, leaves):
-    genMerkelTree(tree_depth, leaves)  
 
 def getMerkelProof(leaves, index, tree_depth):
     address_bits = []
@@ -90,51 +103,18 @@ def getMerkelProof(leaves, index, tree_depth):
         index = int(index/2);
     return(merkelProof, address_bits); 
 
-def testHashPadded():
-    left = "0x0000000000000000000000000000000000000000000000000000000000000000"
-    right = "0x0000000000000000000000000000000000000000000000000000000000000000"
-    res = hashPadded(left , right)
-    assert (res == "0xf5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b")
 
-def testGenMerkelTree():
-    mr1, tree = genMerkelTree(1, ["0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000"]) 
-    mr2, tree = genMerkelTree(2, ["0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000", 
-                      "0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000"])
-    mr3, tree = genMerkelTree(29, ["0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000"])
-    assert(mr1 == "0xf5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b") 
-    assert(mr2 == "0xdb56114e00fdd4c1f85c892bf35ac9a89289aaecb1ebd0a96cde606a748b5d71")
+def genSalt(n):
+    chars = [_ for _ in 'abcdef0123456789']
+    return ''.join([random.choice(chars) for _ in range(0, n)])
 
-def testlibsnarkTopython():
-    inputs = [12981351829201453377820191526040524295325907810881751591725375521336092323040, 
-              2225095499654173609649711272123535458680077283826030252600915820706026312895, 
-              10509931637877506470161905650895697133838017786875388895008260393592381807236, 
-              11784807906137262651861317232543524609532737193375988426511007536308407308209, 17]
 
-    inputs = [9782619478414927069440250629401329418138703122237912437975467993246167708418,
-              2077680306600520305813581592038078188768881965413185699798221798985779874888,
-              4414150718664423886727710960459764220828063162079089958392546463165678021703,
-              7513790795222206681892855620762680219484336729153939269867138100414707910106,
-              902]
-
-    output = libsnark2python(inputs)
-    print(output)
-    assert(output[0] == "0x40cde80490e78bc7d1035cbc78d3e6be3e41b2fdfad473782e02e226cc2305a8")
-    assert(output[1] == "0x918e88a16d0624cd5ca4695bd84e23e4a6c8a202ce85560d3c66d4ed39bf4938")
-    assert(output[2] == "0x8dd3ea28fe8d04f3e15b787fec7e805e152fe7d3302d0122c8522bee1290e4b7")
-    assert(output[3] == "0x47a6bbcf8fa3667431e895f08cbd8ec2869a31698d9cf91e5bfd94cbca72161c")
-
-def testgetMissingLeaf():
-    assert (getMissingLeaf(0) == "0x0000000000000000000000000000000000000000000000000000000000000000")
-    assert (getMissingLeaf(1) == "0xf5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b")
-    assert (getMissingLeaf(2) == "0xdb56114e00fdd4c1f85c892bf35ac9a89289aaecb1ebd0a96cde606a748b5d71") 
-    assert (getMissingLeaf(3) == "0xc78009fdf07fc56a11f122370658a353aaa542ed63e44c4bc15ff4cd105ab33c")
-    assert (getMissingLeaf(4) == "0x536d98837f2dd165a55d5eeae91485954472d56f246df256bf3cae19352a123c")
-
-def testgetMerkelProof():
-    proof1, address1 =  getMerkelProof(["0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000",
-                      "0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000"] , 0 , 2)
-    assert ( proof1[0] == "0x0000000000000000000000000000000000000000000000000000000000000000")
-    assert ( proof1[1] == "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b")
-    assert ( address1[0] == 0)
-    assert ( address1[1] == 0)
- 
+def initMerkleTree(i):
+    nullifiers = []
+    sks = []
+    leaves = []
+    for j in range (0, i):
+        nullifiers.append("0x" + genSalt(64))
+        sks.append("0x" + genSalt(64))
+        leaves.append(hashPadded(nullifiers[j], sks[j]))
+    return(leaves, nullifiers, sks)

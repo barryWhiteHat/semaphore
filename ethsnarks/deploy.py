@@ -28,7 +28,7 @@ import ctypes as c
 from solc import compile_source, compile_files, link_code
 from bitstring import BitArray
 
-from .utils import genMerkelTree, getMerkelProof
+from .utils import genMerkelTree, getMerkelProof, hashPadded
 
 
 tree_depth = 2
@@ -56,14 +56,14 @@ def hexToBinary(hexString):
     return(binary2ctypes(out))
 
 
-def verify(vk_str, proof_str):
-    vk = c.c_char_p(vk_str.encode('ascii'))
-    proof = c.c_char_p(proof_str.encode('ascii'))
-    return _lib_miximus_verify(vk, proof)
+def native_verify(vk, proof):
+    vk_cstr = c.c_char_p(vk.encode('ascii'))
+    proof_cstr = c.c_char_p(proof.encode('ascii'))
+    return _lib_miximus_verify(vk_cstr, proof_cstr)
 
 
 def checkProof(vk, proof):
-    return verify(json.dumps(vk), json.dumps(proof))
+    return native_verify(json.dumps(vk), json.dumps(proof))
 
 
 def genWitness(leaves, nullifier, sk, signal, signal_variables, external_nullifier, address, tree_depth, fee, pk_dir):
@@ -74,10 +74,7 @@ def genWitness(leaves, nullifier, sk, signal, signal_variables, external_nullifi
     root , merkle_tree = genMerkelTree(tree_depth, leaves)
     path1 , address_bits1 = getMerkelProof(leaves, address, tree_depth)
 
-    try:
-        path = [hexToBinary(x) for x in path1] 
-    except:
-        path = [bytesToBinary(x) for x in path1] 
+    path = [hexToBinary(x) for x in path1]
 
     address_bits = address_bits1[::-1]
     print(path1, address_bits, address_bits, root, leaves, sk, nullifier)
@@ -108,7 +105,3 @@ def genSalt(i):
     salt = [random.choice("0123456789abcdef") for x in range(0,i)]
     out = "".join(salt)
     return(out)
-
-def genNullifier(recvAddress):
-    salt = genSalt(24)
-    return(recvAddress + salt)   

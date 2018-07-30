@@ -2,11 +2,18 @@
 
 This is a collection of zkSNARK circuits and libraries to use them with Ethereum smart contracts.
 
+It aims to:
+
+ * support creating proofs using 'common-spec' smart phones
+ * be very easy for developers to integrate into their projects
+ * be easily auditable, have comprehensive code coverage and automagic tests
+ * support a wide variety of use cases, flexibly
+
 ## Building
 
 [![Build Status](https://travis-ci.org/HarryR/ethsnarks.svg?branch=master)](https://travis-ci.org/HarryR/ethsnarks)
 
-Type `make` - the first time you run it will retrieve submodules, setup cmake and build everything.
+Type `make` - the first time you run it will retrieve submodules, setup cmake and build everything, for more information about the build process see the Travis logs.
 
 The following dependencies (for Linux) are needed:
 
@@ -15,8 +22,40 @@ The following dependencies (for Linux) are needed:
  * g++ or clang++
  * gmp
  * boost
+ * npm / nvm
+
+# Requests
+
+This project aims to help create an ecosystem where a small number of well tested but simple zkSNARK circuits can be easily integrated into your project without having to do all of the work up-front.
+
+If you have any ideas for new components, please file a ticket.
 
 # Components
+
+## SHA256 hash preimage
+
+This circuit allows you to prove that you know the preimage for a hash, without revealing the preimage.
+
+### Circuit pseudo-code
+
+ * `root` public - Merkle tree root
+ * `path` secret - Merkle proof
+ * `preimage_alpha` public - Alice's pre-image for the leaf (uniqueness tag)
+ * `preimage_beta` secret - Bob's pre-image for the leaf
+
+```python
+def hashpreimage(preimage, expected):
+	return SHA256(preimage) == expected
+```
+
+# Work-in-progress Components / Ideas
+
+## Polyhash
+
+```python
+def polyhash_preimage(secret, nonce, message[], expected):
+	return expected == polyhash(secret, nonce, message[])
+```
 
 ## Unique Merkle Proof
 

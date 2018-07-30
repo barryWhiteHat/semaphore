@@ -1,0 +1,52 @@
+pragma solidity ^0.4.24;
+
+import "truffle/Assert.sol";
+import "../contracts/Verifier.sol";
+
+contract TestVerifier
+{
+	function testVerifyProof () public
+	{
+		Verifier.ProofWithInput memory pwi;
+		_getStaticProof(pwi);
+
+		Verifier.VerifyingKey memory vk;
+		_getVerifyingKey(vk);
+
+		Assert.equal(Verifier.Verify(vk, pwi), 0, "Verification failed");
+	}
+
+
+	function _getVerifyingKey (Verifier.VerifyingKey memory vk)
+		internal pure
+	{
+		vk.A = Pairing.G2Point([0x2637f6cb7d83f691a97f7583351461c828f632a67035f2a80f7b02502f19eb3b, 0xa32e6e1db172c8ecf29a22da28feaf59f1c736a7ab22a909a64c102dd710d1f], [0x19c42065603591e9fa44032fdc8504aa57f1cdc92e115aec245114e971559732, 0xb8f91c7f6d3e3020ddc0f2802c450033d2a9c2acac37f2124958c62693546e4]);
+		vk.C = Pairing.G2Point([0x2133ae523ddd486db896c91372840cc793eef22a2dda4f244a9789320ebf2910, 0x1118116605aeed3c6f8f0e484be27f34853f784935bd2b55fa048f62f23440aa], [0xb59541688d2f41151f5981c9f798cd2f3678dd736b26986c6b835e8bcde2dd9, 0x20a6a736acbf9c189995e4786530fdf9153adb20926fd53ae014990891e33416]);
+		vk.gamma = Pairing.G2Point([0xc1c2e05ad3ba44b355cef5b4535c214d2e2d45f38f6bd18c863f3200fd44d4, 0xca3d11e6b6080345a9f139aca965d618686705fe143f84b2c0310bdbcd23d57], [0x15eef2430a2b484e2be238829e3cad1d721d9d9c7cf66f13c408edd6fc1c0af2, 0x18993d09525756230ce22f42aa011b83686b73efe988c733b28990ff74d091da]);
+		vk.gammaBeta2 = Pairing.G2Point([0xd73ba74ae95c3358ded160cb562650c1863e73837619947c3241eb67cdac0ca, 0xdcfb0781a87db541bd02339a1b8b5771855a2943e5bce1c1bc7d1e8a8811762], [0x4ae9e3fe0053d3e8ef0aeb09c4a2d3f7e6c80359bdd41b587ac891f93e12db0, 0x1f7a90acae5488f759a26200b804ba4f7255b08b07bbbb310c9b99dd6eee05e5]);
+		vk.Z = Pairing.G2Point([0x2285a89afa34b57e18baeb59ed5553df052181b8117bc0ec6ce66ab4adecb208, 0x8d7ff54f79ae0ce970a0c324b4b3f9c3d13695f4b1789744e27c6559529f84f], [0x16461d67349d81e8bb7995e0b0f3b1d3b638519f1ba30d3eee66646a9ec9fe1b, 0x2255dcddaf91e9db39011aaf458428576b8b8e0d83121929124f4b6a09814cd5]);
+		vk.B = Pairing.G1Point(0x26b3668cf5ae0d55ac462f750484e43a21fcf4b4e46644b6eb6919d660f1087b, 0x8fa4f5f4bb142faaf8fe746a86d8d4cc0e4e5a798082c4c8faa348e63d59e52);
+		vk.gammaBeta1 = Pairing.G1Point(0x20900cbd27570a9abf54f151bf76ec6473e7cf99c64f8a3bd7dc4a639befdf1f, 0x1b76737051b1f352e0d5e0f74c9b9a54857f66abf29b766895748706bb2265ec);
+		vk.IC = new Pairing.G1Point[](3);
+		vk.IC[0] = Pairing.G1Point(0x225d78298c0bd4a5259d4033acaff138a31a9f596ad8b023a71bd4199773e2bd, 0xd17f4b1cee3802913fef2647dddf621bd93a4308f6c14000479dddd771e0ee3);
+		vk.IC[1] = Pairing.G1Point(0x2b4aeca7cefb1b00186dbae219bfa2251257d22707ac689cd0a9df8a4961214f, 0x15b2e31fc5c627747dd20dcaab3a4530f8a096fbb0b10a8bb6330ef97c050632);
+		vk.IC[2] = Pairing.G1Point(0xf901e3653447917553d786e88fd7193228a9e05c44ba9c1539a8085525bbc3e, 0xb9e6aa791371ed545316ff15a5311fb8aa19d87e080763e31d1affcbe33d54e);
+	}
+
+	function _getStaticProof (Verifier.ProofWithInput memory output)
+		internal pure
+	{
+		Verifier.Proof memory proof = output.proof;
+		proof.B = Pairing.G2Point([0x953b724cd086a3171e925acab11231f2ea5709dfe1132b96eda5d186a944f48, 0xa541a5ce4fd43fa2680bd49f8bfde6ddb75ee45f289347cdcc54038a2b43f6e], [0xc4be3a97e2328b35a176e55e6ef2ccac42ee4c6a208b8fe3717a61723d77205, 0x2d494ae61312b236c35e775e06d45923b0ad16bdf627fc8f454c5263770815ce]);
+		proof.A = Pairing.G1Point(0x270d7d2dfbac6da14deccee33a6edb9f3391bc93934dc73232cdc6dc453de92f, 0x2a9e11ec969f3c3b79e72815d0a15fb77e64353bbcd75c863858706c00b8a34b);
+		proof.A_p = Pairing.G1Point(0x17082310e1551cd668b5f8b895f3f70fe350936401aca9c06e754fcc5a1cd32d, 0x132ccfefc69bfe0d614c26f8fe0a83df099cac55a658db5099a7f5c22132a986);
+		proof.B_p = Pairing.G1Point(0x2e89f9a1289ef95896002dc1a77376d9c42a9eb1383638615209dad58598cb7c, 0x203e5085742677d8bb13926c34efacfc37cc6b5607a639f626236acf38ffa9f7);
+		proof.C = Pairing.G1Point(0x60ab6eb9132aa40d9f7c67197a1245b1ca8f92cdc32f56c71ac85b675493687, 0x1bb11a0ca2903948d7414f941fd7f7a0df73c0bc4ec6e68f6733697c19491149);
+		proof.C_p = Pairing.G1Point(0xfa7df7961692247f858a89ac8a8ea8819c7151f6f1971adca2a95b2650b3a94, 0x135e16198a8b45c85af31ae3a77be896290ff2d4bf3dc8e4886453340e65a380);
+		proof.K = Pairing.G1Point(0x6cd6c5cc42ecf9cf6a97edbd2c126bd07132ba18b0ff691340f0932e6fd7326, 0x17a0adc084ab9b5189c58880807c88261f04a31acdb389326d5b24fc2558af53);
+		proof.H = Pairing.G1Point(0x282ba15ff30ac124c5d9bf10e2a3e021236e769d2fcc28cb714a0e91ff077990, 0x51e09d4deaf36f48e9109e4ba0ef71992ba17d352095072f27e68549d73afc9);
+		output.input = new uint256[](2);
+		output.input[0] = 0x1f1a881967fc9fe182b453b7fc0152c6ed8bab4e0046cc6656024c499010f282;
+		output.input[1] = 0x4;
+	}
+}

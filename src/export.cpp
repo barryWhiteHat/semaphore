@@ -157,10 +157,6 @@ template<typename ppT>
 string proof_to_json(r1cs_ppzksnark_proof<ppT> &proof, r1cs_primary_input<libff::Fr<ppT>> &input) {
     std::stringstream ss;
 
-    std::string path = "proof-test1234.json";
-    std::ofstream fh;
-    fh.open(path, std::ios::binary);
-
     ss << "{\n";
     ss << " \"a\" :[" << outputPointG1AffineAsHex(proof.g_A.g) << "],\n";
     ss << " \"a_p\"  :[" << outputPointG1AffineAsHex(proof.g_A.h)<< "],\n";
@@ -183,10 +179,6 @@ string proof_to_json(r1cs_ppzksnark_proof<ppT> &proof, r1cs_primary_input<libff:
     ss << "}";
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
 
     return(ss.str());
 }
