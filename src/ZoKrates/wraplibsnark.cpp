@@ -37,22 +37,19 @@ libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(const uint8_t* _
 }
 
 std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> _x){
-    uint8_t x[32];
-    for (unsigned i = 0; i < 4; i++)
-    {
-        for (unsigned j = 0; j < 8; j++) {          
-            x[i * 8 + j] = uint8_t(uint64_t(_x.data[3 - i]) >> (8 * (7 - j)));
-        }
-    }
+    mpz_t value;
+    int value_error;
+    ::mpz_init(value);
 
-    std::stringstream ss;
-    ss << std::setfill('0');
-    for (unsigned i = 0; i<32; i++) {
-        ss << std::hex << std::setw(2) << (int)x[i];
-    }
+    _x.to_mpz(value);
+    char *value_out_hex = mpz_get_str(NULL, 16, value);
 
-    std::string str = ss.str();
-    return str.erase(0, min(str.find_first_not_of('0'), str.size()-1));
+    std::string str(value_out_hex);
+
+    ::mpz_clear(value);
+    ::free(value_out_hex);
+
+    return str;
 }
 
 std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)

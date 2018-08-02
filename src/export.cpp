@@ -68,7 +68,7 @@ template<typename FieldT>
 void constraint_to_json(linear_combination<FieldT> constraints, std::stringstream &ss)
 {
     ss << "{";
-    uint count = 0;
+    size_t count = 0;
     for (const linear_term<FieldT>& lt : constraints.terms)
     {
         if (count != 0) {
@@ -86,7 +86,7 @@ void constraint_to_json(linear_combination<FieldT> constraints, std::stringstrea
 }
 
 template <typename FieldT>
-void array_to_json(protoboard<FieldT> pb, uint input_variables,  std::string path)
+void array_to_json(protoboard<FieldT> pb, size_t input_variables,  std::string path)
 {
 
     std::stringstream ss;
@@ -111,7 +111,7 @@ void array_to_json(protoboard<FieldT> pb, uint input_variables,  std::string pat
 }
 
 template<typename FieldT>
-void r1cs_to_json(protoboard<FieldT> pb, uint input_variables, std::string path)
+void r1cs_to_json(protoboard<FieldT> pb, size_t input_variables, std::string path)
     {
     // output inputs, right now need to compile with debug flag so that the `variable_annotations`
     // exists. Having trouble setting that up so will leave for now.

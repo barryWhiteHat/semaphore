@@ -119,7 +119,7 @@ public:
                      in_output,                 // output
                      FMT(annotation_prefix, " final_hasher"))
     {
-        assert( in_input_block.size() == 512 );
+        assert( in_input_block.block_size == 512 );
     }
 
     void generate_r1cs_constraints()
