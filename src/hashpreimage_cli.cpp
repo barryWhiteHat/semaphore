@@ -1,10 +1,13 @@
+// Copyright (c) 2018 HarryR
+// License: GPL-3.0+
+
 #include <cstring>
 #include <iostream> // cerr
 #include <fstream>  // ofstream
 #include <sstream>  // stringstream
 
 #include "mod/hashpreimage.cpp"
-#include "sha256/utils.cpp" // hex_to_bytes
+#include "utils.cpp" // hex_to_bytes
 
 
 using std::cerr;

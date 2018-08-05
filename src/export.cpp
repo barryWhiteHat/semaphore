@@ -27,7 +27,7 @@
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
 // ZoKrates
-#include <ZoKrates/wraplibsnark.cpp>
+#include "ZoKrates/wraplibsnark.cpp"
 
 
 
@@ -35,8 +35,8 @@
 
 
 //key gen 
-#include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp" //hold key
-#include "libff/algebra/curves/bn128/bn128_pp.hpp" //hold key
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/bn128/bn128_pp.hpp>
 #include <libff/algebra/curves/bn128/bn128_pp.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 
