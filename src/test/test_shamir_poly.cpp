@@ -38,14 +38,6 @@ bool test_shamirs_poly()
 
     pb.set_input_sizes(1);
 
-    std::cout << "I " << rand_input << std::endl;
-    for( size_t i = 0; i < in_alpha.size(); i++ ) {
-        std::cout << "A[" << i << "] " << rand_alpha[i] << std::endl;
-        std::cout << "S[" << i << "] " << pb.val(the_gadget.intermediate_squares[i]) << std::endl;
-        std::cout << "T[" << i << "] " << pb.val(the_gadget.intermediate_total[i]) << std::endl;
-        std::cout << std::endl;
-    }
-
     if( ! pb.is_satisfied() ) {
         std::cerr << "Not satisfied!\n";
         return false;
