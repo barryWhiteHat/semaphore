@@ -27,7 +27,7 @@
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
 // ZoKrates
-#include <ZoKrates/wraplibsnark.cpp>
+#include "ZoKrates/wraplibsnark.cpp"
 
 
 
@@ -35,8 +35,8 @@
 
 
 //key gen 
-#include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp" //hold key
-#include "libff/algebra/curves/bn128/bn128_pp.hpp" //hold key
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libff/algebra/curves/bn128/bn128_pp.hpp>
 #include <libff/algebra/curves/bn128/bn128_pp.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 
@@ -111,7 +111,7 @@ void array_to_json(protoboard<FieldT> pb, size_t input_variables,  std::string p
 }
 
 template<typename FieldT>
-void r1cs_to_json(protoboard<FieldT> pb, size_t input_variables, std::string path)
+void r1cs_to_json(const protoboard<FieldT> &pb, size_t input_variables, std::string path)
     {
     // output inputs, right now need to compile with debug flag so that the `variable_annotations`
     // exists. Having trouble setting that up so will leave for now.
@@ -124,17 +124,20 @@ void r1cs_to_json(protoboard<FieldT> pb, size_t input_variables, std::string pat
     
     for (size_t i = 0; i < input_variables + 1; ++i) 
     {   
+        #ifdef DEBUG
         ss << '"' << constraints.variable_annotations[i].c_str() << '"';
+        #endif
+
         if (i < input_variables ) {
             ss << ", ";
         }
     }
     ss << "],\n";
-    ss << "\"constraints\":[";
+    ss << "\"constraints\":[\n";
      
     for (size_t c = 0; c < constraints.num_constraints(); ++c)
     {
-        ss << "[";// << "\"A\"=";
+        ss << "\t[";// << "\"A\"=";
         constraint_to_json(constraints.constraints[c].a, ss);
         ss << ",";// << "\"B\"=";
         constraint_to_json(constraints.constraints[c].b, ss);

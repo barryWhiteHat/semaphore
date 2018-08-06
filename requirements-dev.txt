@@ -1,3 +1,5 @@
 coverage
 pyflakes
 pylint
+scipy
+z3-solver

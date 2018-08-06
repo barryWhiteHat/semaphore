@@ -169,5 +169,4 @@ public:
 
         this->generate_r1cs_witness( input_bv, output_bv );
     }
-
 };

@@ -1,5 +1,7 @@
-#ifndef HASHPREIMAGE_H_
-#define HASHPREIMAGE_H_
+#ifndef HASHPREIMAGE_HPP_
+#define HASHPREIMAGE_HPP_
+
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,5 +39,5 @@ bool hashpreimage_verify( const char *vk_json, const char *proof_json );
 } // extern "C"
 #endif
 
-// HASHPREIMAGE_H_
+// HASHPREIMAGE_HPP_
 #endif

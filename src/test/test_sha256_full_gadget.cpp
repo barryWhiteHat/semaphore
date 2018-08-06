@@ -1,7 +1,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include "sha256/sha256_full_gadget.cpp"
-#include "sha256/utils.cpp"
+#include "gadgets/sha256_full.cpp"
+#include "utils.cpp"
 
 
 #include <openssl/sha.h>

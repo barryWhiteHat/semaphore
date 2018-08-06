@@ -1,7 +1,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 #include "mod/hashpreimage.cpp"
-#include "sha256/utils.cpp"
+#include "utils.cpp"
 
 
 int main( int argc, char **argv )
