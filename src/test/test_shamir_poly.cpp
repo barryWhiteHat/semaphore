@@ -14,7 +14,6 @@ bool test_shamirs_poly()
     typedef libff::Fr<ppT> FieldT;
 
     protoboard<FieldT> pb;
-    pb.set_input_sizes(1);
 
     auto rand_input = FieldT::random_element();
     std::vector<FieldT> rand_alpha = {
@@ -36,6 +35,8 @@ bool test_shamirs_poly()
     the_gadget.generate_r1cs_witness();
 
     the_gadget.generate_r1cs_constraints();
+
+    pb.set_input_sizes(1);
 
     std::cout << "I " << rand_input << std::endl;
     for( size_t i = 0; i < in_alpha.size(); i++ ) {

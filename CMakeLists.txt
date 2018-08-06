@@ -61,7 +61,7 @@ option(
 option(
   DEBUG
   "Enable debugging mode"
-  OFF
+  ON
 )
 
 option(
