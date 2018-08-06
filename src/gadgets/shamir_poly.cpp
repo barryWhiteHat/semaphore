@@ -127,11 +127,6 @@ public:
                         alpha[i],
                         intermediate_squares[i],
                         (intermediate_total[i] - intermediate_total[i-1])));
-
-                std::cout << "i = " << i << std::endl;
-                std::cout << "Derp " << (pb.val(intermediate_total[i]) - pb.val(intermediate_total[i-1])) << std::endl;
-                std::cout << "Herp " << (pb.val(alpha[i]) * pb.val(intermediate_squares[i])) << std::endl;
-                std::cout << std::endl;
             }
         }
     }
