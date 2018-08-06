@@ -28,7 +28,6 @@ public:
 
     const pb_variable<FieldT> &input;
     const pb_variable_array<FieldT> &alpha;
-    const pb_variable<FieldT> &output;
 
     pb_variable_array<FieldT> intermediate_squares;
     pb_variable_array<FieldT> intermediate_total;
@@ -37,7 +36,6 @@ public:
         protoboard<FieldT> &in_pb,
         const pb_variable<FieldT> &in_input,
         const pb_variable_array<FieldT> &in_alpha,
-        const pb_variable<FieldT> &in_output,
         const std::string &annotation_prefix=""
     ) :
         gadget<FieldT>(in_pb, FMT(annotation_prefix, " shamir_poly")),
@@ -45,7 +43,6 @@ public:
 
         input(in_input),
         alpha(in_alpha),
-        output(in_output),
 
         intermediate_squares(),
         intermediate_total()
@@ -56,6 +53,12 @@ public:
 
         intermediate_total.allocate( pb, in_alpha.size(), FMT(annotation_prefix, " intermediate_total") );
     }
+
+    const pb_variable<FieldT>
+    result()
+    {
+        return intermediate_total[alpha.size() - 1];
+    }
     
     /**
     * Constraints are:
@@ -65,7 +68,7 @@ public:
     * For the intermediate squares:
     *
     *   (1     * S[0]) - 1      = 0
-    *   (input * S[0]) - S[2]   = 0
+    *   (input * input) - S[2]  = 0
     *   (S[i]  * S[i]) - S[i+1] = 0
     *   ...
     *
@@ -85,7 +88,6 @@ public:
         {            
             // Intermediate squares
             if( i == 0 ) {
-                // (1 * S[0]) - 1 = 0
                 pb.add_r1cs_constraint(
                     r1cs_constraint<FieldT>(
                         FieldT::one(),
@@ -93,7 +95,7 @@ public:
                         FieldT::one()));
             }
             else if( i == 1 ) {
-                // (input * S[0]) - S[2] = 0
+                // (input * input) - S[2] = 0
                 pb.add_r1cs_constraint(
                     r1cs_constraint<FieldT>(
                         input,
@@ -101,7 +103,7 @@ public:
                         intermediate_squares[i+1]));
             }
             else if( i < (alpha.size() - 1) ) {
-                // (S[i] * S[i]) - S[i+1] = 0
+                // (I * S[i]) - S[i+1] = 0
                 pb.add_r1cs_constraint(
                     r1cs_constraint<FieldT>(
                         input,
@@ -125,6 +127,11 @@ public:
                         alpha[i],
                         intermediate_squares[i],
                         (intermediate_total[i] - intermediate_total[i-1])));
+
+                std::cout << "i = " << i << std::endl;
+                std::cout << "Derp " << (pb.val(intermediate_total[i]) - pb.val(intermediate_total[i-1])) << std::endl;
+                std::cout << "Herp " << (pb.val(alpha[i]) * pb.val(intermediate_squares[i])) << std::endl;
+                std::cout << std::endl;
             }
         }
     }
@@ -162,17 +169,16 @@ public:
                 pb.val(intermediate_squares[i]) = pb.lc_val(input)^i;
             }
 
-            total += pb.lc_val(alpha[i]) * pb.lc_val(intermediate_squares[i]);
+            total += pb.val(alpha[i]) * pb.val(intermediate_squares[i]);
 
             pb.val(intermediate_total[i]) = total;
         }
 
-        pb.val(output) = total;
     }
 
-    void generate_r1cs_witness( FieldT in_input )
+    void generate_r1cs_witness( const FieldT &in_input )
     {
-        input.generate_r1cs_witness(in_input);
+        pb.val(input) = in_input;
 
         this->generate_r1cs_witness();
     }

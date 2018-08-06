@@ -26,6 +26,7 @@ class VerifyShamirsPoly(unittest.TestCase):
         Sx = range(1, 5)
         Sy = [X(_) for _ in Sx]
         for x, y in zip(Sx, Sy):
+            print(x, y)
             z = shamirs_poly_n(x, a, p)
             assert z == y % p
         # Then recover secret
@@ -109,6 +110,8 @@ class VerifyShamirsPoly(unittest.TestCase):
             1657398546220101661314129991806057074896482894269175421846876999103942041527
         ]
 
+        assert shamirs_poly(I, A) == T[-1]
+
         for i in range(0, len(A)):
             if i == 0:
                 r1cs_constraint(1, S[i], 1)
@@ -121,7 +124,6 @@ class VerifyShamirsPoly(unittest.TestCase):
                 r1cs_constraint(A[i], S[i], T[i])
             else:
                 r1cs_constraint(A[i], S[i], (T[i] - T[i-1]))
-
 
 
 if __name__ == "__main__":
