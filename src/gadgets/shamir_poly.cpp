@@ -10,7 +10,6 @@ using libsnark::gadget;
 using libsnark::pb_variable;
 using libsnark::pb_variable_array;
 using libsnark::protoboard;
-using libsnark::linear_combination;
 using libsnark::r1cs_constraint;
 
 /**
@@ -81,7 +80,7 @@ public:
     * For `k` rounds there are `(2*k)-1` constraints
     */
     void generate_r1cs_constraints()
-    {       
+    {
         linear_combination<FieldT> a1, b1, c1;
 
         for( size_t i = 0; i < alpha.size(); i++ )

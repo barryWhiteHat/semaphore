@@ -1,3 +1,6 @@
+# Copyright (c) 2018 HarryR
+# License: LGPL-3.0+
+
 import unittest
 from hashlib import sha256
 from binascii import unhexlify
@@ -10,7 +13,7 @@ def _fill_inputs(refstr, n):
                      for _ in range(0, n)])
 
 
-class VerifyTests(unittest.TestCase):
+class BitsToFieldsTests(unittest.TestCase):
     def test_bits_to_fields(self):
         inputs = unhexlify('D294F6E585874FE640BE4CE636E6EF9E3ADC27620AA3221FDCF5C0A7C11C6F67')
         outputs = [3148911523101545054735209199478325155464765444384556179543606818372573931851, 7]
