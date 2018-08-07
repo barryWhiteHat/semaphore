@@ -15,7 +15,7 @@ def r1cs_constraint(a, b, c):
     assert ((((a * b) % curve_order) - c) % curve_order) == 0
 
 
-class VerifyShamirsPoly(unittest.TestCase):
+class ShamirPolyTests(unittest.TestCase):
     def test_fromdocs(self):
         p = 100003
         k = 4

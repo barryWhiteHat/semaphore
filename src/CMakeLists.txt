@@ -53,3 +53,7 @@ target_link_libraries(test_field_packing snark)
 
 add_executable(test_hashpreimage test/test_hashpreimage.cpp)
 target_link_libraries(test_hashpreimage snark)
+
+
+add_executable(test_one_of_n test/test_one_of_n.cpp)
+target_link_libraries(test_one_of_n snark)
