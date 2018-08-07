@@ -10,6 +10,7 @@ using libsnark::gadget;
 using libsnark::pb_variable;
 using libsnark::pb_variable_array;
 using libsnark::protoboard;
+using libsnark::linear_combination;
 using libsnark::r1cs_constraint;
 
 /**
