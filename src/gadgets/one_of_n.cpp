@@ -72,6 +72,9 @@ public:
                     FieldT::one(),
                     FieldT::one()));
 
+        // XXX: why use `lc_val` here?
+        auto our_item_lc_val = pb.lc_val(our_item);
+
         // then multiply toggles with items
         // subtract toggle*our_item
         for( size_t i = 0; i < items.size(); i++ )
@@ -80,7 +83,7 @@ public:
                 r1cs_constraint<FieldT>(
                     items[i],
                     toggles[i],
-                    toggles[i] * pb.lc_val(our_item)));
+                    toggles[i] * our_item_lc_val));
         }
     }
 
@@ -91,6 +94,7 @@ public:
             if( pb.val(items[i]) == pb.val(our_item) )
             {
                 pb.val(toggles[i]) = FieldT::one();
+                break;
             }
         }
 

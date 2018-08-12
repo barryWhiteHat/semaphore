@@ -67,9 +67,9 @@ public:
     *
     * For the intermediate squares:
     *
-    *   (1     * S[0]) - 1      = 0
-    *   (input * input) - S[2]  = 0
-    *   (S[i]  * S[i]) - S[i+1] = 0
+    *   (1     * S[0])  - 1      = 0
+    *   (input * input) - S[2 ]  = 0
+    *   (S[i]  * S[i])  - S[i+1] = 0
     *   ...
     *
     * For the totals:
