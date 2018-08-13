@@ -9,13 +9,13 @@ the cubing in the round function creates a permutation.
 For this is, it is sufficient to require gcd(n, p-1) = 1
 
 p = curve_order = 21888242871839275222246405745257275088548364400416034343698204186575808495617
-n = 5
-gcd(n, p-1) = 1
+e = 5
+gcd(e, p-1) = 1
 
 The number of rounds for constructing the keyed permutation is
 
-    r = int(log(p)/log2(n)) = 75
-    r = math.ceil(log(p, n)) = 110
+    r = int(log(p)/log2(e)) = 75
+    r = math.ceil(log(p, e)) = 110
 """
 
 from __future__ import print_function
@@ -26,8 +26,13 @@ import struct
 from hashlib import sha256
 from py_ecc.bn128 import curve_order
 
+from .r1cs import r1cs_constraint
+
 
 def make_constants(name, n, e):
+    """
+    Generate round constants for a Longsight/MiMC family algorithm
+    """
     output = []
     name = "%s%dp%d" % (name, n, e)
     for i in range(0, n):
@@ -37,6 +42,9 @@ def make_constants(name, n, e):
 
 
 def make_constants_cxx(name, n, e):
+    """
+    Convert constants into a C++ function which populates a vector with them
+    """
     name, constants_list = make_constants(name, n, e)
     output = "template<typename FieldT>\nvoid %s_constants( std::vector<FieldT> &round_constants )\n{\n" % (name,)
     output += "\tround_constants.resize(%d);\n" % (n,)
@@ -116,9 +124,60 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     if k != 0:
         assert k > 0 and k < (p-1)
 
-    for i in range(0, R-1):
+    input_L = x_L
+    input_R = x_R
+
+    round_squares = list()
+    rounds = list()
+
+    # Calculate rounds
+    for i in range(0, R):
+        t = (x_L + C[i]) % p
+        round_squares.append( (t*t) % p)
+        round_squares.append( (round_squares[-1]*t) % p)
+        round_squares.append( (round_squares[-1]*t) % p)
+        round_squares.append( (round_squares[-1]*t) % p)
+
         j = powmod(x_L + k + C[i], e, p)
+        assert j == round_squares[-1]
+
         x_L, x_R = (x_R + j) % p, x_L
+        rounds.append(x_L)
+
+    # Verify round constraints
+    j = 0
+    for i in range(0, R):
+        if i == 0:
+            c_xL = input_L
+            c_xR = input_R
+        else:
+            c_xL = rounds[i-1]
+            if i == 1:
+                c_xR = input_L
+            else:
+                c_xR = rounds[i-2]
+
+        r1cs_constraint(C[i] + c_xL, C[i] + c_xL, round_squares[j])
+        r1cs_constraint(round_squares[j], C[i] + c_xL, round_squares[j+1])
+        r1cs_constraint(round_squares[j+1], C[i] + c_xL, round_squares[j+2])
+        r1cs_constraint(round_squares[j+2], C[i] + c_xL, round_squares[j+3])
+        r1cs_constraint(1, round_squares[j+3] + c_xR, rounds[i])
+
+        j += 4
+
+    """
+    print("Input L:", input_L)
+    print("Input R:", input_R)
+    print("Result:", x_L)
+
+    print("Rounds:")
+    for i, x in enumerate(rounds):
+        print("\t",i, x)
+
+    print("Intermediate Squares:")
+    for i, x in enumerate(round_squares):
+        print("\t",i, x)
+    """
 
     return x_L
 
@@ -169,26 +228,5 @@ def sponge(p, n, r, F):
 """
 
 if __name__ == "__main__":
-    from random import randint
-    x_L = 21871881226116355513319084168586976250335411806112527735069209751513595455673
-    x_R = 55049861378429053168722197095693172831329974911537953231866155060049976290
-    #x_L = randint(1, curve_order-1)
-    #x_R = randint(1, curve_order-1)
-    print(x_L)
-    print(x_R)
-    print(LongsightF152p5(x_L, x_R))
+    print(LongsightF152p5(1, 1))
     #print(make_constants_cxx("LongsightF", 152, 5))
-    """
-
-    x = randint(1, curve_order-1)
-    e = 5
-
-    R_F = 220
-    C_F = [randint(1, curve_order-1) for _ in range(0, R_F)]
-
-    R_L = 110
-    C_L = [randint(1, curve_order-1) for _ in range(0, R_L)]
-
-    print(LongsightF(x_L, x_R, C_F, R_F, e, curve_order))
-    print(LongsightL(x, C_L, R_L, e, curve_order))
-    """

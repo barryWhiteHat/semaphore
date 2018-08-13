@@ -1,18 +1,13 @@
 import unittest
 
-from py_ecc.bn128 import curve_order
-
 from ethsnarks.shamirspoly import lagrange, shamirs_poly, randq, randn, shamirs_poly_n
+from ethsnarks.r1cs import r1cs_constraint
 
 from scipy.interpolate import lagrange as scipy_lagrange
 
 
 def unzip(x):
     return [_[0] for _ in x], [_[1] for _ in x]
-
-
-def r1cs_constraint(a, b, c):
-    assert ((((a * b) % curve_order) - c) % curve_order) == 0
 
 
 class ShamirPolyTests(unittest.TestCase):

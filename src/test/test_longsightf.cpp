@@ -41,7 +41,26 @@ bool test_LongsightF()
 
     pb.set_input_sizes(2);
 
+    /*
+    std::cout << "Input L: " << pb.val(the_gadget.start_L) <<  "\n";
+    std::cout << "Input R: " << pb.val(the_gadget.start_R) <<  "\n";
     std::cout << "Result: " << pb.val(the_gadget.result()) <<  "\n";
+    std::cout << "\nRounds:\n";
+    for( size_t i = 0; i < the_gadget.rounds.size(); i++ ) {
+        std::cout << "\t" << i << " " << pb.val(the_gadget.rounds[i]) << "\n";
+    }
+    std::cout << "\nIntermediate Squares:\n";
+    for( size_t i = 0; i < the_gadget.round_squares.size(); i++ ) {
+        std::cout << "\t" << i << " " << pb.val(the_gadget.round_squares[i]) << "\n";
+    }
+    */
+
+    auto result_expected = FieldT("11801552584949094581972187388927133931539817817986253233814495442311083852545");
+    if( result_expected != pb.val(the_gadget.result()) ) {
+        std::cerr << "Unexpected result!\n";
+        return false;
+    }
+
 
     if( ! pb.is_satisfied() ) {
         std::cerr << "Not satisfied!\n";
@@ -50,7 +69,6 @@ bool test_LongsightF()
 
     auto constraints = pb.get_constraint_system();
 
-    std::cout << "Setup keypair\n";
     auto keypair = r1cs_ppzksnark_generator<ppT>(constraints);
 
     auto primary_input = pb.primary_input();

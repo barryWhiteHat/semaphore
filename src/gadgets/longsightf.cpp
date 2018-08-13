@@ -119,9 +119,14 @@ public:
 
         for( size_t i = 0; i < round_constants.size() - 2; i++ )
         {
-            const pb_variable<FieldT>& xL = (i == 0 ? start_L : rounds[i-1]);
+            const pb_variable<FieldT>& xL = (
+                i == 0 ? start_L
+                       : rounds[i-1]);
 
-            const pb_variable<FieldT>& xR = (i == 0 ? start_R : (i == 1 ? start_L : rounds[i-2]));
+            const pb_variable<FieldT>& xR = (
+                i == 0 ? start_R
+                       : (i == 1 ? start_L
+                                 : rounds[i-2]));
 
             // -------------------------------------------------
             // Squares
@@ -157,12 +162,12 @@ public:
             // -------------------------------------------------
             // Intermediate outputs
 
-                // ((j[(1+i)*4] + x[i]) * 1) = x[i+2]
+                // ((j[(1+i)*4 + 3] + xR) * 1) = x[i]
                 this->pb.add_r1cs_constraint(
                     r1cs_constraint<FieldT>(
                         1,
-                        round_squares[j+3] + rounds[i],
-                        rounds[i+2]));
+                        round_squares[j+3] + xR,
+                        rounds[i]));
 
             // -------------------------------------------------
             // Move to next block of squares
@@ -185,9 +190,9 @@ public:
             // Intermediate squarings
             auto t = xL + round_constants[i];
             this->pb.val(round_squares[h]) = t * t;        // ^2  
-            this->pb.val(round_squares[h+1]) = this->pb.val(round_squares[h]) * this->pb.val(round_squares[h]);    // ^3
-            this->pb.val(round_squares[h+2]) = this->pb.val(round_squares[h+1]) * this->pb.val(round_squares[h+1]);    // ^4
-            this->pb.val(round_squares[h+3]) = this->pb.val(round_squares[h+2]) * this->pb.val(round_squares[h+2]);    // ^5
+            this->pb.val(round_squares[h+1]) = this->pb.val(round_squares[h]) * t;    // ^3
+            this->pb.val(round_squares[h+2]) = this->pb.val(round_squares[h+1]) * t;    // ^4
+            this->pb.val(round_squares[h+3]) = this->pb.val(round_squares[h+2]) * t;    // ^5
 
             // Then intermediate X point
             this->pb.val(rounds[i]) = xR + this->pb.val(round_squares[h+3]);
