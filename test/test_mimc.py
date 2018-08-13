@@ -4,7 +4,7 @@ from random import randint
 
 from ethsnarks.mimc import LongsightF, LongsightL, LongsightF152p5, curve_order
 
-class ShamirPolyTests(unittest.TestCase):
+class MiMCTests(unittest.TestCase):
     def test_LongsightF_known1(self):
         x_L = 21871881226116355513319084168586976250335411806112527735069209751513595455673
         x_R = 55049861378429053168722197095693172831329974911537953231866155060049976290
