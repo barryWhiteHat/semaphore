@@ -18,9 +18,32 @@ The number of rounds for constructing the keyed permutation is
     r = math.ceil(log(p, n)) = 110
 """
 
-import math
+from __future__ import print_function
 
+import math
+import struct
+
+from hashlib import sha256
 from py_ecc.bn128 import curve_order
+
+
+def make_constants(name, n, e):
+    output = []
+    name = "%s%dp%d" % (name, n, e)
+    for i in range(0, n):
+        const_bytes = name.encode('ascii') + struct.pack('<L', i)
+        output.append(int.from_bytes(sha256(const_bytes).digest(), 'little') % curve_order)
+    return name, output
+
+
+def make_constants_cxx(name, n, e):
+    name, constants_list = make_constants(name, n, e)
+    output = "template<typename FieldT>\nvoid %s_constants( std::vector<FieldT> &round_constants )\n{\n" % (name,)
+    output += "\tround_constants.resize(%d);\n" % (n,)
+    for i, constant in enumerate(constants_list):
+        output += "\tround_constants[%d] = FieldT(\"%d\");\n" % (i, constant)
+    output += "}\n"
+    return output
 
 
 def powmod(a, b, n):
@@ -48,7 +71,7 @@ def LongsightL(x, C, R, e, p, k=0):
     @param k optional key
     """
     assert math.gcd(p-1, e) == 1
-    assert R >= math.ceil(math.log(p, e))
+    assert R >= math.ceil(math.log(p) / math.log2(e))
     assert len(C) == R
 
     assert x > 0 and x < (p-1)
@@ -84,7 +107,7 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     @param p field prime
     @param k optional key
     """
-    assert R >= 2 * math.ceil(math.log(p, e))
+    assert R >= 2 * math.ceil(math.log(p) / math.log2(e))
     assert math.gcd(p-1, e) == 1
     assert len(C) == R
 
@@ -98,6 +121,15 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
         x_L, x_R = (x_R + j) % p, x_L
 
     return x_L
+
+
+def LongsightF152p5(x_L, x_R):
+    p = curve_order
+    e = 5
+    R = 2 * math.ceil(math.log(p) / math.log2(e))
+    assert R == 152
+    _, C = make_constants("LongsightF", R, e)
+    return LongsightF(x_L, x_R, C, R, e, p)
 
 
 """
@@ -138,10 +170,17 @@ def sponge(p, n, r, F):
 
 if __name__ == "__main__":
     from random import randint
+    x_L = 21871881226116355513319084168586976250335411806112527735069209751513595455673
+    x_R = 55049861378429053168722197095693172831329974911537953231866155060049976290
+    #x_L = randint(1, curve_order-1)
+    #x_R = randint(1, curve_order-1)
+    print(x_L)
+    print(x_R)
+    print(LongsightF152p5(x_L, x_R))
+    #print(make_constants_cxx("LongsightF", 152, 5))
+    """
 
     x = randint(1, curve_order-1)
-    x_L = randint(1, curve_order-1)
-    x_R = randint(1, curve_order-1)
     e = 5
 
     R_F = 220
@@ -152,3 +191,4 @@ if __name__ == "__main__":
 
     print(LongsightF(x_L, x_R, C_F, R_F, e, curve_order))
     print(LongsightL(x, C_L, R_L, e, curve_order))
+    """
