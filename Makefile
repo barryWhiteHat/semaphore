@@ -48,6 +48,7 @@ python-test:
 	$(COVERAGE) -m unittest discover test/
 
 cxx-tests:
+	./bin/test_longsightf
 	./bin/test_one_of_n
 	./bin/test_shamir_poly
 	./bin/test_sha256_full_gadget
