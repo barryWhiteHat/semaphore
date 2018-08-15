@@ -58,5 +58,10 @@ target_link_libraries(test_hashpreimage snark)
 add_executable(test_one_of_n test/test_one_of_n.cpp)
 target_link_libraries(test_one_of_n snark)
 
+
 add_executable(test_longsightf test/test_longsightf.cpp)
 target_link_libraries(test_longsightf snark)
+
+
+add_executable(test_longsightf_bits test/test_longsightf_bits.cpp)
+target_link_libraries(test_longsightf_bits snark)

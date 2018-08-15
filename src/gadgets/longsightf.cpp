@@ -108,7 +108,7 @@ public:
         rounds.allocate(in_pb, round_constants.size(), FMT(in_annotation_prefix, " rounds"));
     }
 
-    const pb_variable<FieldT>& result()
+    const pb_variable<FieldT>& result() const
     {
         return rounds[ round_constants.size() - 1 ];
     }

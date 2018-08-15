@@ -1,3 +1,11 @@
+"""
+Verifies that various polynomials are bijections across prime numbers
+with different qualities.
+
+This aims to prove, intuitively, that the exponent (x^5) used in the
+LongsightF polynomial is a permutation.
+"""
+
 from ethsnarks.mimc import powmod
 
 from math import gcd
