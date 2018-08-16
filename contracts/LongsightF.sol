@@ -1,3 +1,6 @@
+// Copyright (c) 2018 HarryR
+// License: LGPL-3.0+
+
 pragma solidity ^0.4.24;
 
 library LongsightF

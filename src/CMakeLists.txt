@@ -65,3 +65,8 @@ target_link_libraries(test_longsightf snark)
 
 add_executable(test_longsightf_bits test/test_longsightf_bits.cpp)
 target_link_libraries(test_longsightf_bits snark)
+
+
+add_executable(test_longsightf_merkletree test/test_longsightf_merkletree.cpp)
+target_link_libraries(test_longsightf_merkletree snark)
+

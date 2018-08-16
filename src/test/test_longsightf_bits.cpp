@@ -8,9 +8,6 @@
 #include "utils.cpp"
 
 
-using libsnark::r1cs_ppzksnark_generator;
-using libsnark::r1cs_ppzksnark_prover;
-using libsnark::dual_variable_gadget;
 using libff::convert_bit_vector_to_field_element;
 
 
@@ -18,22 +15,24 @@ template<typename ppT>
 bool test_LongsightF_bits()
 {
     typedef libff::Fr<ppT> FieldT;
+    typedef LongsightF_bits_gadget<FieldT,LongsightF152p5_gadget<FieldT>> HashT;
 
-    std::vector<FieldT> round_constants;
-    LongsightF152p5_constants(round_constants);
+    const std::vector<FieldT> constants_152p5 = LongsightF152p5_constants_assign<FieldT>();
+
+    std::cerr << "constants_152p5 size = " << constants_152p5.size() << "\n";
 
     protoboard<FieldT> pb;
 
     auto expected_L = FieldT("21871881226116355513319084168586976250335411806112527735069209751513595455673");
     auto expected_R = FieldT("55049861378429053168722197095693172831329974911537953231866155060049976290");
     
-    digest_variable<FieldT> in_xL_digest(pb, FieldT::capacity() + 1, "xL_digest");
-    digest_variable<FieldT> in_xR_digest(pb, FieldT::capacity() + 1, "xR_digest");
+    digest_variable<FieldT> in_xL_digest(pb, HashT::get_digest_len(), "xL_digest");
+    digest_variable<FieldT> in_xR_digest(pb, HashT::get_digest_len(), "xR_digest");
 
     in_xL_digest.generate_r1cs_witness(convert_field_element_to_bit_vector(expected_L));
     in_xR_digest.generate_r1cs_witness(convert_field_element_to_bit_vector(expected_R));
 
-    LongsightF_bits_gadget<FieldT> the_gadget(pb, round_constants, in_xL_digest, in_xR_digest);
+    HashT the_gadget(pb, in_xL_digest, in_xR_digest);
 
     the_gadget.generate_r1cs_witness();
     the_gadget.generate_r1cs_constraints(false);

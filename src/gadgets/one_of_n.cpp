@@ -42,8 +42,6 @@ public:
     {
         assert( in_items.size() > 0 );
 
-        assert( our_n < in_items.size() );
-
         toggles.allocate(pb, in_items.size(), FMT(annotation_prefix, " toggles"));
 
         toggles_sum.allocate(pb, in_items.size(), FMT(annotation_prefix, " toggles_sum"));
