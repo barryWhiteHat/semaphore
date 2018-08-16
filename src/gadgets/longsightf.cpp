@@ -82,18 +82,18 @@ template<typename FieldT>
 class LongsightF_gadget : public gadget<FieldT>
 {
 public:
-    const std::vector<FieldT> &round_constants;
-    const pb_variable<FieldT> &start_L;
-    const pb_variable<FieldT> &start_R;
+    const std::vector<FieldT> round_constants;
+    const pb_variable<FieldT> start_L;
+    const pb_variable<FieldT> start_R;
 
     pb_variable_array<FieldT> round_squares;
     pb_variable_array<FieldT> rounds;
 
     LongsightF_gadget(
         protoboard<FieldT> &in_pb,
-        const std::vector<FieldT> &in_constants,
-        const pb_variable<FieldT> &in_x_L,
-        const pb_variable<FieldT> &in_x_R,
+        const std::vector<FieldT> in_constants,
+        const pb_variable<FieldT> in_x_L,
+        const pb_variable<FieldT> in_x_R,
         const std::string &in_annotation_prefix="",
         const bool do_allocate=true
     ) :
@@ -220,15 +220,13 @@ template<typename FieldT>
 class LongsightF5p5_gadget : public LongsightF_gadget<FieldT>
 {
 public:
-    std::vector<FieldT> constants_5p5{ LongsightF5p5_constants_assign<FieldT>() };
-
     LongsightF5p5_gadget(
         protoboard<FieldT> &in_pb,
         const pb_variable<FieldT> &in_x_L,
         const pb_variable<FieldT> &in_x_R,
         const std::string &in_annotation_prefix=""
     ) :
-        LongsightF_gadget<FieldT>(in_pb, constants_5p5, in_x_L, in_x_R, in_annotation_prefix, false)
+        LongsightF_gadget<FieldT>(in_pb, LongsightF5p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
     {        
         this->allocate();
     }
@@ -239,15 +237,13 @@ template<typename FieldT>
 class LongsightF152p5_gadget : public LongsightF_gadget<FieldT>
 {
 public:
-    const std::vector<FieldT> constants_152p5{ LongsightF152p5_constants_assign<FieldT>() };
-
     LongsightF152p5_gadget(
         protoboard<FieldT> &in_pb,
         const pb_variable<FieldT> &in_x_L,
         const pb_variable<FieldT> &in_x_R,
         const std::string &in_annotation_prefix=""
     ) :
-        LongsightF_gadget<FieldT>(in_pb, constants_152p5, in_x_L, in_x_R, in_annotation_prefix, false)
+        LongsightF_gadget<FieldT>(in_pb, LongsightF152p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
     {
         this->allocate();
     }
