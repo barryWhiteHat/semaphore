@@ -5,7 +5,11 @@
 
 using libsnark::packing_gadget;
 using libsnark::digest_variable;
+using libsnark::block_variable;
 using libsnark::merkle_authentication_path;
+using libsnark::pb_variable_array;
+using libsnark::multipacking_gadget;
+using libsnark::pb_linear_combination;
 
 /**
 * LongsightF gadget, but with input and output in bits
@@ -25,46 +29,36 @@ private:
     }
 
 public:
-    const pb_variable<FieldT> left_element;
-    packing_gadget<FieldT> left_packer;
+    const pb_variable<FieldT> left_element{make_variable(this->pb, FMT(this->annotation_prefix, " left_element"))};
+    const pb_variable<FieldT> right_element{make_variable(this->pb, FMT(this->annotation_prefix, " right_element"))};
 
-    const pb_variable<FieldT> right_element;
-    packing_gadget<FieldT> right_packer;
+    const std::vector<pb_variable<FieldT> > packer_vars1{left_element, right_element};
+    const pb_variable_array<FieldT> packer_vars2{packer_vars1.begin(), packer_vars1.end()};
+    multipacking_gadget<FieldT> left_right_packer;
 
-    HashT hasher;
+    HashT hasher{this->pb, left_element, right_element, FMT(this->annotation_prefix, " hasher")};
 
-    const digest_variable<FieldT> output_digest;
-    packing_gadget<FieldT> output_packer;
+    const digest_variable<FieldT>& output_digest;
+    packing_gadget<FieldT> output_packer{this->pb, output_digest.bits, hasher.result()};
 
     typedef libff::bit_vector hash_value_type;
     typedef merkle_authentication_path merkle_authentication_path_type;
 
     LongsightF_bits_gadget(
         protoboard<FieldT> &in_pb,
-        const digest_variable<FieldT> &in_left,
-        const digest_variable<FieldT> &in_right,
+        const size_t block_length,
+        const block_variable<FieldT> &in_block,
+        const digest_variable<FieldT> &out_digest,
         const std::string &in_annotation_prefix=""
     ) :
         gadget<FieldT>(in_pb, in_annotation_prefix),
-
-        // unpack(left_bits) -> left_element
-        left_element(make_variable(in_pb, FMT(in_annotation_prefix, " left_element"))),
-        left_packer(in_pb, in_left.bits, left_element),
-
-        // unpack(right_bits) -> right_element
-        right_element(make_variable(in_pb, FMT(in_annotation_prefix, " right_element"))),
-        right_packer(in_pb, in_right.bits, right_element),
-
-        // hash(left_element, right_element) -> output_element
-        hasher(in_pb, left_element, right_element, FMT(in_annotation_prefix, " hasher")),
-
-        // pack(output_element) -> output_digest
-        output_digest(in_pb, FieldT::capacity(), FMT(in_annotation_prefix, " output_digest")),
-        output_packer(in_pb, output_digest.bits, hasher.result())
+        left_right_packer(in_pb, in_block.bits, packer_vars2, get_digest_len(), FMT(in_annotation_prefix, "left_right_packer")),
+        output_digest(out_digest)
     {
-        assert( in_left.digest_size == get_digest_len() );
-        assert( in_right.digest_size == get_digest_len() );
+        assert( block_length == get_block_len() );
+        assert( in_block.block_size == get_block_len() );
     }
+
 
     libff::bit_vector get_digest() const
     {
@@ -75,24 +69,23 @@ public:
     {
         protoboard<FieldT> pb;
 
-        digest_variable<FieldT> input_left(pb, get_block_len(), "input_left");
-        const libff::bit_vector left_bits(input.begin(), input.begin() + get_digest_len());
-        input_left.generate_r1cs_witness(left_bits);
+        assert( input.size() = get_block_len() );
 
-        digest_variable<FieldT> input_right(pb, get_block_len(), "input_right");
-        const libff::bit_vector right_bits(input.begin() + get_digest_len(), input.end());
-        input_right.generate_r1cs_witness(right_bits);
+        block_variable<FieldT> input_block(pb, get_block_len(), "block");
+        digest_variable<FieldT> digest_output(pb, get_digest_len(), "digest_output");
+        LongsightF_bits_gadget<FieldT, HashT> the_gadget(pb, get_block_len(), input_block, digest_output);
 
-        LongsightF_bits_gadget<FieldT, HashT> the_gadget(pb, input_left, input_right);
+        input_block.generate_r1cs_witness(input);
         the_gadget.generate_r1cs_witness();
+
+        assert( pb.is_satisfied() );
 
         return the_gadget.get_digest();
     }
 
     void generate_r1cs_constraints(const bool enforce_bitness)
     {
-        left_packer.generate_r1cs_constraints(enforce_bitness);
-        right_packer.generate_r1cs_constraints(enforce_bitness);
+        left_right_packer.generate_r1cs_constraints(enforce_bitness);
         hasher.generate_r1cs_constraints();
         output_packer.generate_r1cs_constraints(enforce_bitness);
     }
@@ -100,8 +93,7 @@ public:
     void generate_r1cs_witness()
     {
         // bits -> field element
-        left_packer.generate_r1cs_witness_from_bits();
-        right_packer.generate_r1cs_witness_from_bits();
+        left_right_packer.generate_r1cs_witness_from_bits();
 
         hasher.generate_r1cs_witness();
 
