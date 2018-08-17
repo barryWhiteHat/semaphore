@@ -39,15 +39,13 @@ bool test_LongsightF_merkle_read()
     digest_variable<FieldT> digest_expected(pb, HashT::get_digest_len(), "digest_expected");
     digest_expected.generate_r1cs_witness(convert_field_element_to_bit_vector(result_expected));
 
-    auto tto_result = two_to_one_CRH<HashT>(digest_A.get_digest(), digest_B.get_digest());
-    if( tto_result != digest_expected.get_digest() ) {
-        std::cerr << "merkle_tree two_to_one_CRH mismatch!\n";
-        return false;
-    }
+    pb_variable<FieldT> zero;
+    zero.allocate(pb);
+    pb.val(zero) = FieldT::zero();
 
     std::vector<merkle_authentication_node> path { digest_B.get_digest() };
     size_t tree_depth = 1;
-    
+
     pb_variable_array<FieldT> address_bits_var;
     address_bits_var.allocate(pb, tree_depth, "address_bits");
     merkle_authentication_path_variable<FieldT, HashT> path_var(pb, tree_depth, "path");
@@ -58,20 +56,17 @@ bool test_LongsightF_merkle_read()
             digest_A,           // leaf_digest
             digest_expected,    // root_digest
             path_var,
-            ONE,
+            zero,               // copy result to output
             "read_gadget" );
 
     path_var.generate_r1cs_constraints();
     read_gadget.generate_r1cs_constraints();
 
     address_bits_var.fill_with_bits(pb, {0});
+    path_var.generate_r1cs_witness(0, path);
     read_gadget.generate_r1cs_witness();
 
-
-    // TODO: generate constraints
-
-    // TODO: generate witness
-    return pb.is_satisfied()    ;
+    return pb.is_satisfied();
 }
 
 
