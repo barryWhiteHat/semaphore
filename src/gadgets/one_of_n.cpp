@@ -14,6 +14,34 @@ using libsnark::r1cs_constraint;
 using libsnark::generate_boolean_r1cs_constraint;
 
 
+/**
+* The 1-of-N gadget verifies whether an Input exists within a set of items
+*
+*   e.g. MyValue ∈ Values
+*
+* To do this, it uses 3 variables:
+*
+*  - our_item
+*  - items[]
+*  - toggles[]
+*
+* For example:
+*
+*  - our_item = 4
+*  - items = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+*  - toggles = [0, 0, 0, 1, 0, 0, 0, 0, 0]
+*
+* You must indicate which value is yours by setting the appropriate toggle
+*
+* It works this way because the constraints for each item must be the same
+* Where a constraint is A * B - C. The constraints for the above would be:
+*
+*  - ensure_bitness(toggles)
+*  - sum(toggles) == 1
+*  - (items[i] * toggles[i]) == (toggles[i] * our_item)
+* 
+* This ensures that only 1 item is toggled, and whichever one it is is ours.
+*/
 template<typename FieldT>
 class one_of_n : public gadget<FieldT>
 {
