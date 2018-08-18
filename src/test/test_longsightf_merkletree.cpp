@@ -70,70 +70,6 @@ bool test_LongsightF_merkle_read()
 }
 
 
-template<typename ppT>
-bool test_LongsightF_set_commitment()
-{
-    typedef libff::Fr<ppT> FieldT;
-    typedef LongsightF_bits_gadget<FieldT, LongsightF152p5_gadget<FieldT>> HashT;
-
-    protoboard<FieldT> pb;
-
-    auto item_A = FieldT("21871881226116355513319084168586976250335411806112527735069209751513595455673");
-    digest_variable<FieldT> digest_A(pb, HashT::get_digest_len(), "digest_A");
-    digest_A.generate_r1cs_witness(convert_field_element_to_bit_vector(item_A));
-
-    auto item_B = FieldT("55049861378429053168722197095693172831329974911537953231866155060049976290");
-    digest_variable<FieldT> digest_B(pb, HashT::get_digest_len(), "digest_B");
-    digest_B.generate_r1cs_witness(convert_field_element_to_bit_vector(item_B));
-
-    auto result_expected = FieldT("11801552584949094581972187388927133931539817817986253233814495442311083852545");
-    digest_variable<FieldT> digest_expected(pb, HashT::get_digest_len(), "digest_expected");
-    digest_expected.generate_r1cs_witness(convert_field_element_to_bit_vector(result_expected));
-
-    auto tto_result = two_to_one_CRH<HashT>(digest_A.get_digest(), digest_B.get_digest());
-    if( tto_result != digest_expected.get_digest() ) {
-        std::cerr << "merkle_tree two_to_one_CRH mismatch!\n";
-        return false;
-    }
-
-    print_bv("digest A", digest_A.get_digest());
-    print_bv("digest B", digest_B.get_digest());
-
-    set_commitment_accumulator<HashT> accumulator(2, HashT::get_digest_len());
-
-    accumulator.add(digest_A.get_digest());
-    accumulator.add(digest_B.get_digest());
-
-    // TODO: verify known values
-    // Root should be H(A,B)
-    // Path A should be B
-    // Path B should be A
-    // Path A != Path B
-    print_bv("root", accumulator.get_commitment());
-    print_bv("\nexpected root", digest_expected.get_digest());
-
-    std::cout << "\n";
-    auto proof_A = accumulator.get_membership_proof(digest_A.get_digest());
-    int i = 0;
-    std::cout << "addr A " << proof_A.address << "\n";
-    for( auto& node : proof_A.merkle_path ) {
-        std::cout << i << " ";
-        print_bv("A", node);
-    }
-
-    std::cout << "\n";
-    auto proof_B = accumulator.get_membership_proof(digest_B.get_digest());
-    i = 0;
-    std::cout << "addr B " << proof_B.address << "\n";
-    for( auto& node : proof_A.merkle_path ) {
-        std::cout << i << " ";
-        print_bv("B", node);
-    }
-
-    return pb.is_satisfied();
-}
-
-
 int main( int argc, char **argv )
 {
     // Types for board
@@ -143,12 +79,6 @@ int main( int argc, char **argv )
     if( ! test_LongsightF_merkle_read<ppT>() )
     {
         std::cerr << "FAIL merkle read\n";
-        return 1;
-    }
-
-    if( ! test_LongsightF_set_commitment<ppT>() )
-    {
-        std::cerr << "FAIL set commitment\n";
         return 1;
     }
 

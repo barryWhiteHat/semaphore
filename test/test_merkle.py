@@ -2,6 +2,7 @@ import unittest
 
 
 from ethsnarks.utils import genMerkelTree, getMerkelProof, sha256, initMerkleTree, hashPadded, libsnark2python
+from ethsnarks.merkletree import MerkleTree
 
 
 def verifyMerkleProof(root, leaf, path, address_bits):
@@ -16,6 +17,28 @@ def verifyMerkleProof(root, leaf, path, address_bits):
 
 
 class TestMerkleTree(unittest.TestCase):
+    def test_incremental(self):
+        n_items = 100
+        tree = MerkleTree(n_items)
+        self.assertEqual(tree.root, None)
+        self.assertEqual(len(tree), 0)
+
+        previous_root = None
+        for n in range(0, n_items):
+            item = bytes([n]) * 32
+            tree.append(item)
+            self.assertEqual(len(tree), n + 1)
+
+            self.assertNotEqual(tree.root, previous_root)
+            previous_root = tree.root
+            proof = tree.proof(n)
+            self.assertTrue(proof.verify(tree.root))
+
+            # Then verify all existing items can also be proven to be in the tree
+            for m in range(0, len(tree) - 1):
+                self.assertTrue(tree.proof(m).verify(tree.root))
+
+    """
     def test_tree(self):
         tree_depth = 5
         leaves, nullifiers, sks = initMerkleTree(tree_depth) 
@@ -84,7 +107,7 @@ class TestMerkleTree(unittest.TestCase):
         self.assertEqual(output[1], "0x918e88a16d0624cd5ca4695bd84e23e4a6c8a202ce85560d3c66d4ed39bf4938")
         self.assertEqual(output[2], "0x8dd3ea28fe8d04f3e15b787fec7e805e152fe7d3302d0122c8522bee1290e4b7")
         self.assertEqual(output[3], "0x47a6bbcf8fa3667431e895f08cbd8ec2869a31698d9cf91e5bfd94cbca72161c")
-
+    """
 
 if __name__ == "__main__":
     unittest.main()
