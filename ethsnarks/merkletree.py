@@ -1,44 +1,70 @@
 import hashlib
 import math
+from .longsight import LongsightF6p5, curve_order
 from collections import defaultdict, namedtuple
 
 
 class MerkleProof(object):
-    __slots__ = ('leaf', 'address', 'path', 'hashfn')
-    def __init__(self, leaf, address, path, hashfn):
+    __slots__ = ('leaf', 'address', 'path', '_hasher')
+    def __init__(self, leaf, address, path, hasher):
         self.leaf = leaf
         self.address = address
         self.path = path
-        self.hashfn = hashfn
+        self._hasher = hasher
 
     def verify(self, root):
         item = self.leaf
         for bit, node in zip(self.address, self.path):
             if bit:
-                item = self.hashfn(node, item)
+                item = self._hasher.hash_pair(node, item)
             else:
-                item = self.hashfn(item, node)
+                item = self._hasher.hash_pair(item, node)
         return root == item
 
 
-def _hash_pair_sha256(left, right):
-    if len(left) != 32:
-        raise ValueError("Left incorrect length!")
-    if len(right) != 32:
-        raise ValueError("Right is incorrect length!")
-    hasher = hashlib.sha256()
-    hasher.update(left)
-    hasher.update(right)
-    return hasher.digest()
+class MerkleHasherLongsightF(object):
+    @classmethod
+    def hash_pair(cls, left, right):
+        return LongsightF6p5(left, right)
+
+    @classmethod
+    def unique(cls, depth, index):
+        item = int(depth).to_bytes(2, 'little') + int(index).to_bytes(30, 'little')
+        hasher = hashlib.sha256()
+        hasher.update(item)
+        return int.from_bytes(hasher.digest(), 'big') % curve_order
+
+    @classmethod
+    def valid(cls, item):
+        return isinstance(item, int) and item > 0 and item < curve_order
+
+
+class MerkleHasherSHA256(object):
+    @classmethod
+    def hash_pair(cls, left, right):
+        if not cls.valid(left):
+            raise ValueError("Left incorrect length!")
+        if not cls.valid(right):
+            raise ValueError("Right is incorrect length!")
+        hasher = hashlib.sha256()
+        hasher.update(left)
+        hasher.update(right)
+        return hasher.digest()
+
+    @classmethod
+    def unique(cls, depth, index):
+        return int(depth).to_bytes(2, 'little') + int(index).to_bytes(30, 'little')
+
+    @classmethod
+    def valid(cls, item):
+        return isinstance(item, bytes) and len(item) == 32
 
 
 class MerkleTree(object):
-    def __init__(self, n_items, hashfn=None, null_leaf=None):
-        if hashfn is None:
-            hashfn = _hash_pair_sha256
-            null_leaf = b'\0' * 32
-        self._null_leaf = null_leaf
-        self._hashfn = hashfn
+    def __init__(self, n_items, hasher=None):
+        if hasher is None:
+            hasher = MerkleHasherLongsightF
+        self._hasher = hasher
         self._n_items = n_items
         self._tree_depth = int(math.log(n_items, 2)) + 1
         self._cur = 0
@@ -61,6 +87,9 @@ class MerkleTree(object):
             raise KeyError("Out of bounds")
         return self._leaves[0][key]
 
+    def __contains__(self, key):
+        return key in self._leaves[0]
+
     def index(self, leaf):
         return self._leaves[0].index(leaf)
 
@@ -72,13 +101,13 @@ class MerkleTree(object):
         merkle_proof = list()
         for i in range(0, self._tree_depth):
             if index % 2 == 0:
-                proof_item = self._getUniqueLeaf(i, index + 1)
+                proof_item = self.leaf(i, index + 1)
             else:
-                proof_item = self._getUniqueLeaf(i, index - 1)
+                proof_item = self.leaf(i, index - 1)
             address_bits.append( index % 2 )
             merkle_proof.append( proof_item )
             index = index // 2
-        return MerkleProof(leaf, address_bits, merkle_proof, self._hashfn)
+        return MerkleProof(leaf, address_bits, merkle_proof, self._hasher)
 
     def _updateTree(self):
         cur_index = self._cur
@@ -86,26 +115,23 @@ class MerkleTree(object):
             next_index = cur_index // 2
             if cur_index % 2 == 0:
                 leaf1 = self._leaves[depth][cur_index]
-                leaf2 = self._getUniqueLeaf(depth, cur_index + 1)
+                leaf2 = self.leaf(depth, cur_index + 1)
             else:
-                leaf1 = self._getUniqueLeaf(depth, cur_index - 1)
+                leaf1 = self.leaf(depth, cur_index - 1)
                 leaf2 = self._leaves[depth][cur_index]
-            node = self._hashfn(leaf1, leaf2)
+            node = self._hasher.hash_pair(leaf1, leaf2)
             if len(self._leaves[depth+1]) == next_index:
                 self._leaves[depth+1].append(node)
             else:
                 self._leaves[depth+1][next_index] = node
             cur_index = next_index
 
-    def _getUniqueLeaf(self, depth, offset):
+    def leaf(self, depth, offset):
         if offset >= len(self._leaves[depth]):
-            leaf = int(depth).to_bytes(2, 'little') + int(offset).to_bytes(30, 'little')
+            leaf = self._hasher.unique(depth, offset)
         else:
             leaf = self._leaves[depth][offset]
         return leaf
-
-    def getLeaf(self, depth, offset):
-        return self._leaves[depth][offset]
 
     @property
     def root(self):

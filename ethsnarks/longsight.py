@@ -118,7 +118,7 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     @param p field prime
     @param k optional key
     """
-    assert R >= 2 * math.ceil(math.log(p) / math.log2(e))
+    #assert R >= 2 * math.ceil(math.log(p) / math.log2(e))
     assert math.gcd(p-1, e) == 1
     assert len(C) == R
 
@@ -133,6 +133,14 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
         x_L, x_R = (x_R + j) % p, x_L
 
     return x_L
+
+
+def LongsightF6p5(x_L, x_R):
+    p = curve_order
+    e = 5
+    R = 6
+    _, C = make_constants("LongsightF", R, e)
+    return LongsightF(x_L, x_R, C, R, e, p)
 
 
 def LongsightF152p5(x_L, x_R):
