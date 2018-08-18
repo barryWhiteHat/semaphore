@@ -2,7 +2,7 @@ import unittest
 
 from random import randint
 
-from ethsnarks.mimc import LongsightF, LongsightL, LongsightF152p5, curve_order
+from ethsnarks.longsight import LongsightF, LongsightL, LongsightF152p5, curve_order
 
 class MiMCTests(unittest.TestCase):
     def test_LongsightF_known1(self):

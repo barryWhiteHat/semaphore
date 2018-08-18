@@ -17,7 +17,7 @@ bool test_LongsightF()
     typedef libff::Fr<ppT> FieldT;
 
     std::vector<FieldT> round_constants;
-    LongsightF152p5_constants(round_constants);
+    LongsightF152p5_constants_fill(round_constants);
 
     protoboard<FieldT> pb;
 

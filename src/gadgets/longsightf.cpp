@@ -44,7 +44,7 @@ using libsnark::r1cs_constraint;
 *                                   _       |
 *                                   |       |
 *                                   v       |
-*                         C_i-1 |->(+)      |
+*                       C_(i-1) |->(+)      |
 *                                   |       |
 *                                   v       |
 *                                  (^5)     |
@@ -65,7 +65,7 @@ using libsnark::r1cs_constraint;
 *       x[1] = L      + (x[i-1] + C[i])^5          when i = 1
 *       x[i] = x[i-2] + (x[i-1] + C[i])^5          when i > 1
 *
-*       output = x[ len(x) - 2 ]
+*       output = x[ len(x) - 1 ]
 *
 *  Knowing the value of x2, x1 and C then x0 can be easily found, while
 *  only knowing x0, C and the result finding x1 isn't as trivial.
@@ -82,19 +82,20 @@ template<typename FieldT>
 class LongsightF_gadget : public gadget<FieldT>
 {
 public:
-    const std::vector<FieldT> &round_constants;
-    const pb_variable<FieldT> &start_L;
-    const pb_variable<FieldT> &start_R;
+    const std::vector<FieldT> round_constants;
+    const pb_variable<FieldT> start_L;
+    const pb_variable<FieldT> start_R;
 
     pb_variable_array<FieldT> round_squares;
     pb_variable_array<FieldT> rounds;
 
     LongsightF_gadget(
         protoboard<FieldT> &in_pb,
-        const std::vector<FieldT> &in_constants,
-        const pb_variable<FieldT> &in_x_L,
-        const pb_variable<FieldT> &in_x_R,
-        const std::string &in_annotation_prefix=""
+        const std::vector<FieldT> in_constants,
+        const pb_variable<FieldT> in_x_L,
+        const pb_variable<FieldT> in_x_R,
+        const std::string &in_annotation_prefix="",
+        const bool do_allocate=true
     ) :
         gadget<FieldT>(in_pb, FMT(in_annotation_prefix, " LongsightF_gadget")),
         round_constants(in_constants),
@@ -103,12 +104,23 @@ public:
         round_squares(),
         rounds()
     {
-        round_squares.allocate(in_pb, round_constants.size() * 4, FMT(in_annotation_prefix, " round_squares"));
+        // Constants may be initialised after constructor
+        // Allow allocation to happen separately
+        if( do_allocate ) {            
+            round_squares.allocate(in_pb, round_constants.size() * 4, FMT(in_annotation_prefix, " round_squares"));
 
-        rounds.allocate(in_pb, round_constants.size(), FMT(in_annotation_prefix, " rounds"));
+            rounds.allocate(in_pb, round_constants.size(), FMT(in_annotation_prefix, " rounds"));
+        }
     }
 
-    const pb_variable<FieldT>& result()
+    void allocate()
+    {
+        round_squares.allocate(this->pb, round_constants.size() * 4, FMT(this->annotation_prefix, " round_squares"));
+
+        rounds.allocate(this->pb, round_constants.size(), FMT(this->annotation_prefix, " rounds"));
+    }
+
+    const pb_variable<FieldT>& result() const
     {
         return rounds[ round_constants.size() - 1 ];
     }
@@ -202,3 +214,39 @@ public:
         }
     }
 };
+
+
+template<typename FieldT>
+class LongsightF5p5_gadget : public LongsightF_gadget<FieldT>
+{
+public:
+    LongsightF5p5_gadget(
+        protoboard<FieldT> &in_pb,
+        const pb_variable<FieldT> &in_x_L,
+        const pb_variable<FieldT> &in_x_R,
+        const std::string &in_annotation_prefix=""
+    ) :
+        LongsightF_gadget<FieldT>(in_pb, LongsightF5p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
+    {        
+        this->allocate();
+    }
+};
+
+
+template<typename FieldT>
+class LongsightF152p5_gadget : public LongsightF_gadget<FieldT>
+{
+public:
+    LongsightF152p5_gadget(
+        protoboard<FieldT> &in_pb,
+        const pb_variable<FieldT> &in_x_L,
+        const pb_variable<FieldT> &in_x_R,
+        const std::string &in_annotation_prefix=""
+    ) :
+        LongsightF_gadget<FieldT>(in_pb, LongsightF152p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
+    {
+        this->allocate();
+    }
+};
+
+

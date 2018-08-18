@@ -1,3 +1,6 @@
+# Copyright (c) 2018 HarryR
+# License: LGPL-3.0+
+
 """
 https://eprint.iacr.org/2016/492.pdf
 https://eprint.iacr.org/2016/542.pdf
@@ -115,7 +118,7 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     @param p field prime
     @param k optional key
     """
-    assert R >= 2 * math.ceil(math.log(p) / math.log2(e))
+    #assert R >= 2 * math.ceil(math.log(p) / math.log2(e))
     assert math.gcd(p-1, e) == 1
     assert len(C) == R
 
@@ -124,62 +127,20 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     if k != 0:
         assert k > 0 and k < (p-1)
 
-    input_L = x_L
-    input_R = x_R
-
-    round_squares = list()
-    rounds = list()
-
     # Calculate rounds
     for i in range(0, R):
-        t = (x_L + C[i]) % p
-        round_squares.append( (t*t) % p)
-        round_squares.append( (round_squares[-1]*t) % p)
-        round_squares.append( (round_squares[-1]*t) % p)
-        round_squares.append( (round_squares[-1]*t) % p)
-
         j = powmod(x_L + k + C[i], e, p)
-        assert j == round_squares[-1]
-
         x_L, x_R = (x_R + j) % p, x_L
-        rounds.append(x_L)
-
-    # Verify round constraints
-    j = 0
-    for i in range(0, R):
-        if i == 0:
-            c_xL = input_L
-            c_xR = input_R
-        else:
-            c_xL = rounds[i-1]
-            if i == 1:
-                c_xR = input_L
-            else:
-                c_xR = rounds[i-2]
-
-        r1cs_constraint(C[i] + c_xL, C[i] + c_xL, round_squares[j])
-        r1cs_constraint(round_squares[j], C[i] + c_xL, round_squares[j+1])
-        r1cs_constraint(round_squares[j+1], C[i] + c_xL, round_squares[j+2])
-        r1cs_constraint(round_squares[j+2], C[i] + c_xL, round_squares[j+3])
-        r1cs_constraint(1, round_squares[j+3] + c_xR, rounds[i])
-
-        j += 4
-
-    """
-    print("Input L:", input_L)
-    print("Input R:", input_R)
-    print("Result:", x_L)
-
-    print("Rounds:")
-    for i, x in enumerate(rounds):
-        print("\t",i, x)
-
-    print("Intermediate Squares:")
-    for i, x in enumerate(round_squares):
-        print("\t",i, x)
-    """
 
     return x_L
+
+
+def LongsightF5p5(x_L, x_R):
+    p = curve_order
+    e = 5
+    R = 5
+    _, C = make_constants("LongsightF", R, e)
+    return LongsightF(x_L, x_R, C, R, e, p)
 
 
 def LongsightF152p5(x_L, x_R):
@@ -228,5 +189,5 @@ def sponge(p, n, r, F):
 """
 
 if __name__ == "__main__":
-    print(LongsightF152p5(1, 1))
-    #print(make_constants_cxx("LongsightF", 152, 5))
+    #print(LongsightF152p5(1, 1))
+    print(make_constants_cxx("LongsightF", 5, 5))

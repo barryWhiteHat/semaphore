@@ -1,7 +1,31 @@
 #pragma once
 
+
 template<typename FieldT>
-void LongsightF152p5_constants( std::vector<FieldT> &round_constants )
+void LongsightF5p5_constants_fill( std::vector<FieldT> &round_constants )
+{
+    round_constants.resize(5);
+    round_constants[0] = FieldT("16141228610716254494246418850894227058386854269090431665976591549148070459029");
+    round_constants[1] = FieldT("5243151816343753305078876980603890071959930727088467525831874325200983521963");
+    round_constants[2] = FieldT("11443535355782020179109906759898317837986670862629041082203606862552526224884");
+    round_constants[3] = FieldT("16540648805601001920805424948549508869776193505507196889296068473215938422144");
+    round_constants[4] = FieldT("13262913797752054119281744993321029046637755854445306089831287067330048370211");
+}
+
+
+template<typename FieldT>
+const std::vector<FieldT> LongsightF5p5_constants_assign( )
+{
+    std::vector<FieldT> round_constants;
+
+    LongsightF5p5_constants_fill<FieldT>(round_constants);
+
+    return round_constants;
+}
+
+
+template<typename FieldT>
+void LongsightF152p5_constants_fill( std::vector<FieldT> &round_constants )
 {
     round_constants.resize(152);
     round_constants[0] = FieldT("7417153685071709436870056242523351150140358124568764639615525440932715960778");
@@ -156,4 +180,15 @@ void LongsightF152p5_constants( std::vector<FieldT> &round_constants )
     round_constants[149] = FieldT("19418594920323449325449185011513449411864950744159548396683709369792136382456");
     round_constants[150] = FieldT("21270966443617552677367273459164784057931628221880574776474664044046473864531");
     round_constants[151] = FieldT("440721317227119536209338173221659451853756565591751100024804937685462586233");
+}
+
+
+template<typename FieldT>
+const std::vector<FieldT> LongsightF152p5_constants_assign( )
+{
+    std::vector<FieldT> round_constants;
+
+    LongsightF152p5_constants_fill<FieldT>(round_constants);
+
+    return round_constants;
 }

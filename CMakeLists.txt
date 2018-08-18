@@ -20,6 +20,12 @@ set(
   "Optionally specify the dependency installation directory relative to the source directory (default: inside dependency folder)"
 )
 
+option(
+  WITH_SUPERCOP
+  "Support for Ed25519 signatures required by ADSNARK"
+  OFF
+)
+
 set(
   OPT_FLAGS
   ""

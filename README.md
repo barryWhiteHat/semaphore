@@ -30,6 +30,13 @@ This project aims to help create an ecosystem where a small number of well teste
 
 If you have any ideas for new components, please file a ticket.
 
+# Gadgets
+
+ * 1-of-N
+ * MiMC / LongsightF
+ * SHA256 (full round)
+ * Shamir's Secret Sharing Scheme (generation)
+
 # Components
 
 ## SHA256 hash preimage
@@ -49,13 +56,6 @@ def hashpreimage(preimage, expected):
 ```
 
 # Work-in-progress Components / Ideas
-
-## Polyhash
-
-```python
-def polyhash_preimage(secret, nonce, message[], expected):
-	return expected == polyhash(secret, nonce, message[])
-```
 
 ## Unique Merkle Proof
 
