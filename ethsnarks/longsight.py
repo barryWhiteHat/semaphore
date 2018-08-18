@@ -135,10 +135,10 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     return x_L
 
 
-def LongsightF6p5(x_L, x_R):
+def LongsightF5p5(x_L, x_R):
     p = curve_order
     e = 5
-    R = 6
+    R = 5
     _, C = make_constants("LongsightF", R, e)
     return LongsightF(x_L, x_R, C, R, e, p)
 

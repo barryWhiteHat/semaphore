@@ -1,6 +1,6 @@
 import hashlib
 import math
-from .longsight import LongsightF6p5, curve_order
+from .longsight import LongsightF5p5, curve_order
 from collections import defaultdict, namedtuple
 
 
@@ -25,7 +25,7 @@ class MerkleProof(object):
 class MerkleHasherLongsightF(object):
     @classmethod
     def hash_pair(cls, left, right):
-        return LongsightF6p5(left, right)
+        return LongsightF5p5(left, right)
 
     @classmethod
     def unique(cls, depth, index):
