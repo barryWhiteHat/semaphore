@@ -1,8 +1,11 @@
+# Copyright (c) 2018 HarryR
+# License: LGPL-3.0+
+
 import hashlib
 import math
-from .longsight import LongsightF5p5, curve_order
 from collections import defaultdict, namedtuple
 
+from .longsight import LongsightF5p5, curve_order
 
 class MerkleProof(object):
     __slots__ = ('leaf', 'address', 'path', '_hasher')
