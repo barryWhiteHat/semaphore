@@ -69,7 +69,7 @@ public:
     {
         protoboard<FieldT> pb;
 
-        assert( input.size() = get_block_len() );
+        assert( input.size() == get_block_len() );
 
         block_variable<FieldT> input_block(pb, get_block_len(), "block");
         digest_variable<FieldT> digest_output(pb, get_digest_len(), "digest_output");
