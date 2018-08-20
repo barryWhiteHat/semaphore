@@ -194,7 +194,7 @@ public:
 
     size_t G1_size() const
     {
-        return gamma_ABC_g1.size() + 2;
+        return gamma_ABC_g1.size() + 1;
     }
 
     size_t G2_size() const
@@ -209,8 +209,7 @@ public:
 
     size_t size_in_bits() const
     {
-        // TODO: include GT size
-        return (gamma_ABC_g1.size_in_bits() + 2 * libff::G2<ppT>::size_in_bits());
+        return (G1_size() * libff::G1<ppT>::size_in_bits()) + (G2_size() * libff::G2<ppT>::size_in_bits());
     }
 
     void print_size() const

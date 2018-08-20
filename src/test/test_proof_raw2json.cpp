@@ -20,7 +20,7 @@ int main( int argc, char **argv )
 	auto original_proof_json = proof_from_json<ppT>(original_proof_stream);
 
 	// Load raw serialised proof
-	auto proof = loadFromFile<r1cs_ppzksnark_proof<ppT>> (argv[2]);
+	auto proof = loadFromFile<r1cs_gg_ppzksnark_zok_proof<ppT>> (argv[2]);
 
 	// Dump JSON serialised proof
 	auto proof_json_serialised = proof_to_json<ppT>(proof, original_proof_json.first);

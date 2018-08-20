@@ -2,13 +2,18 @@
 // License: LGPL-3.0+
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
+
+#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
 #include "gadgets/one_of_n.cpp"
 
+#include "export.cpp"
+#include "import.cpp"
 
-using libsnark::r1cs_ppzksnark_generator;
-using libsnark::r1cs_ppzksnark_prover;
+
+using libsnark::r1cs_gg_ppzksnark_zok_generator;
+using libsnark::r1cs_gg_ppzksnark_zok_prover;
+using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
 
 
 template<typename ppT>
@@ -48,13 +53,42 @@ bool test_one_of_n()
     }
 
     auto constraints = pb.get_constraint_system();
-    auto keypair = r1cs_ppzksnark_generator<ppT>(constraints);
+    auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(constraints);
 
     auto primary_input = pb.primary_input();
     auto auxiliary_input = pb.auxiliary_input();
-    auto proof = r1cs_ppzksnark_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
+    auto proof = r1cs_gg_ppzksnark_zok_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
 
-    return libsnark::r1cs_ppzksnark_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
+    auto proof_ok = r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
+    if( ! proof_ok ) {
+        std::cerr << "Verifier failed!\n";
+        return false;
+    }
+
+    // Verify that serialising and unserialising the proof and input via json
+    // results in the same proof and input
+    stringstream proof_json_stream;
+    proof_json_stream << proof_to_json<ppT>(proof, primary_input);
+    auto loaded_proof = proof_from_json<ppT>(proof_json_stream);
+    if( loaded_proof.first != primary_input ) {
+        std::cerr << "Loaded primary input mismatch!\n";
+        return false;
+    }
+    if( false == (loaded_proof.second == proof) ) {
+        std::cerr << "Loaded proof mismatch!\n";
+        return false;
+    }
+
+    // Then check if verification key can be serialised and unserialized
+    stringstream saved_vk;
+    saved_vk << vk2json<ppT>(keypair.vk);
+    auto loaded_vk = vk_from_json<ppT>(saved_vk);
+    if( false == (loaded_vk == keypair.vk) ) {
+        std::cerr << "VK serialise/unserialise error!\n";
+        return false;
+    }
+
+    return true;
 }
 
 

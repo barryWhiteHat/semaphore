@@ -163,11 +163,11 @@ char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
         return NULL;
     }
 
-    auto proving_key = loadFromFile<r1cs_ppzksnark_proving_key<ppT>>(pk_file);
+    auto proving_key = loadFromFile<r1cs_gg_ppzksnark_zok_proving_key<ppT>>(pk_file);
     // TODO: verify if proving key was loaded correctly, if not return NULL
 
     auto primary_input = pb.primary_input();
-    auto proof = r1cs_ppzksnark_prover<ppT>(proving_key, primary_input, pb.auxiliary_input());
+    auto proof = r1cs_gg_ppzksnark_zok_prover<ppT>(proving_key, primary_input, pb.auxiliary_input());
     auto json = proof_to_json(proof, primary_input);
 
     return ::strdup(json.c_str());
@@ -184,8 +184,8 @@ int hashpreimage_genkeys( const char *pk_file, const char *vk_file )
     mod_hashpreimage<FieldT> mod(pb, "mod_hashpreimage");
     mod.generate_r1cs_constraints();
 
-    auto keypair = r1cs_ppzksnark_generator<ppT>(pb.get_constraint_system());
-    vk2json<ppT>(keypair.vk, vk_file);
+    auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(pb.get_constraint_system());
+    vk2json_file<ppT>(keypair.vk, vk_file);
     writeToFile(pk_file, keypair.pk);
 
     return 0;
@@ -206,7 +206,7 @@ bool hashpreimage_verify( const char *vk_json, const char *proof_json )
     proof_stream << proof_json;
     auto proof_pair = proof_from_json<ppT>(proof_stream);
 
-    auto status = libsnark::r1cs_ppzksnark_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
+    auto status = libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
     if( status )
         return true;
 

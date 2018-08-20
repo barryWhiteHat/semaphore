@@ -14,10 +14,10 @@ int main( int argc, char **argv )
 	}
 
 	// Load raw serialised VK
-	auto vk = loadFromFile<r1cs_ppzksnark_verification_key<ppT>> (argv[1]);
+	auto vk = loadFromFile<r1cs_gg_ppzksnark_zok_verification_key<ppT>> (argv[1]);
 
 	// Dump JSON serialised VK
-	vk2json<ppT>(vk, argv[2]);
+	vk2json_file<ppT>(vk, argv[2]);
 
 	// Load JSON serialised VK
 	ifstream vk_input(argv[2]);

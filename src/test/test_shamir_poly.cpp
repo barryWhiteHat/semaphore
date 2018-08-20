@@ -2,13 +2,15 @@
 // License: LGPL-3.0+
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
 #include "gadgets/shamir_poly.cpp"
 
+#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
-using libsnark::r1cs_ppzksnark_generator;
-using libsnark::r1cs_ppzksnark_prover;
+
+using libsnark::r1cs_gg_ppzksnark_zok_generator;
+using libsnark::r1cs_gg_ppzksnark_zok_prover;
+using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
 
 
 template<typename ppT>
@@ -49,12 +51,12 @@ bool test_shamirs_poly()
     auto constraints = pb.get_constraint_system();
 
     std::cout << "Setup keypair\n";
-    auto keypair = r1cs_ppzksnark_generator<ppT>(constraints);
+    auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(constraints);
 
     auto primary_input = pb.primary_input();
     auto auxiliary_input = pb.auxiliary_input();
-    auto proof = r1cs_ppzksnark_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
-    return libsnark::r1cs_ppzksnark_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
+    auto proof = r1cs_gg_ppzksnark_zok_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
+    return r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
 }
 
 
