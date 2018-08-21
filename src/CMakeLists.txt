@@ -5,7 +5,7 @@ include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft)
 
 
-add_library(miximus SHARED miximus.cpp)
+add_library(miximus SHARED mod/miximus.cpp)
 target_link_libraries(miximus snark)
 set_property(TARGET miximus PROPERTY POSITION_INDEPENDENT_CODE ON)
 
@@ -15,8 +15,8 @@ target_link_libraries(hashpreimage snark)
 set_property(TARGET hashpreimage PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 
-add_executable(miximus_genKeys miximus_genKeys.cpp)
-target_link_libraries(miximus_genKeys miximus)
+add_executable(miximus_cli miximus_cli.cpp)
+target_link_libraries(miximus_cli snark)
 
 
 add_executable(hashpreimage_cli hashpreimage_cli.cpp)

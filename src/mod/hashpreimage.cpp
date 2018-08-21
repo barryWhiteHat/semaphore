@@ -8,6 +8,7 @@
 #include "utils.cpp"
 #include "export.cpp"
 #include "import.cpp"
+#include "stubs.cpp"
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
@@ -154,7 +155,7 @@ char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
     ppT::init_public_params();
 
     protoboard<FieldT> pb;
-    mod_hashpreimage<FieldT> mod(pb, "mod_hashpreimage");
+    mod_hashpreimage<FieldT> mod(pb, "module");
     mod.generate_r1cs_constraints();
     mod.generate_r1cs_witness(preimage_bytes64);
 
@@ -176,39 +177,11 @@ char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
 
 int hashpreimage_genkeys( const char *pk_file, const char *vk_file )
 {
-    typedef libff::alt_bn128_pp ppT;
-    typedef libff::Fr<ppT> FieldT;
-    ppT::init_public_params();
-
-    protoboard<FieldT> pb;
-    mod_hashpreimage<FieldT> mod(pb, "mod_hashpreimage");
-    mod.generate_r1cs_constraints();
-
-    auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(pb.get_constraint_system());
-    vk2json_file<ppT>(keypair.vk, vk_file);
-    writeToFile(pk_file, keypair.pk);
-
-    return 0;
+    return stub_genkeys<mod_hashpreimage>(pk_file, vk_file);
 }
 
 
 bool hashpreimage_verify( const char *vk_json, const char *proof_json )
 {
-    typedef libff::alt_bn128_pp ppT;
-    typedef libff::Fr<ppT> FieldT;
-    ppT::init_public_params();
-
-    stringstream vk_stream;
-    vk_stream << vk_json;
-    auto vk = vk_from_json<ppT>(vk_stream);
-
-    stringstream proof_stream;
-    proof_stream << proof_json;
-    auto proof_pair = proof_from_json<ppT>(proof_stream);
-
-    auto status = libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
-    if( status )
-        return true;
-
-    return false;
+    return stub_verify( vk_json, proof_json );
 }
