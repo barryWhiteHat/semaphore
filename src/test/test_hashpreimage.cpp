@@ -65,7 +65,7 @@ int main( int argc, char **argv )
 
     // Then generate key pair
     std::cout << "Setup keypair\n";
-    auto keypair = r1cs_ppzksnark_generator<ppT>(constraints);
+    auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(constraints);
 
     // Prove the input using the key pair
     std::cout << "Primary Input\n";
@@ -75,12 +75,12 @@ int main( int argc, char **argv )
     auto auxiliary_input = pb.auxiliary_input();
 
     std::cout << "Beginning to prove\n";
-    auto proof = r1cs_ppzksnark_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
+    auto proof = r1cs_gg_ppzksnark_zok_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
 
     //auto json = proof_to_json(proof, primary_input);
 
     // Then verify it
-    auto status = libsnark::r1cs_ppzksnark_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
+    auto status = libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
     if( ! status )
     {
         std::cerr << "FAIL verify\n";

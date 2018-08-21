@@ -9,6 +9,8 @@
 
 using namespace std;
 
+using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
+
 typedef libff::alt_bn128_pp ppT;
 
 struct noop {
@@ -56,7 +58,7 @@ int main( int argc, char **argv )
 	auto proof_pair = proof_from_json<ppT>(proof_stream);
 
 	// Then perform verification
-	auto status = libsnark::r1cs_ppzksnark_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
+	auto status = r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
 	if( status ) {
 		printf("OK\n");
 		return 0;

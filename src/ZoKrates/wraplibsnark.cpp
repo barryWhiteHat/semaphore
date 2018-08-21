@@ -17,6 +17,7 @@
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 // contains required interfaces and types (keypair, proof, generator, prover, verifier)
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
+#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
 typedef long integer_coeff_t;
 
@@ -38,7 +39,6 @@ libff::bigint<libff::alt_bn128_r_limbs> libsnarkBigintFromBytes(const uint8_t* _
 
 std::string HexStringFromLibsnarkBigint(libff::bigint<libff::alt_bn128_r_limbs> _x){
     mpz_t value;
-    int value_error;
     ::mpz_init(value);
 
     _x.to_mpz(value);
@@ -102,55 +102,10 @@ std::string outputPointG2AffineAsInt(libff::alt_bn128_G2 _p)
 }
 
 
-//takes input and puts it into constraint system
-r1cs_ppzksnark_constraint_system<libff::alt_bn128_pp> createConstraintSystem(const uint8_t* A, const uint8_t* B, const uint8_t* C, int constraints, int variables, int inputs)
-{
-  r1cs_ppzksnark_constraint_system<libff::alt_bn128_pp> cs;
-  cs.primary_input_size = inputs;
-  cs.auxiliary_input_size = variables - inputs - 1; // ~one not included
-
-  cout << "num variables: " << variables <<endl;
-  cout << "num constraints: " << constraints <<endl;
-  cout << "num inputs: " << inputs <<endl;
-
-  for (int row = 0; row < constraints; row++) {
-    linear_combination<libff::alt_bn128_pp> lin_comb_A, lin_comb_B, lin_comb_C;
-
-    for (int idx=0; idx<variables; idx++) {
-      libff::bigint<libff::alt_bn128_r_limbs> value = libsnarkBigintFromBytes(A+row*variables*32 + idx*32);
-      libff::alt_bn128_pp::init_public_params();
-      cout << "C entry " << idx << " in row " << row << ": " << value << endl;
-      if (!value.is_zero()) {
-        //cout << "A(" << idx << ", " << value << ")" << endl;
-        //lin_comb_A.add_term(idx,value);
-        //linear_term<libff::alt_bn128_pp>(0);
-      }
-    }
-    for (int idx=0; idx<variables; idx++) {
-      libff::bigint<libff::alt_bn128_r_limbs> value = libsnarkBigintFromBytes(B+row*variables*32 + idx*32);
-      cout << "B entry " << idx << " in row " << row << ": " << value << endl;
-      if (!value.is_zero()) {
-        cout << "B(" << idx << ", " << value << ")" << endl;
-        //lin_comb_B.add_term(idx, value);
-      }
-    }
-    for (int idx=0; idx<variables; idx++) {
-      libff::bigint<libff::alt_bn128_r_limbs> value = libsnarkBigintFromBytes(C+row*variables*32 + idx*32);
-      // cout << "C entry " << idx << " in row " << row << ": " << value << endl;
-      if (!value.is_zero()) {
-        // cout << "C(" << idx << ", " << value << ")" << endl;
-        //lin_comb_C.add_term(idx, value);
-      }
-    }
-    //cs.add_constraint(r1cs_constraint<libff::alt_bn128_pp>(lin_comb_A, lin_comb_B, lin_comb_C));
-  }
-  return cs;
-}
-
 // keypair generateKeypair(constraints)
-r1cs_ppzksnark_keypair<libff::alt_bn128_pp> generateKeypair(const r1cs_ppzksnark_constraint_system<libff::alt_bn128_pp> &cs){
+r1cs_gg_ppzksnark_zok_keypair<libff::alt_bn128_pp> generateKeypair(const r1cs_ppzksnark_constraint_system<libff::alt_bn128_pp> &cs){
   // from r1cs_ppzksnark.hpp
-  return r1cs_ppzksnark_generator<libff::alt_bn128_pp>(cs);
+  return r1cs_gg_ppzksnark_zok_generator<libff::alt_bn128_pp>(cs);
 }
 
 template<typename T>

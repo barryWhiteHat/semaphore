@@ -10,8 +10,6 @@ def main(vk_filename, name='_getStaticProof'):
     """Outputs the solidity code necessary to instansiate a ProofWithInput variable"""
     with open(vk_filename, 'r') as handle:
         proof = Proof.from_dict(json.load(handle))
-        g2 = {'B': 'b'}
-        g1 = {'A': 'a', 'A_p': 'a_p', 'B_p': 'b_p', 'C': 'c', 'C_p': 'c_p', 'K': 'k', 'H': 'h'}
 
         out = [
             "\tfunction %s (Verifier.ProofWithInput memory output)" % (name),
@@ -20,12 +18,12 @@ def main(vk_filename, name='_getStaticProof'):
             "\t\tVerifier.Proof memory proof = output.proof;"
         ]
 
-        for k, v in g2.items():
-            x = getattr(proof, v)
+        for k in proof.G2_POINTS:
+            x = getattr(proof, k)
             out.append("\t\tproof.%s = %s;" % (k, g2_to_sol(x)))
 
-        for k, v in g1.items():
-            x = getattr(proof, v)
+        for k in proof.G1_POINTS:
+            x = getattr(proof, k)
             out.append("\t\tproof.%s = %s;" % (k, g1_to_sol(x)))
 
         out.append("\t\toutput.input = new uint256[](%d);" % (len(proof.input),))

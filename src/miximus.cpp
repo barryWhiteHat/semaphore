@@ -18,7 +18,7 @@
 */
 
 
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
+#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
 //hash
 
@@ -40,8 +40,6 @@
 
 using namespace libsnark;
 using namespace libff;
-
-typedef sha256_ethereum HashT;
 
 template<typename FieldT, typename HashT>
 class Miximus {
@@ -164,16 +162,16 @@ public:
     void writeKeysToFile(char* pk , char* vk) {
         r1cs_constraint_system<FieldT> constraints = this->pb.get_constraint_system();
 
-        r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair = generateKeypair(this->pb.get_constraint_system());
+        r1cs_gg_ppzksnark_zok_keypair<libff::alt_bn128_pp> keypair = generateKeypair(this->pb.get_constraint_system());
 
         //save keys
-        vk2json<libff::alt_bn128_pp>(keypair.vk, vk);
+        vk2json_file<libff::alt_bn128_pp>(keypair.vk, vk);
 
         writeToFile(pk, keypair.pk);
         writeToFile("zksnark_element/vk.raw", keypair.vk); 
     }
 
-    r1cs_ppzksnark_proof<libff::alt_bn128_pp> prove(std::vector<merkle_authentication_node> path, int address, libff::bit_vector address_bits , 
+    r1cs_gg_ppzksnark_zok_proof<libff::alt_bn128_pp> prove(std::vector<merkle_authentication_node> path, int address, libff::bit_vector address_bits , 
                 libff::bit_vector _nullifier , libff::bit_vector secret , libff::bit_vector root,
                 libff::bit_vector _signal, libff::bit_vector _signal_variables, libff::bit_vector _external_nullifier , 
                 int fee, char* pk)
@@ -205,24 +203,24 @@ public:
         cout << "END R1CS WITNESS\n";
             
         cout << "BEGIN LOAD PROVING KEY\n";
-        r1cs_ppzksnark_keypair<libff::alt_bn128_pp> keypair;
+        r1cs_gg_ppzksnark_zok_keypair<libff::alt_bn128_pp> keypair;
         // TODO: verify file exists
-        keypair.pk = loadFromFile<r1cs_ppzksnark_proving_key<alt_bn128_pp>> (pk);
+        keypair.pk = loadFromFile<r1cs_gg_ppzksnark_zok_proving_key<alt_bn128_pp>> (pk);
         cout << "END LOAD PROVING KEY\n";
 
         cout << "BEGIN R1CS PROOF\n";
         r1cs_primary_input <FieldT> primary_input = pb.primary_input();
         //std::cout << "primary_input " << primary_input;
         r1cs_auxiliary_input <FieldT> auxiliary_input = pb.auxiliary_input();
-        r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof = r1cs_ppzksnark_prover<libff::alt_bn128_pp>(keypair.pk, primary_input, auxiliary_input);
+        auto proof = r1cs_gg_ppzksnark_zok_prover<libff::alt_bn128_pp>(keypair.pk, primary_input, auxiliary_input);
         cout << "END R1CS PROOF\n";
 
         return proof;
     }
 
-    bool verify( r1cs_ppzksnark_verification_key<libff::alt_bn128_pp> vk, r1cs_ppzksnark_proof<libff::alt_bn128_pp> proof, r1cs_ppzksnark_primary_input <libff::alt_bn128_pp> primary_input )
+    bool verify( r1cs_gg_ppzksnark_zok_verification_key<libff::alt_bn128_pp> vk, r1cs_gg_ppzksnark_zok_proof<libff::alt_bn128_pp> proof, r1cs_gg_ppzksnark_zok_primary_input <libff::alt_bn128_pp> primary_input )
     {
-        return r1cs_ppzksnark_verifier_strong_IC <libff::alt_bn128_pp> (vk, primary_input, proof);
+        return r1cs_gg_ppzksnark_zok_verifier_strong_IC <libff::alt_bn128_pp> (vk, primary_input, proof);
     }
 };
 
@@ -250,7 +248,7 @@ bool verify ( const char *vk_json, const char *proof_json )
     proof_stream << proof_json;
     auto proof_pair = proof_from_json<ppT>(proof_stream);
 
-    return r1cs_ppzksnark_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
+    return r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
 }
 
 

@@ -1,5 +1,5 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
+#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
 #include "ZoKrates/wraplibsnark.cpp"
 
@@ -15,7 +15,7 @@ int main( int argc, char **argv )
 		return 1;
 	}
 
-	libsnark::r1cs_ppzksnark_proving_key<ppT> pk;
+	libsnark::r1cs_gg_ppzksnark_zok_proving_key<ppT> pk;
 
     pk = loadFromFile<decltype(pk)> (argv[1]);
 

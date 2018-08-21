@@ -8,7 +8,7 @@
 
 #include <cassert>
 
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
+#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 #include <libsnark/knowledge_commitment/knowledge_commitment.hpp>
 
 #include <boost/property_tree/ptree.hpp>
@@ -19,13 +19,21 @@
 
 namespace pt = boost::property_tree;
 
+using libsnark::r1cs_gg_ppzksnark_zok_proof;
+using libsnark::r1cs_gg_ppzksnark_zok_verification_key;
+using libsnark::accumulation_vector;
+using libsnark::r1cs_gg_ppzksnark_zok_primary_input;
+using std::string;
+using std::vector;
+using std::stringstream;
+
 
 /**
 * Loads a ppT::Fq_type from a string, allows for integer, hex or binary encoding
 * Prefix with 0x for hex and 0b for binary
 */
 template<typename FieldT>
-FieldT parse_F(std::string &input)
+FieldT parse_F(string &input)
 {
     mpz_t value;
     int value_error;
@@ -44,7 +52,7 @@ FieldT parse_F(std::string &input)
 
 
 template<typename ppT>
-typename ppT::Fq_type parse_Fq(std::string &input)
+typename ppT::Fq_type parse_Fq(string &input)
 {
     return parse_F<typename ppT::Fq_type>(input);
 }
@@ -56,13 +64,13 @@ typename ppT::Fq_type parse_Fq(std::string &input)
 *   "in_key": [N, N, N, ...]
 */
 template<typename FieldT>
-std::vector<FieldT> create_F_list_from_ptree( pt::ptree &in_tree, const char *in_key )
+vector<FieldT> create_F_list_from_ptree( pt::ptree &in_tree, const char *in_key )
 {
-    std::vector<FieldT> elements;
+    vector<FieldT> elements;
 
     for( auto& item : in_tree.get_child(in_key) )
     {
-        auto element = item.second.get_value<std::string>();
+        auto element = item.second.get_value<string>();
 
         elements.push_back( parse_F<FieldT>( element ) );
     }
@@ -77,7 +85,7 @@ std::vector<FieldT> create_F_list_from_ptree( pt::ptree &in_tree, const char *in
 * This assumes the coordinates are affine.
 */
 template<typename ppT>
-typename ppT::G1_type create_G1(std::string &in_X, std::string &in_Y)
+typename ppT::G1_type create_G1(string &in_X, string &in_Y)
 {
     typedef typename ppT::Fq_type Fq_T;
     typedef typename ppT::G1_type G1_T;
@@ -96,7 +104,7 @@ typename ppT::G1_type create_G1(std::string &in_X, std::string &in_Y)
 * This assumes the coordinates are affine.
 */
 template<typename ppT>
-typename ppT::G2_type create_G2(std::string &in_X_c1, std::string &in_X_c0, std::string &in_Y_c1, std::string &in_Y_c0)
+typename ppT::G2_type create_G2(string &in_X_c1, string &in_X_c0, string &in_Y_c1, string &in_Y_c0)
 {
     typedef typename ppT::Fq_type Fq_T;
     typedef typename ppT::Fqe_type Fq2_T;
@@ -115,9 +123,9 @@ typename ppT::G2_type create_G2(std::string &in_X_c1, std::string &in_X_c0, std:
 * Retrieve all children of a given key as a vector of a given type
 */
 template <typename T>
-std::vector<T> as_vector(pt::ptree const& in_tree)
+vector<T> as_vector(pt::ptree const& in_tree)
 {
-    std::vector<T> vars;
+    vector<T> vars;
 
     for (auto& item : in_tree)
     {
@@ -136,7 +144,7 @@ std::vector<T> as_vector(pt::ptree const& in_tree)
 template<typename ppT>
 typename ppT::G1_type create_G1_from_ptree( pt::ptree &in_tree, const char *in_key )
 {
-    auto vars = as_vector<std::string>(in_tree.get_child(in_key));
+    auto vars = as_vector<string>(in_tree.get_child(in_key));
 
     assert(vars.size() == 2);
 
@@ -150,15 +158,15 @@ typename ppT::G1_type create_G1_from_ptree( pt::ptree &in_tree, const char *in_k
 *   "in_key": [["X", "Y"], ["X", "Y"], ...]
 */
 template<typename ppT>
-std::vector<typename ppT::G1_type> create_G1_list_from_ptree( pt::ptree &in_tree, const char *in_key )
+vector<typename ppT::G1_type> create_G1_list_from_ptree( pt::ptree &in_tree, const char *in_key )
 {
     typedef typename ppT::G1_type G1_T;
 
-    std::vector<G1_T> points;
+    vector<G1_T> points;
 
     for( auto& item : in_tree.get_child(in_key) )
     {
-        auto vars = as_vector<std::string>(item.second);
+        auto vars = as_vector<string>(item.second);
 
         assert(vars.size() == 2);
 
@@ -178,11 +186,11 @@ std::vector<typename ppT::G1_type> create_G1_list_from_ptree( pt::ptree &in_tree
 template<typename ppT>
 typename ppT::G2_type create_G2_from_ptree( pt::ptree &in_tree, const char *in_key )
 {
-    std::vector<std::vector<std::string> > items;
+    vector<vector<string> > items;
 
     for( auto& item : in_tree.get_child(in_key) )
     {
-        auto vars = as_vector<std::string>(item.second);
+        auto vars = as_vector<string>(item.second);
 
         assert(vars.size() == 2);
 
@@ -200,47 +208,28 @@ typename ppT::G2_type create_G2_from_ptree( pt::ptree &in_tree, const char *in_k
 * Pair which represents a proof and its inputs
 */
 template <typename ppT>
-using InputProofPairType = std::pair< libsnark::r1cs_ppzksnark_primary_input<ppT>, libsnark::r1cs_ppzksnark_proof<ppT> >;
+using InputProofPairType = std::pair< r1cs_gg_ppzksnark_zok_primary_input<ppT>, r1cs_gg_ppzksnark_zok_proof<ppT> >;
 
 
 /**
 * Parse the witness/proof from a property tree
-*   {"a": g1,
-*    "a_p": g1,
-*    "b": g2,
-*    "b_p": g1,
-*    "c": g1,
-*    "c_p": g1,
-*    "h": g1,
-*    "k": g1,
+*   {"A": g1,
+*    "B": g2,
+*    "C": g1,
 *    "input": [N, N, N ...]}
 */
 template<typename ppT>
 InputProofPairType<ppT> proof_from_tree( pt::ptree &in_tree )
 {
-    typedef const libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT> > kc_G1G1_T;
-    typedef const libsnark::knowledge_commitment<libff::G2<ppT>, libff::G1<ppT> > kc_G2G1_T;
-
-    auto a = create_G1_from_ptree<ppT>(in_tree, "a");       // g_A.g
-    auto a_p = create_G1_from_ptree<ppT>(in_tree, "a_p");   // g_A.h
-    auto b = create_G2_from_ptree<ppT>(in_tree, "b");       // g_B.g
-    auto b_p = create_G1_from_ptree<ppT>(in_tree, "b_p");   // g_B.h
-    auto c = create_G1_from_ptree<ppT>(in_tree, "c");       // g_C.g
-    auto c_p = create_G1_from_ptree<ppT>(in_tree, "c_p");   // g_C.h
-    auto h = create_G1_from_ptree<ppT>(in_tree, "h");       // g_H
-    auto k = create_G1_from_ptree<ppT>(in_tree, "k");       // g_K
+    auto A = create_G1_from_ptree<ppT>(in_tree, "A");
+    auto B = create_G2_from_ptree<ppT>(in_tree, "B");
+    auto C = create_G1_from_ptree<ppT>(in_tree, "C");
     auto input = create_F_list_from_ptree<typename ppT::Fp_type>(in_tree, "input");
 
-    auto A = kc_G1G1_T(a, a_p);
-    auto B = kc_G2G1_T(b, b_p);
-    auto C = kc_G1G1_T(c, c_p);
-
-    libsnark::r1cs_ppzksnark_proof<ppT> proof(
+    r1cs_gg_ppzksnark_zok_proof<ppT> proof(
         std::move(A),
         std::move(B),
-        std::move(C),
-        std::move(h),
-        std::move(k));
+        std::move(C));
 
     InputProofPairType<ppT> out(input, proof);
 
@@ -252,7 +241,7 @@ InputProofPairType<ppT> proof_from_tree( pt::ptree &in_tree )
 * Parse the witness/proof from a stream of JSON encoded data
 */
 template<typename ppT>
-InputProofPairType<ppT> proof_from_json( std::stringstream &in_json )
+InputProofPairType<ppT> proof_from_json( stringstream &in_json )
 {
     pt::ptree root;
 
@@ -265,41 +254,32 @@ InputProofPairType<ppT> proof_from_json( std::stringstream &in_json )
 /**
 * Parse the verification key from a property tree
 *
-*   {"a": g2,
-*    "b": g1,
-*    "c": g2,
-*    "g": g2,
-*    "gb1": g1,
-*    "gb2": g2,
-*    "z": g2,
-*    "IC": [g1, g1, g1...]}
+*   {"alpha": g1,
+*    "beta": g2,
+*    "gamma": g2,
+*    "delta": g2,
+*    "gamma_ABC": [g1, g1, g1...]}
 */
 template<typename ppT>
-libsnark::r1cs_ppzksnark_verification_key<ppT> vk_from_tree( pt::ptree &in_tree )
+r1cs_gg_ppzksnark_zok_verification_key<ppT> vk_from_tree( pt::ptree &in_tree )
 {
     // Array of IC G1 points
-    auto IC = create_G1_list_from_ptree<ppT>(in_tree, "IC");
-    auto alphaA_g2 = create_G2_from_ptree<ppT>(in_tree, "a");
-    auto alphaB_g1 = create_G1_from_ptree<ppT>(in_tree, "b");
-    auto alphaC_g2 = create_G2_from_ptree<ppT>(in_tree, "c");
-    auto gamma_g2 = create_G2_from_ptree<ppT>(in_tree, "g");
-    auto gamma_beta_g1 = create_G1_from_ptree<ppT>(in_tree, "gb1");
-    auto gamma_beta_g2 = create_G2_from_ptree<ppT>(in_tree, "gb2");
-    auto rC_Z_g2 = create_G2_from_ptree<ppT>(in_tree, "z");
+    auto gamma_ABC_g1 = create_G1_list_from_ptree<ppT>(in_tree, "gammaABC");
+    auto alpha_g1 = create_G1_from_ptree<ppT>(in_tree, "alpha");
+    auto beta_g2 = create_G2_from_ptree<ppT>(in_tree, "beta");
+    auto gamma_g2 = create_G2_from_ptree<ppT>(in_tree, "gamma");
+    auto delta_g2 = create_G2_from_ptree<ppT>(in_tree, "delta");
 
     // IC must be split into `first` and `rest` for the accumulator
-    auto IC_rest = decltype(IC)(IC.begin() + 1, IC.end());
-    auto IC_vec = libsnark::accumulation_vector<libff::G1<ppT> >(std::move(IC[0]), std::move(IC_rest));
+    auto gamma_ABC_g1_rest = decltype(gamma_ABC_g1)(gamma_ABC_g1.begin() + 1, gamma_ABC_g1.end());
+    auto gamma_ABC_g1_vec = accumulation_vector<libff::G1<ppT> >(std::move(gamma_ABC_g1[0]), std::move(gamma_ABC_g1_rest));
 
-    return libsnark::r1cs_ppzksnark_verification_key<ppT>(
-        alphaA_g2,
-        alphaB_g1,
-        alphaC_g2,
+    return r1cs_gg_ppzksnark_zok_verification_key<ppT>(
+        alpha_g1,
+        beta_g2,
         gamma_g2,
-        gamma_beta_g1,
-        gamma_beta_g2,
-        rC_Z_g2,
-        IC_vec);
+        delta_g2,
+        gamma_ABC_g1_vec);
 }
 
 
@@ -307,7 +287,7 @@ libsnark::r1cs_ppzksnark_verification_key<ppT> vk_from_tree( pt::ptree &in_tree 
 * Parse the verifying key from a stream of JSON encoded data
 */
 template<typename ppT>
-libsnark::r1cs_ppzksnark_verification_key<ppT> vk_from_json( std::stringstream &in_json )
+r1cs_gg_ppzksnark_zok_verification_key<ppT> vk_from_json( stringstream &in_json )
 {
     pt::ptree root;
 
