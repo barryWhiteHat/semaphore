@@ -115,13 +115,15 @@ class BaseProof(object):
         fields = []
         for name in cls._fields:
             val = in_data[name]
-            if name in self.G2_POINTS:
+            if name in cls.G2_POINTS:
                 # See note above about endian conversion
                 fields.append(_load_g2_point(val))
-            elif name in self.FP_POINTS:
+            elif name in cls.FP_POINTS:
                 fields.append([_filter_int(_) for _ in val])
-            else:
+            elif name in cls.G1_POINTS:
                 fields.append(_load_g1_point(val[:2]))
+            else:
+                raise KeyError("Unknown proof field: " + name)
         return cls(*fields)
 
 
@@ -157,8 +159,10 @@ class BaseVerifier(object):
                 fields.append(_load_g1_point(val))
             elif name in cls.G1_LISTS:
                 fields.append(list([_load_g1_point(_) for _ in val]))
-            else:
+            elif name in cls.G2_POINTS:
                 fields.append(_load_g2_point(val))
+            else:
+                raise KeyError("Unknown verifying key field: " + name)
         # Order is necessary to pass to constructor of self
         return cls(*fields)
 
@@ -181,7 +185,7 @@ class VerifyingKey(BaseVerifier, _VerifyingKeyStruct):
 
         # e(B, A) * e(gamma, -vk_x) * e(delta, -C) * e(beta, -alpha)
         return pairingProd(
-            (proof.B, proof.A),
-            (vk.gamma, neg(vk_x)),
-            (vk.delta, neg(proof.C)),
-            (vk.beta, neg(vk.alpha)))
+            (proof.A, proof.B),
+            (neg(vk_x), self.gamma),
+            (neg(proof.C), self.delta),
+            (neg(self.alpha), self.beta))
