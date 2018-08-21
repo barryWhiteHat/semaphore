@@ -17,16 +17,18 @@ def main(vk_filename, name='_getVerifyingKey'):
             "\t\tinternal pure",
             "\t{",
         ]
-        for k, v in vk.G2_POINTS:
-            x = getattr(vk, v)
+        for k in vk.G2_POINTS:
+            x = getattr(vk, k)
             out.append("%s%s.%s = %s;" % (indent, varname, k, g2_to_sol(x)))
-        for k, v in vk.G1_POINTS:
-            x = getattr(vk, v)
+        for k in vk.G1_POINTS:
+            x = getattr(vk, k)
             out.append("%s%s.%s = %s;" % (indent, varname, k, g1_to_sol(x)))
+
         out.append("%s%s.gammaABC = new Pairing.G1Point[](%d);" % (indent, varname, len(vk.gammaABC)))
         for i, v in enumerate(vk.gammaABC):
             out.append("%s%s.gammaABC[%d] = %s;" % (indent, varname, i, g1_to_sol(v)))
         out.append("\t}");
+
         print('\n'.join(out))
 
 

@@ -41,12 +41,10 @@ contract MerkelTree {
         }
         return(merkelProof, address_bits);   
     }
-    
-     function getSha256(bytes32 input, bytes32 sk) constant returns ( bytes32) { 
-        return(sha256(input , sk)); 
-    }
 
-    function getUniqueLeaf(bytes32 leaf, uint depth) returns (bytes32) {
+    function getUniqueLeaf(bytes32 leaf, uint depth)
+        pure returns (bytes32)
+    {
         if (leaf == 0x0) {
             for (uint i=0;i<depth;i++) {
                 leaf = sha256(leaf, leaf);

@@ -18,7 +18,7 @@ def main(vk_filename, name='_getStaticProof'):
             "\t\tVerifier.Proof memory proof = output.proof;"
         ]
 
-        for k in proof.G2_POINTS
+        for k in proof.G2_POINTS:
             x = getattr(proof, k)
             out.append("\t\tproof.%s = %s;" % (k, g2_to_sol(x)))
 
