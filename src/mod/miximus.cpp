@@ -21,6 +21,8 @@
 #include "import.cpp"
 #include "stubs.cpp"
 
+#include "miximus.hpp"
+
 #include "gadgets/longsightf.cpp"
 #include "gadgets/longsightf_bits.cpp"
 
@@ -32,13 +34,12 @@
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.hpp>
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 
-using libff::bit_vector;
 using libsnark::pb_variable;
 using libsnark::protoboard;
 using libsnark::merkle_authentication_path_variable;
 using libsnark::merkle_tree_check_read_gadget;
 
-static const size_t MIXIMUS_TREE_DEPTH = 29;
+const size_t MIXIMUS_TREE_DEPTH = 29;
 
 
 template<typename FieldT>
@@ -137,7 +138,7 @@ public:
         check_read.generate_r1cs_constraints();
     }
 
-    void generate_r1cs_witness(FieldT in_root, FieldT in_nullifier, FieldT in_exthash, FieldT in_preimage, bit_vector in_address, std::vector<merkle_authentication_node> in_path)
+    void generate_r1cs_witness(FieldT in_root, FieldT in_nullifier, FieldT in_exthash, FieldT in_preimage, libff::bit_vector in_address, std::vector<merkle_authentication_node> in_path)
     {
         // public inputs
         this->pb.val(root_var) = in_root;
@@ -162,6 +163,10 @@ public:
 };
 
 
+size_t miximus_tree_depth( void ) {
+    return MIXIMUS_TREE_DEPTH;
+}
+
 
 char *miximus_prove(
     const char *pk_file,
@@ -182,7 +187,7 @@ char *miximus_prove(
     FieldT arg_spend_preimage(in_spend_preimage);
 
     // Fill address bits with 0s and 1s from str
-    bit_vector address_bits;
+    libff::bit_vector address_bits;
     address_bits.resize(MIXIMUS_TREE_DEPTH);
     if( strlen(in_address) != MIXIMUS_TREE_DEPTH )
     {

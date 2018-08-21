@@ -6,6 +6,7 @@
 #include <fstream>  // ofstream
 
 #include "mod/miximus.cpp"
+#include "stubs.cpp"
 #include "utils.cpp" // hex_to_bytes
 
 
@@ -13,8 +14,6 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::ofstream;
-using std::ifstream;
-using std::stringstream;
 
 
 static int main_prove( int argc, char **argv )
@@ -63,7 +62,7 @@ int main( int argc, char **argv )
 {
     if( argc < 2 )
     {
-        cerr << "Usage: " << argv[0] << " <genkeys|prove|verify> [...]\n";
+        cerr << "Usage: " << argv[0] << " <genkeys|prove|verify> [...]" << endl;
         return 1;
     }
 
@@ -80,6 +79,6 @@ int main( int argc, char **argv )
         return stub_main_verify(argv[0], argc-1, &argv[1]);
     }
 
-    cerr << "Error: unknown sub-command " << argv[1] << "\n";
+    cerr << "Error: unknown sub-command " << argv[1] << endl;
     return 2;
 }

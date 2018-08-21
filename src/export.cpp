@@ -17,6 +17,8 @@
     along with Semaphore.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <fstream>
 #include <iostream>
 #include <cassert>
@@ -40,7 +42,7 @@ std::string HexStringFromBigint(libff::bigint<libff::alt_bn128_r_limbs> _x){
     ::mpz_init(value);
 
     _x.to_mpz(value);
-    char *value_out_hex = mpz_get_str(NULL, 16, value);
+    char *value_out_hex = mpz_get_str(nullptr, 16, value);
 
     std::string str(value_out_hex);
 
@@ -58,11 +60,7 @@ std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)
         //std::stringstream ss; 
         //ss << "0x"  << aff.X.as_bigint() << "," << aff.Y.as_bigint() << "," << aff.Z.as_bigint();
 
-        return       "\"0x" + 
-               HexStringFromBigint(aff.X.as_bigint()) +
-                "\", \"0x"+
-                HexStringFromBigint(aff.Y.as_bigint()) +
-                "\""; 
+        return "\"0x" +  HexStringFromBigint(aff.X.as_bigint()) + "\", \"0x" + HexStringFromBigint(aff.Y.as_bigint()) + "\""; 
 }
 
 

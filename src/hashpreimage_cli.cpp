@@ -19,7 +19,7 @@ using std::stringstream;
 static int main_prove( int argc, char **argv )
 {
     uint8_t input_buffer[64];
-    const char *out_filename = NULL;
+    const char *out_filename = nullptr;
 
     if( argc < 4 )
     {

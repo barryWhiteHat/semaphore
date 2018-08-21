@@ -3,20 +3,21 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 #include <sstream>  // stringstream
-using std::stringstream;
 
 #include "utils.cpp"
+#include "import.cpp"
+#include "export.cpp"
 
 bool stub_verify( const char *vk_json, const char *proof_json )
 {
     typedef libff::alt_bn128_pp ppT;
     ppT::init_public_params();
 
-    stringstream vk_stream;
+    std::stringstream vk_stream;
     vk_stream << vk_json;
     auto vk = vk_from_json<ppT>(vk_stream);
 
-    stringstream proof_stream;
+    std::stringstream proof_stream;
     proof_stream << proof_json;
     auto proof_pair = proof_from_json<ppT>(proof_stream);
 
@@ -35,11 +36,11 @@ int stub_genkeys( const char *pk_file, const char *vk_file )
     typedef libff::Fr<ppT> FieldT;
     ppT::init_public_params();
 
-    protoboard<FieldT> pb;
+    libsnark::protoboard<FieldT> pb;
     GadgetT<FieldT> mod(pb, "module");
     mod.generate_r1cs_constraints();
 
-    auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(pb.get_constraint_system());
+    auto keypair = libsnark::r1cs_gg_ppzksnark_zok_generator<ppT>(pb.get_constraint_system());
     vk2json_file<ppT>(keypair.vk, vk_file);
     writeToFile<decltype(keypair.pk)>(pk_file, keypair.pk);
 

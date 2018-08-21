@@ -160,7 +160,7 @@ char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
 
     if( ! pb.is_satisfied() )
     {
-        return NULL;
+        return nullptr;
     }
 
     auto proving_key = loadFromFile<r1cs_gg_ppzksnark_zok_proving_key<ppT>>(pk_file);
