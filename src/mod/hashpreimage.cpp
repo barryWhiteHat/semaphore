@@ -4,7 +4,6 @@
 #include "hashpreimage.hpp"
 
 #include "gadgets/sha256_full.cpp"
-#include "ZoKrates/wraplibsnark.cpp"
 #include "utils.cpp"
 #include "export.cpp"
 #include "import.cpp"

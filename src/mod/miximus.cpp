@@ -176,10 +176,10 @@ char *miximus_prove(
     typedef libff::Fr<ppT> FieldT;
     ppT::init_public_params();
 
-    FieldT f_root(in_root);
-    FieldT f_nullifier(in_nullifier);
-    FieldT f_spend_preimage(in_spend_preimage);
-    FieldT f_exthash(in_exthash);
+    FieldT arg_root(in_root);
+    FieldT arg_nullifier(in_nullifier);
+    FieldT arg_exthash(in_exthash);
+    FieldT arg_spend_preimage(in_spend_preimage);
 
     // Fill address bits with 0s and 1s from str
     bit_vector address_bits;
@@ -198,17 +198,17 @@ char *miximus_prove(
     }
 
     // Fill path from field elements from in_path
-    std::vector<merkle_authentication_node> f_path;
-    f_path.resize(MIXIMUS_TREE_DEPTH);
+    std::vector<merkle_authentication_node> arg_path;
+    arg_path.resize(MIXIMUS_TREE_DEPTH);
     for( size_t i = 0; i < MIXIMUS_TREE_DEPTH; i++ ) {
         assert( in_path[i] != nullptr );
-        f_path[i] = convert_field_element_to_bit_vector<FieldT>(FieldT(in_path[i]));
+        arg_path[i] = convert_field_element_to_bit_vector<FieldT>(FieldT(in_path[i]));
     }
 
     protoboard<FieldT> pb;
     mod_miximus<FieldT> mod(pb, "module");
     mod.generate_r1cs_constraints();
-    mod.generate_r1cs_witness(f_root, f_nullifier, f_exthash, f_spend_preimage, address_bits, f_path);
+    mod.generate_r1cs_witness(arg_root, arg_nullifier, arg_exthash, arg_spend_preimage, address_bits, arg_path);
 
     if( ! pb.is_satisfied() )
     {

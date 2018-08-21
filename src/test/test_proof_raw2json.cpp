@@ -1,16 +1,22 @@
 #include "export.cpp"
 #include "import.cpp"
-#include "ZoKrates/wraplibsnark.hpp"
+#include "utils.cpp"
+
+
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::ifstream;
+using std::stringstream;
 
 
 int main( int argc, char **argv )
 {
 	typedef libff::alt_bn128_pp ppT;
-
 	ppT::init_public_params();
 
 	if( argc < 3 ) {
-		fprintf(stderr, "Usage: %s <input-proof.json> <check-proof.raw>\n", argv[0]);
+		cerr << "Usage: " << argv[0] << " <input-proof.json> <check-proof.raw>" << endl;
 		return 1;
 	}
 
@@ -32,7 +38,7 @@ int main( int argc, char **argv )
 
 	// Verify serialisation is correct
 	if( ! (proof_json.second == proof) ) {
-		cout << "FAIL\n";
+		cerr << "FAIL\n";
 		return 1;
 	}
 

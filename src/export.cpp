@@ -26,9 +26,6 @@
 
 #include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
-// ZoKrates
-#include "ZoKrates/wraplibsnark.cpp"
-
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 #include <libsnark/gadgetlib1/gadget.hpp>
@@ -38,8 +35,54 @@ using namespace libsnark;
 using namespace libff;
 
 
+std::string HexStringFromBigint(libff::bigint<libff::alt_bn128_r_limbs> _x){
+    mpz_t value;
+    ::mpz_init(value);
+
+    _x.to_mpz(value);
+    char *value_out_hex = mpz_get_str(NULL, 16, value);
+
+    std::string str(value_out_hex);
+
+    ::mpz_clear(value);
+    ::free(value_out_hex);
+
+    return str;
+}
+
+
+std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)
+{
+        libff::alt_bn128_G1 aff = _p;
+        aff.to_affine_coordinates();
+        //std::stringstream ss; 
+        //ss << "0x"  << aff.X.as_bigint() << "," << aff.Y.as_bigint() << "," << aff.Z.as_bigint();
+
+        return       "\"0x" + 
+               HexStringFromBigint(aff.X.as_bigint()) +
+                "\", \"0x"+
+                HexStringFromBigint(aff.Y.as_bigint()) +
+                "\""; 
+}
+
+
+std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p)
+{
+        libff::alt_bn128_G2 aff = _p;
+
+        if (aff.Z.c0.as_bigint() != "0" && aff.Z.c1.as_bigint() != "0" ) {
+            aff.to_affine_coordinates();
+        }
+        return "[\"0x" +
+                HexStringFromBigint(aff.X.c1.as_bigint()) + "\", \"0x" +
+                HexStringFromBigint(aff.X.c0.as_bigint()) + "\"],\n [\"0x" + 
+                HexStringFromBigint(aff.Y.c1.as_bigint()) + "\", \"0x" +
+                HexStringFromBigint(aff.Y.c0.as_bigint()) + "\"]"; 
+}
+
+
 template<typename ppT>
-string proof_to_json(r1cs_gg_ppzksnark_zok_proof<ppT> &proof, r1cs_primary_input<libff::Fr<ppT>> &input) {
+std::string proof_to_json(r1cs_gg_ppzksnark_zok_proof<ppT> &proof, r1cs_primary_input<libff::Fr<ppT>> &input) {
     std::stringstream ss;
 
     ss << "{\n";
@@ -50,7 +93,7 @@ string proof_to_json(r1cs_gg_ppzksnark_zok_proof<ppT> &proof, r1cs_primary_input
 
     for (size_t i = 0; i < input.size(); ++i)
     {   
-        ss << "\"0x" << HexStringFromLibsnarkBigint(input[i].as_bigint()) << "\""; 
+        ss << "\"0x" << HexStringFromBigint(input[i].as_bigint()) << "\""; 
         if ( i < input.size() - 1 ) { 
             ss<< ", ";
         }

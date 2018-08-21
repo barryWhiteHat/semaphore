@@ -5,6 +5,8 @@
 #include <sstream>  // stringstream
 using std::stringstream;
 
+#include "utils.cpp"
+
 bool stub_verify( const char *vk_json, const char *proof_json )
 {
     typedef libff::alt_bn128_pp ppT;
@@ -39,7 +41,7 @@ int stub_genkeys( const char *pk_file, const char *vk_file )
 
     auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(pb.get_constraint_system());
     vk2json_file<ppT>(keypair.vk, vk_file);
-    writeToFile(pk_file, keypair.pk);
+    writeToFile<decltype(keypair.pk)>(pk_file, keypair.pk);
 
     return 0;
 }
@@ -49,7 +51,7 @@ int stub_main_verify( const char *prog_name, int argc, char **argv )
 {
     if( argc < 3 )
     {
-        cerr << "Usage: " << prog_name << " " << argv[0] << " <vk.json> <proof.json>" << endl;
+        std::cerr << "Usage: " << prog_name << " " << argv[0] << " <vk.json> <proof.json>" << std::endl;
         return 1;
     }
 
@@ -57,20 +59,20 @@ int stub_main_verify( const char *prog_name, int argc, char **argv )
     auto proof_json_file = argv[2];
 
     // Read verifying key file
-    stringstream vk_stream;
-    ifstream vk_input(vk_json_file);
+    std::stringstream vk_stream;
+    std::ifstream vk_input(vk_json_file);
     if( ! vk_input ) {
-        cerr << "Error: cannot open " << vk_json_file << "\n";
+        std::cerr << "Error: cannot open " << vk_json_file << std::endl;
         return 2;
     }
     vk_stream << vk_input.rdbuf();
     vk_input.close();
 
     // Read proof file
-    stringstream proof_stream;
-    ifstream proof_input(proof_json_file);
+    std::stringstream proof_stream;
+    std::ifstream proof_input(proof_json_file);
     if( ! proof_input ) {
-        cerr << "Error: cannot open " << proof_json_file << "\n";
+        std::cerr << "Error: cannot open " << proof_json_file << std::endl;
         return 2;
     }
     proof_stream << proof_input.rdbuf();
@@ -84,7 +86,7 @@ int stub_main_verify( const char *prog_name, int argc, char **argv )
         return 0;
     }
 
-    cerr << "Error: failed to verify proof!\n";
+    std::cerr << "Error: failed to verify proof!" << std::endl;
 
     return 1;
 }
@@ -95,7 +97,7 @@ static int stub_main_genkeys( const char *prog_name, int argc, char **argv )
 {
     if( argc < 3 )
     {
-        cerr << "Usage: " << prog_name << " " << argv[0] << " <pk-output.raw> <vk-output.json>\n";
+        std::cerr << "Usage: " << prog_name << " " << argv[0] << " <pk-output.raw> <vk-output.json>" << std::endl;
         return 1;
     }
 
@@ -104,7 +106,7 @@ static int stub_main_genkeys( const char *prog_name, int argc, char **argv )
 
     if( 0 != stub_genkeys<GadgetT>( pk_file, vk_file ) )
     {
-        cerr << "Error: failed to generate proving and verifying keys\n";
+        std::cerr << "Error: failed to generate proving and verifying keys" << std::endl;
         return 1;
     }
 
