@@ -30,9 +30,6 @@ class TestMiximus(unittest.TestCase):
 		self.assertTrue(leaf_proof.verify(tree.root))
 		print(len(leaf_proof.path))
 
-		print("Spend hash", spend_hash)
-		print("Leaf hash", leaf_hash)
-
 		# Generate proof		
 		wrapper = Miximus(NATIVE_LIB_PATH, VK_PATH, PK_PATH)
 		tree_depth = wrapper.tree_depth
