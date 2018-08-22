@@ -4,7 +4,6 @@
 #include <cstring>
 #include <iostream> // cerr
 #include <fstream>  // ofstream
-#include <sstream>  // stringstream
 
 #include "mod/hashpreimage.cpp"
 #include "utils.cpp" // hex_to_bytes
@@ -20,7 +19,7 @@ using std::stringstream;
 static int main_prove( int argc, char **argv )
 {
     uint8_t input_buffer[64];
-    const char *out_filename = NULL;
+    const char *out_filename = nullptr;
 
     if( argc < 4 )
     {
@@ -61,72 +60,6 @@ static int main_prove( int argc, char **argv )
 }
 
 
-static int main_genkeys( int argc, char **argv )
-{
-    if( argc < 4 )
-    {
-        cerr << "Usage: " << argv[0] << " genkeys <pk-output.raw> <vk-output.json>\n";
-        return 1;
-    }
-
-    auto pk_file = argv[2];
-    auto vk_file = argv[3];
-
-    if( 0 != hashpreimage_genkeys( pk_file, vk_file ) )
-    {
-        cerr << "Error: failed to generate proving and verifying keys\n";
-        return 1;
-    }
-
-    return 0;
-}
-
-
-static int main_verify( int argc, char **argv )
-{
-    if( argc < 4 )
-    {
-        cerr << "Usage: " << argv[0] << " verify <vk.json> <proof.json>\n";
-        return 1;
-    }
-
-    auto vk_json_file = argv[2];
-    auto proof_json_file = argv[3];
-
-    // Read verifying key file
-    stringstream vk_stream;
-    ifstream vk_input(vk_json_file);
-    if( ! vk_input ) {
-        cerr << "Error: cannot open " << vk_json_file << "\n";
-        return 2;
-    }
-    vk_stream << vk_input.rdbuf();
-    vk_input.close();
-
-    // Read proof file
-    stringstream proof_stream;
-    ifstream proof_input(proof_json_file);
-    if( ! proof_input ) {
-        cerr << "Error: cannot open " << proof_json_file << "\n";
-        return 2;
-    }
-    proof_stream << proof_input.rdbuf();
-    proof_input.close();
-
-    // Then verify if proof is correct
-    auto vk_str = vk_stream.str();
-    auto proof_str = proof_stream.str();
-    if( hashpreimage_verify( vk_str.c_str(), proof_str.c_str() ) )
-    {
-        return 0;
-    }
-
-    cerr << "Error: failed to verify proof!\n";
-
-    return 1;
-}
-
-
 int main( int argc, char **argv )
 {
     if( argc < 2 )
@@ -141,11 +74,11 @@ int main( int argc, char **argv )
     }
     else if( 0 == ::strcmp(argv[1], "genkeys") )
     {
-        return main_genkeys(argc, argv);
+        return stub_main_genkeys<mod_hashpreimage>(argv[0], argc-1, &argv[1]);
     }
     else if( 0 == ::strcmp(argv[1], "verify") )
     {
-        return main_verify(argc, argv);
+        return stub_main_verify(argv[0], argc-1, &argv[1]);
     }
 
     cerr << "Error: unknown sub-command " << argv[1] << "\n";

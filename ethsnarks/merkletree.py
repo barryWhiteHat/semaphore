@@ -65,6 +65,7 @@ class MerkleHasherSHA256(object):
 
 class MerkleTree(object):
     def __init__(self, n_items, hasher=None):
+        assert n_items > 1
         if hasher is None:
             hasher = MerkleHasherLongsightF
         self._hasher = hasher
@@ -82,6 +83,7 @@ class MerkleTree(object):
         self._leaves[0].append(leaf)
         self._updateTree()
         self._cur += 1
+        return self._cur - 1
 
     def __getitem__(self, key):
         if not isinstance(key, int):

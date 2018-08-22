@@ -6,6 +6,8 @@
 * from JSON stuff. It's the opposite of 'export.cpp'...
 */
 
+#pragma once
+
 #include <cassert>
 
 #include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
@@ -42,6 +44,7 @@ FieldT parse_F(string &input)
 
     // the '0' flag means auto-detect, e.g. '0x' or '0b' prefix for hex/binary
     value_error = ::mpz_set_str(value, input.c_str(), 0);
+    // TODO: throw exception? ....
     assert( ! value_error );    // XXX: abort on error?
 
     FieldT out(value);

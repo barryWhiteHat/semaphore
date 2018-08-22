@@ -59,6 +59,8 @@ cxx-tests:
 	time ./bin/hashpreimage_cli verify zksnark_element/hpi.vk.json zksnark_element/hpi.proof.json
 	time ./bin/test_load_proofkey zksnark_element/hpi.pk.raw
 
+	time ./bin/miximus_cli genkeys zksnark_element/miximus.pk.raw zksnark_element/miximus.vk.json
+
 
 #######################################################################
 

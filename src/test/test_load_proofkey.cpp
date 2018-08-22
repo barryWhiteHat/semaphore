@@ -1,7 +1,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
-#include "ZoKrates/wraplibsnark.cpp"
+#include "utils.cpp"
 
 
 int main( int argc, char **argv )
