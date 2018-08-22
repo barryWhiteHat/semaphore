@@ -154,36 +154,22 @@ public:
                 this->pb.add_r1cs_constraint(
                     r1cs_constraint<FieldT>(
                         round_squares[j],
-                        round_constants[i] + xL,
+                        round_squares[j],
                         round_squares[j+1]));
-
-                // j[2] * (xL+C[i]) = j[3]
-                this->pb.add_r1cs_constraint(
-                    r1cs_constraint<FieldT>(
-                        round_squares[j+1],
-                        round_constants[i] + xL,
-                        round_squares[j+2]));
-
-                // j[3] * (xL+C[i]) = j[3]
-                this->pb.add_r1cs_constraint(
-                    r1cs_constraint<FieldT>(
-                        round_squares[j+2],
-                        round_constants[i] + xL,
-                        round_squares[j+3]));
 
             // -------------------------------------------------
             // Intermediate outputs
 
-                // ((j[(1+i)*4 + 3] + xR) * 1) = x[i]
+                // j[2] * (xL+C[i]) = x[i] - xR
                 this->pb.add_r1cs_constraint(
                     r1cs_constraint<FieldT>(
-                        1,
-                        round_squares[j+3] + xR,
-                        rounds[i]));
+                        round_squares[j+1],
+                        round_constants[i] + xL,
+                        rounds[i] - xR));
 
             // -------------------------------------------------
             // Move to next block of squares
-            j += 4;
+            j += 2;
         }        
     }
 
@@ -202,31 +188,29 @@ public:
             // Intermediate squarings
             auto t = xL + round_constants[i];
             this->pb.val(round_squares[h]) = t * t;        // ^2  
-            this->pb.val(round_squares[h+1]) = this->pb.val(round_squares[h]) * t;    // ^3
-            this->pb.val(round_squares[h+2]) = this->pb.val(round_squares[h+1]) * t;    // ^4
-            this->pb.val(round_squares[h+3]) = this->pb.val(round_squares[h+2]) * t;    // ^5
+            this->pb.val(round_squares[h+1]) = this->pb.val(round_squares[h]) * this->pb.val(round_squares[h]);    // ^4
 
             // Then intermediate X point
-            this->pb.val(rounds[i]) = xR + this->pb.val(round_squares[h+3]);
+            this->pb.val(rounds[i]) = xR + (this->pb.val(round_squares[h+1]) * t);
 
             // Next block of intermediate squarings
-            h += 4;
+            h += 2;
         }
     }
 };
 
 
 template<typename FieldT>
-class LongsightF5p5_gadget : public LongsightF_gadget<FieldT>
+class LongsightF12p5_gadget : public LongsightF_gadget<FieldT>
 {
 public:
-    LongsightF5p5_gadget(
+    LongsightF12p5_gadget(
         protoboard<FieldT> &in_pb,
         const pb_variable<FieldT> &in_x_L,
         const pb_variable<FieldT> &in_x_R,
         const std::string &in_annotation_prefix=""
     ) :
-        LongsightF_gadget<FieldT>(in_pb, LongsightF5p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
+        LongsightF_gadget<FieldT>(in_pb, LongsightF12p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
     {        
         this->allocate();
     }
@@ -234,16 +218,16 @@ public:
 
 
 template<typename FieldT>
-class LongsightF152p5_gadget : public LongsightF_gadget<FieldT>
+class LongsightF322p5_gadget : public LongsightF_gadget<FieldT>
 {
 public:
-    LongsightF152p5_gadget(
+    LongsightF322p5_gadget(
         protoboard<FieldT> &in_pb,
         const pb_variable<FieldT> &in_x_L,
         const pb_variable<FieldT> &in_x_R,
         const std::string &in_annotation_prefix=""
     ) :
-        LongsightF_gadget<FieldT>(in_pb, LongsightF152p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
+        LongsightF_gadget<FieldT>(in_pb, LongsightF322p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
     {
         this->allocate();
     }

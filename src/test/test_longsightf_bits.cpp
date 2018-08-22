@@ -14,12 +14,12 @@ template<typename ppT>
 bool test_LongsightF_bits()
 {
     typedef libff::Fr<ppT> FieldT;
-    typedef LongsightF_bits_gadget<FieldT,LongsightF152p5_gadget<FieldT>> HashT;
+    typedef LongsightF_bits_gadget<FieldT,LongsightF322p5_gadget<FieldT>> HashT;
 
     protoboard<FieldT> pb;
 
-    auto expected_L = FieldT("21871881226116355513319084168586976250335411806112527735069209751513595455673");
-    auto expected_R = FieldT("55049861378429053168722197095693172831329974911537953231866155060049976290");
+    auto expected_L = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
+    auto expected_R = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
     
     digest_variable<FieldT> in_xL_digest(pb, HashT::get_digest_len(), "xL_digest");
     digest_variable<FieldT> in_xR_digest(pb, HashT::get_digest_len(), "xR_digest");
@@ -47,7 +47,7 @@ bool test_LongsightF_bits()
         return false;
     }
 
-    auto result_expected = FieldT("11801552584949094581972187388927133931539817817986253233814495442311083852545");
+    auto result_expected = FieldT("1955118202659622298192442035507501123132991419752400995882287708761535290053");
     if( pb.val(the_gadget.hasher.result()) != result_expected ) {
         std::cerr << "Internal result incorrect!\n";
         return false;

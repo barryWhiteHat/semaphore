@@ -17,8 +17,8 @@ gcd(e, p-1) = 1
 
 The number of rounds for constructing the keyed permutation is
 
-    r = int(log(p)/log2(e)) = 75
-    r = math.ceil(log(p, e)) = 110
+    r = int(log2(p)/log2(3)) + 1 = 161
+    r = math.ceil(log(p, 3)) + 1 = 161
 """
 
 from __future__ import print_function
@@ -86,8 +86,8 @@ def LongsightL(x, C, R, e, p, k=0):
     @param p field prime
     @param k optional key
     """
-    assert math.gcd(p-1, e) == 1
-    assert R >= math.ceil(math.log(p) / math.log2(e))
+    #assert math.gcd(p-1, e) == 1       # XXX: is a bijection required?
+    #assert R >= (int(math.log(p, 3)) + 1)
     assert len(C) == R
 
     assert x > 0 and x < (p-1)
@@ -123,8 +123,8 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     @param p field prime
     @param k optional key
     """
-    #assert R >= 2 * math.ceil(math.log(p) / math.log2(e))
-    assert math.gcd(p-1, e) == 1
+    #assert R >= 2 * (int(math.log(p, 3)) + 1)
+    #assert math.gcd(p-1, e) == 1       # XXX: is a bijection required?
     assert len(C) == R
 
     assert x_L > 0 and x_L < (p-1)
@@ -140,19 +140,18 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     return x_L
 
 
-def LongsightF5p5(x_L, x_R):
+def LongsightF12p5(x_L, x_R):
     p = curve_order
     e = 5
-    R = 5
+    R = 12
     _, C = make_constants("LongsightF", R, e)
     return LongsightF(x_L, x_R, C, R, e, p)
 
 
-def LongsightF152p5(x_L, x_R):
+def LongsightF322p5(x_L, x_R):
     p = curve_order
     e = 5
-    R = 2 * math.ceil(math.log(p) / math.log2(e))
-    assert R == 152
+    R = 322
     _, C = make_constants("LongsightF", R, e)
     return LongsightF(x_L, x_R, C, R, e, p)
 
@@ -195,4 +194,4 @@ def sponge(p, n, r, F):
 
 if __name__ == "__main__":
     #print(LongsightF152p5(1, 1))
-    print(make_constants_cxx("LongsightF", 5, 5))
+    print(make_constants_cxx("LongsightF", 322, 5))
