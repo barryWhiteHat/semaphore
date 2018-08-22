@@ -49,8 +49,9 @@ class Miximus(object):
         assert isinstance(path, (list, tuple))
         assert len(path) == self.tree_depth
         if isinstance(address_bits, (tuple, list)):
-            address_bits = ''.join(address_bits)
-        assert re.match(r'^[01]$', address_bits)
+            address_bits = ''.join([str(_) for _ in address_bits])
+            print("address_bits", address_bits)
+        assert re.match(r'^[01]+$', address_bits)
         assert len(address_bits) == self.tree_depth
         assert isinstance(root, int)
         assert isinstance(nullifier, int)
@@ -63,16 +64,20 @@ class Miximus(object):
         if pk_file is None:
             raise RuntimeError("No proving key file")
 
-        root = ctypes.c_char_p(root.encode('ascii'))
-        nullifier = ctypes.c_char_p(nullifier.encode('ascii'))
-        spend_preimage = ctypes.c_char_p(spend_preimage.encode('ascii'))
-        exthash = ctypes.c_char_p(exthash.encode('ascii'))
+        root = ctypes.c_char_p(str(root).encode('ascii'))
+        nullifier = ctypes.c_char_p(str(nullifier).encode('ascii'))
+        spend_preimage = ctypes.c_char_p(str(spend_preimage).encode('ascii'))
+        exthash = ctypes.c_char_p(str(exthash).encode('ascii'))
         address_bits = ctypes.c_char_p(address_bits.encode('ascii'))
-        path = [ctypes.c_char_p(_) for _ in path]
+        path = [ctypes.c_char_p(str(_).encode('ascii')) for _ in path]
+        path_carr = (ctypes.c_char_p * len(path))()
+        path_carr[:] = path
 
         pk_file_cstr = ctypes.c_char_p(pk_file.encode('ascii'))
 
-        data = self._prove(pk_file_cstr, root, nullifier, spend_preimage, exthash, address_bits, path)
+        data = self._prove(pk_file_cstr, root, nullifier, spend_preimage, exthash, address_bits, path_carr)
+        if data is None:
+            raise RuntimeError("Could not prove!")
         return Proof.from_json(data)
 
     def verify(self, proof):

@@ -50,6 +50,8 @@ class HashPreimage(object):
         preimage_cstr = ctypes.c_char_p(preimage)
 
         data = self._prove(pk_file_cstr, preimage_cstr)
+        if data is None:
+            raise RuntimeError("Could not prove!")
         return Proof.from_json(data)
 
     def verify(self, proof):

@@ -17,12 +17,6 @@
     along with Semaphore.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "export.cpp"
-#include "import.cpp"
-#include "stubs.cpp"
-
-#include "miximus.hpp"
-
 #include "gadgets/longsightf.cpp"
 #include "gadgets/longsightf_bits.cpp"
 
@@ -39,7 +33,14 @@ using libsnark::protoboard;
 using libsnark::merkle_authentication_path_variable;
 using libsnark::merkle_tree_check_read_gadget;
 
+#include "miximus.hpp"
+
 const size_t MIXIMUS_TREE_DEPTH = 29;
+
+#include "export.cpp"
+#include "import.cpp"
+#include "stubs.cpp"
+#include "utils.cpp"
 
 
 template<typename FieldT>
@@ -115,8 +116,6 @@ public:
         root_to_digest(in_pb, root_digest.bits, root_var, FMT(annotation_prefix, ".root_to_digest")),
 
         path_var(in_pb, tree_depth, ".path"),
-        // TODO: pack leaf_hash result to bits for leaf_hash_digest
-        // TODO: pack root to bits for root_digest
         check_read(in_pb, tree_depth, address_bits, leaf_hash_digest, root_digest, path_var, ZERO, ".check_read")
     {
         in_pb.set_input_sizes( 3 );
@@ -157,6 +156,8 @@ public:
         spend_hash.generate_r1cs_witness();
         leaf_hash.generate_r1cs_witness();
         leaf_hash_to_digest.generate_r1cs_witness_from_packed();
+
+        root_to_digest.generate_r1cs_witness_from_packed();
 
         check_read.generate_r1cs_witness();
     }
