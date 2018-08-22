@@ -79,7 +79,7 @@ def getUniqueLeaf(depth):
     return(inputHash)
 
 
-def genMerkelTree(tree_depth, leaves):
+def genMerkleTree(tree_depth, leaves):
     tree_layers = [leaves ,[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]] 
     for i in range(0, tree_depth):
         if len(tree_layers[i]) % 2 != 0:
@@ -90,18 +90,18 @@ def genMerkelTree(tree_depth, leaves):
     return(tree_layers[tree_depth][0], tree_layers)
 
 
-def getMerkelProof(leaves, index, tree_depth):
+def getMerkleProof(leaves, index, tree_depth):
     address_bits = []
-    merkelProof = []
-    mr , tree = genMerkelTree(tree_depth, leaves)
+    merkleProof = []
+    mr , tree = genMerkleTree(tree_depth, leaves)
     for i in range(0 , tree_depth):
         address_bits.append(index%2)
         if (index%2 == 0): 
-            merkelProof.append(tree[i][index + 1])
+            merkleProof.append(tree[i][index + 1])
         else:
-            merkelProof.append(tree[i][index - 1])
+            merkleProof.append(tree[i][index - 1])
         index = int(index/2);
-    return(merkelProof, address_bits); 
+    return(merkleProof, address_bits); 
 
 
 def genSalt(n):
