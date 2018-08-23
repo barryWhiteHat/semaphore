@@ -102,10 +102,10 @@ coverage-html:
 python-dependencies: requirements requirements-dev
 
 requirements:
-	$(PYTHON) -m pip install -r requirements.txt
+	$(PYTHON) -m pip install --user -r requirements.txt
 
 requirements-dev:
-	$(PYTHON) -m pip install -r requirements-dev.txt
+	$(PYTHON) -m pip install --user -r requirements-dev.txt
 
 fedora-dependencies:
 	dnf install procps-ng-devel gmp-devel boost-devel cmake g++
