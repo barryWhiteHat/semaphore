@@ -15,6 +15,7 @@ else
 	endif
 endif
 
+PIP_ARGS ?= --user
 PYTHON ?= python3
 NAME ?= ethsnarks
 NPM ?= npm
@@ -105,10 +106,10 @@ coverage-html:
 python-dependencies: requirements requirements-dev
 
 requirements:
-	$(PYTHON) -m pip install --user -r requirements.txt
+	$(PYTHON) -m pip install $(PIP_ARGS) -r requirements.txt
 
 requirements-dev:
-	$(PYTHON) -m pip install --user -r requirements-dev.txt
+	$(PYTHON) -m pip install $(PIP_ARGS) -r requirements-dev.txt
 
 fedora-dependencies:
 	dnf install procps-ng-devel gmp-devel boost-devel cmake g++ python3-scipy python3-pip

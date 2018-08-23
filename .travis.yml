@@ -10,7 +10,7 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make mac-dependencies ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update  ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make ubuntu-dependencies ; fi
-  - make python-dependencies
+  - make PIP_ARGS= python-dependencies
 script:
   - make
   - make test

@@ -90,7 +90,7 @@ int char2int( const char input )
     if( input >= 'a' && input <= 'f')
         return input - 'a' + 10;
 
-    throw std::invalid_argument("Invalid hex: " + input);
+    throw std::invalid_argument("Invalid hex");
 }
 
 
