@@ -1,5 +1,17 @@
 ROOT_DIR := $(shell dirname $(realpath $(MAKEFILE_LIST)))
 
+ifeq ($(OS),Windows_NT)
+	detected_OS := Windows
+	DLL_EXT := .dll
+else
+	detected_OS := $(shell uname -s)
+	ifeq ($(detected_OS),Darwin)
+		DLL_EXT := .dylib
+	else
+		DLL_EXT := .so
+	endif
+endif
+
 PYTHON ?= python3
 NAME ?= ethsnarks
 NPM ?= npm
@@ -12,7 +24,7 @@ COVERAGE = $(PYTHON) -mcoverage run --source=$(NAME) -p
 #######################################################################
 
 
-all: build/src/libmiximus.so truffle-compile
+all: build/src/libmiximus.$(DLL_EXT) truffle-compile
 
 clean: coverage-clean
 	rm -rf build
@@ -28,7 +40,7 @@ build:
 bin/miximus_genKeys: build/Makefile
 	make -C build
 
-build/src/libmiximus.so: build/Makefile
+build/src/libmiximus.$(DLL_EXT): build/Makefile
 	make -C build
 
 build/Makefile: build CMakeLists.txt
@@ -49,10 +61,14 @@ python-test:
 
 cxx-tests:
 	./bin/test_longsightf
+	./bin/test_longsightf_bits
+	./bin/test_longsightf_merkletree
+	./bin/test_r1cs_gg_ppzksnark_zok
 	./bin/test_one_of_n
 	./bin/test_shamir_poly
 	./bin/test_sha256_full_gadget
-	./bin/test_field_packing > /dev/null
+	./bin/test_field_packing
+
 	time ./bin/hashpreimage_cli genkeys zksnark_element/hpi.pk.raw zksnark_element/hpi.vk.json
 	ls -lah zksnark_element/hpi.pk.raw
 	time ./bin/hashpreimage_cli prove zksnark_element/hpi.pk.raw 0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08 zksnark_element/hpi.proof.json
@@ -97,8 +113,8 @@ fedora-dependencies:
 ubuntu-dependencies:
 	apt-get install cmake make g++ libgmp-dev libboost-all-dev libprocps-dev
 
-zksnark_element/pk.json: ./bin/miximus_genKeys
-	$< 3 zksnark_element/pk.json zksnark_element/vk.json
+mac-dependencies:
+	brew install pkg-config boost cmake gmp openssl
 
 
 #######################################################################

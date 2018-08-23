@@ -1,7 +1,6 @@
 import unittest
 
 import hashlib
-from ethsnarks.utils import genMerkleTree, getMerkleProof, sha256, initMerkleTree, hashPadded, libsnark2python
 from ethsnarks.merkletree import MerkleTree, MerkleHasherLongsightF, MerkleHasherSHA256, curve_order
 
 

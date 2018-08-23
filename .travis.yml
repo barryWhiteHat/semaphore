@@ -1,9 +1,14 @@
 language: python
+os:
+  - linux
+  - osx
 python:
   - "3.6"
 install:
-  - sudo apt-get update
-  - sudo make ubuntu-dependencies
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make mac-dependencies ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update  ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make ubuntu-dependencies ; fi
   - make python-dependencies
 script:
   - make

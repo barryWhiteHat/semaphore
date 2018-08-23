@@ -1,11 +1,12 @@
 import unittest
 
 from ethsnarks.longsight import random_element, LongsightF322p5
+from ethsnarks.utils import native_lib_path
 from ethsnarks.mod.miximus import Miximus
 from ethsnarks.merkletree import MerkleHasherLongsightF, MerkleTree
 
 
-NATIVE_LIB_PATH = 'build/src/libmiximus.so'
+NATIVE_LIB_PATH = native_lib_path('build/src/libmiximus')
 VK_PATH = 'zksnark_element/miximus.vk.json'
 PK_PATH = 'zksnark_element/miximus.pk.raw'
 
