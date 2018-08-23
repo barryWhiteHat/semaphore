@@ -7,6 +7,9 @@ else
 	detected_OS := $(shell uname -s)
 	ifeq ($(detected_OS),Darwin)
 		DLL_EXT := .dylib
+		export LD_LIBRARY_PATH=/usr/local/opt/openssl/lib:"${LD_LIBRARY_PATH}"
+		export CPATH=/usr/local/opt/openssl/include:"${CPATH}"
+		export PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig:"${PKG_CONFIG_PATH}"
 	else
 		DLL_EXT := .so
 	endif
@@ -108,10 +111,10 @@ requirements-dev:
 	$(PYTHON) -m pip install --user -r requirements-dev.txt
 
 fedora-dependencies:
-	dnf install procps-ng-devel gmp-devel boost-devel cmake g++
+	dnf install procps-ng-devel gmp-devel boost-devel cmake g++ python3-scipy python3-pip
 
 ubuntu-dependencies:
-	apt-get install cmake make g++ libgmp-dev libboost-all-dev libprocps-dev python3-pip
+	apt-get install cmake make g++ libgmp-dev libboost-all-dev libprocps-dev python3-pip python3-scipy
 
 mac-dependencies:
 	brew install pkg-config boost cmake gmp openssl || true
