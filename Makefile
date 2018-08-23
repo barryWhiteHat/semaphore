@@ -114,7 +114,7 @@ ubuntu-dependencies:
 	apt-get install cmake make g++ libgmp-dev libboost-all-dev libprocps-dev
 
 mac-dependencies:
-	brew install pkg-config boost cmake gmp openssl
+	brew install pkg-config boost cmake gmp openssl || true
 
 
 #######################################################################
