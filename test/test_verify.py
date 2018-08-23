@@ -24,7 +24,7 @@ class VerifyTests(unittest.TestCase):
         """Verify using fast native library"""
         vk = VerifyingKey.from_dict(VK_STATIC)
         proof = Proof.from_dict(PROOF_STATIC)
-        wrapper = Miximus(native_lib_path('build/src/libmiximus.so'), vk)
+        wrapper = Miximus(native_lib_path('build/src/libmiximus'), vk)
         self.assertTrue(wrapper.verify(proof))
 
     def test_verify_python(self):
