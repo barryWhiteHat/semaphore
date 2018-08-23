@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <iomanip>
 
 #include <libsnark/gadgetlib1/pb_variable.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
@@ -90,7 +91,7 @@ int char2int( const char input )
     if( input >= 'a' && input <= 'f')
         return input - 'a' + 10;
 
-    throw std::invalid_argument("Invalid hex: " + input);
+    throw std::invalid_argument("Invalid hex");
 }
 
 
@@ -154,4 +155,15 @@ void print_bv( const char *prefix, const libff::bit_vector &vec )
         }
     }
     std::cout << "\n";
+}
+
+
+void print_bytes( const char *prefix, const size_t n_bytes, const uint8_t *in_bytes )
+{
+    printf("%s: ", prefix);
+    for (size_t i = 0; i < n_bytes; i++)
+    {
+       printf("%02X", in_bytes[i]);
+    }
+    printf("\n");
 }

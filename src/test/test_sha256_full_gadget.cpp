@@ -86,8 +86,10 @@ bool test_sha256_full_gadget()
     auto full_output_bits = full_output.get_digest();
     uint8_t full_output_bytes[SHA256_digest_size_bytes];
     bv_to_bytes(full_output_bits, full_output_bytes);
-    if( memcmp(full_output_bytes, output_digest, sizeof(output_digest)) != 0 ) {
-        printf("full_output_bytes mismatch\n");
+    if( memcmp(full_output_bytes, output_digest, SHA256_digest_size_bytes) != 0 ) {
+        std::cout << "full_output_bytes mismatch" << std::endl;
+        print_bytes("Expected: ", SHA256_digest_size_bytes, output_digest);
+        print_bytes("Actual: ", SHA256_digest_size_bytes, full_output_bytes);
         return false;
     }
 

@@ -1,10 +1,16 @@
-language: python
-python:
-  - "3.6"
+matrix:
+  include:
+    # use the built in venv for linux builds
+    - os: linux
+      language: python
+      python: 3.6
+    - os: osx
+      language: cpp
 install:
-  - sudo apt-get update
-  - sudo make ubuntu-dependencies
-  - make python-dependencies
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make mac-dependencies ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update  ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make ubuntu-dependencies ; fi
+  - make PIP_ARGS= python-dependencies
 script:
   - make
   - make test
