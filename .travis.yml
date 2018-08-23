@@ -1,9 +1,7 @@
-language: python
+language: cpp
 os:
   - linux
   - osx
-python:
-  - "3.6"
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make mac-dependencies ; fi
