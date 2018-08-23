@@ -6,7 +6,7 @@ environment:
   BOOST_LIBRARYDIR: C:\Libraries\boost_1_67_0\lib64-msvc-14.0
 
 install:
-  - git submodule update --init --recursive
+  - C:\cygwin\bin\git submodule update --init --recursive
 
 before_build:
   - md build
