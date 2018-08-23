@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <iomanip>
 
 #include <libsnark/gadgetlib1/pb_variable.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
@@ -154,4 +155,15 @@ void print_bv( const char *prefix, const libff::bit_vector &vec )
         }
     }
     std::cout << "\n";
+}
+
+
+void print_bytes( const char *prefix, const size_t n_bytes, const uint8_t *in_bytes )
+{
+    printf("%s: ", prefix);
+    for (size_t i = 0; i < n_bytes; i++)
+    {
+       printf("%02X", in_bytes[i]);
+    }
+    printf("\n");
 }
