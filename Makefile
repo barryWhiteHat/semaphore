@@ -7,9 +7,9 @@ else
 	detected_OS := $(shell uname -s)
 	ifeq ($(detected_OS),Darwin)
 		DLL_EXT := .dylib
-		export LD_LIBRARY_PATH=/usr/local/opt/openssl/lib:"${LD_LIBRARY_PATH}"
-		export CPATH=/usr/local/opt/openssl/include:"${CPATH}"
-		export PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig:"${PKG_CONFIG_PATH}"
+		export LD_LIBRARY_PATH := /usr/local/opt/openssl/lib:"$(LD_LIBRARY_PATH)"
+		export CPATH := /usr/local/opt/openssl/include:"$(CPATH)"
+		export PKG_CONFIG_PATH := /usr/local/opt/openssl/lib/pkgconfig:"$(PKG_CONFIG_PATH)"
 	else
 		DLL_EXT := .so
 	endif
