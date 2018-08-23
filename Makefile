@@ -111,7 +111,7 @@ fedora-dependencies:
 	dnf install procps-ng-devel gmp-devel boost-devel cmake g++
 
 ubuntu-dependencies:
-	apt-get install cmake make g++ libgmp-dev libboost-all-dev libprocps-dev
+	apt-get install cmake make g++ libgmp-dev libboost-all-dev libprocps-dev python3-pip
 
 mac-dependencies:
 	brew install pkg-config boost cmake gmp openssl || true
