@@ -1,6 +1,6 @@
 import unittest
 
-from ethsnarks.longsight import random_element, LongsightF152p5
+from ethsnarks.longsight import random_element, LongsightF322p5
 from ethsnarks.mod.miximus import Miximus
 from ethsnarks.merkletree import MerkleHasherLongsightF, MerkleTree
 
@@ -20,15 +20,14 @@ class TestMiximus(unittest.TestCase):
 		exthash = random_element()
 		nullifier = random_element()
 		spend_preimage = random_element()
-		spend_hash = LongsightF152p5(spend_preimage, nullifier)
-		leaf_hash = LongsightF152p5(nullifier, spend_hash)
+		spend_hash = LongsightF322p5(spend_preimage, nullifier)
+		leaf_hash = LongsightF322p5(nullifier, spend_hash)
 		leaf_idx = tree.append(leaf_hash)
 		self.assertEqual(leaf_idx, tree.index(leaf_hash))
 
 		# Verify it exists in true
 		leaf_proof = tree.proof(leaf_idx)
 		self.assertTrue(leaf_proof.verify(tree.root))
-		print(len(leaf_proof.path))
 
 		# Generate proof		
 		wrapper = Miximus(NATIVE_LIB_PATH, VK_PATH, PK_PATH)

@@ -50,7 +50,6 @@ class Miximus(object):
         assert len(path) == self.tree_depth
         if isinstance(address_bits, (tuple, list)):
             address_bits = ''.join([str(_) for _ in address_bits])
-            print("address_bits", address_bits)
         assert re.match(r'^[01]+$', address_bits)
         assert len(address_bits) == self.tree_depth
         assert isinstance(root, int)

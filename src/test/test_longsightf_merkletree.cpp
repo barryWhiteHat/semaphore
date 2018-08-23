@@ -22,19 +22,19 @@ template<typename ppT>
 bool test_LongsightF_merkle_read()
 {
     typedef libff::Fr<ppT> FieldT;
-    typedef LongsightF_bits_gadget<FieldT, LongsightF152p5_gadget<FieldT>> HashT;
+    typedef LongsightF_bits_gadget<FieldT, LongsightF322p5_gadget<FieldT>> HashT;
 
     protoboard<FieldT> pb;
 
-    auto item_A = FieldT("21871881226116355513319084168586976250335411806112527735069209751513595455673");
+    auto item_A = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
     digest_variable<FieldT> digest_A(pb, HashT::get_digest_len(), "digest_A");
     digest_A.generate_r1cs_witness(convert_field_element_to_bit_vector(item_A));
 
-    auto item_B = FieldT("55049861378429053168722197095693172831329974911537953231866155060049976290");
+    auto item_B = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
     digest_variable<FieldT> digest_B(pb, HashT::get_digest_len(), "digest_B");
     digest_B.generate_r1cs_witness(convert_field_element_to_bit_vector(item_B));
 
-    auto result_expected = FieldT("11801552584949094581972187388927133931539817817986253233814495442311083852545");
+    auto result_expected = FieldT("1955118202659622298192442035507501123132991419752400995882287708761535290053");
     digest_variable<FieldT> digest_expected(pb, HashT::get_digest_len(), "digest_expected");
     digest_expected.generate_r1cs_witness(convert_field_element_to_bit_vector(result_expected));
 
