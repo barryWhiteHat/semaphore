@@ -2,7 +2,8 @@
 # https://en.wikipedia.org/wiki/K-ary_tree
 # https://en.wikipedia.org/wiki/Arity
 
-from ethsnarks.longsight import LongsightF322p5
+from random import randint
+from ethsnarks.longsight import LongsightF12p5
 
 
 class Storage(object):
@@ -12,31 +13,56 @@ class Storage(object):
 		self._stor = dict()
 
 	def __setitem__(self, idx, value):
-		if idx in self._stor and value == 0 and self._stor[idx] != 0:
-			self._gas_refund += 15000
-		
-		self._gas += 20000
-		self._stor[idx] = value
+		# https://github.com/ethereum/go-ethereum/blob/2433349c808fad601419d1f06275bec5b6a93ec8/core/vm/gas_table.go#L118
+		SstoreResetGas   = 5000  # Once per SSTORE operation if the zeroness changes from zero.
+		SstoreClearGas   = 5000  # Once per SSTORE operation if the zeroness doesn't change.
+		SstoreRefundGas  = 15000 # Once per SSTORE operation if the zeroness changes to zero.
+		SstoreSetGas     = 20000 # Once per SSTORE operation.
+
+		# Three secnarios
+		# 1. From a zero-value address to a non-zero value (NEW VALUE)
+		# 2. From a non-zero value address to a zero-value address (DELETE)
+		# 3. From a non-zero to a non-zero (CHANGE)
+
+		old_value = self._stor.get(idx, 0)
+		if old_value == 0 and value != 0:
+			# 0 => non 0
+			self._gas += SstoreSetGas
+			self._stor[idx] = value
+		elif old_value != 0 and value == 0:
+			# non 0 => 0
+			self._gas_refund += SstoreRefundGas
+			self._gas += SstoreClearGas
+			del self._stor[idx]
+		else:
+			# non 0 => non 0 (or 0 => 0)
+			self._gas += SstoreResetGas
+			self._stor[idx] = value
 
 	def __contains__(self, idx):
-		self._gas += 200
+		self._gas += 50
 		return idx in self._stor
 
 	def get(self, idx, default=0):
-		self._gas += 200
+		self._gas += 50
 		if idx in self._stor:
 			return self._stor[idx]
 		return default
 
 	def __getitem__(self, idx):
 		assert idx in self._stor
-		self._gas += 200
+		self._gas += 50
 		return self._stor[idx]
 
 	def __delitem__(self, idx):
 		assert idx in self._stor
-		del self._stor[idx]
-		self._gas_refund += 15000
+		self[idx] = 0
+
+	def emit(self, name, **args):
+		# https://github.com/ethereum/go-ethereum/blob/2433349c808fad601419d1f06275bec5b6a93ec8/core/vm/gas_table.go#L140
+		self._gas += 375 + 375	# Basic cost + 1 topic
+		self._gas += 8 * 32 * len(args)	# each arg assumed 32 bytes
+		print("%s(%s)" % (name, ', '.join(['%s=%d' % (k, int(v)) for k, v in args.items()])))
 
 	def gas_reset(self):
 		self._gas = 0
@@ -57,7 +83,8 @@ class SparseMerkleMountainRange(object):
 		self._stor.gas_reset()
 
 	def emit(self, lvl, seq, item):
-		print("Append(lvl=%d, seq=%d, item=%d)" % (lvl, seq, item))
+		self._stor.emit("Append", lvl=lvl, seq=seq, item=item)
+		#print("Append(lvl=%d, seq=%d, item=%d)" % (lvl, seq, item))
 
 	def append(self, item):
 		lvl = 0
@@ -71,7 +98,7 @@ class SparseMerkleMountainRange(object):
 			if lvl_count % 2 == 1:
 				prev_val_key = "%d.%d" % (lvl, lvl_count - 1)
 				prev_val = self._stor[prev_val_key]
-				item = LongsightF322p5(prev_val, item)
+				item = LongsightF12p5(prev_val, item)
 				del self._stor[prev_val_key]
 			else:
 				val_key = "%d.%d" % (lvl, lvl_count)
@@ -86,7 +113,7 @@ class SparseMerkleMountainRange(object):
 
 x = SparseMerkleMountainRange()
 
-for i in range(0, 8):
+for i in range(0, randint(100, 5000)):
 	x.append(i+1)
 	peak, refund, total = x.gas_used()
 	print("gas: peak=%d refund=%d total=%d" % (peak, refund, total))
