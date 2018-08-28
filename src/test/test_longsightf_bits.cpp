@@ -4,7 +4,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 #include "gadgets/longsightf_bits.cpp"
-#include "utils.cpp"
+#include "utils.hpp"
 
 
 using libff::convert_bit_vector_to_field_element;

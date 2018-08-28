@@ -5,7 +5,7 @@
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp>  // digest size
 
-#include "utils.cpp"
+#include "utils.hpp"
 
 #include <openssl/sha.h>
 

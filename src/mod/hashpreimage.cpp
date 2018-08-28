@@ -4,8 +4,8 @@
 #include "hashpreimage.hpp"
 
 #include "gadgets/sha256_full.cpp"
-#include "utils.cpp"
-#include "export.cpp"
+#include "utils.hpp"
+#include "export.hpp"
 #include "import.cpp"
 #include "stubs.cpp"
 

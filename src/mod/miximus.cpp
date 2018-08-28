@@ -37,10 +37,10 @@ using libsnark::merkle_tree_check_read_gadget;
 
 const size_t MIXIMUS_TREE_DEPTH = 29;
 
-#include "export.cpp"
+#include "export.hpp"
 #include "import.cpp"
 #include "stubs.cpp"
-#include "utils.cpp"
+#include "utils.hpp"
 
 
 template<typename FieldT>

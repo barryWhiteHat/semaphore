@@ -7,7 +7,7 @@
 
 #include "mod/miximus.cpp"
 #include "stubs.cpp"
-#include "utils.cpp" // hex_to_bytes
+#include "utils.hpp" // hex_to_bytes
 
 
 using std::cerr;

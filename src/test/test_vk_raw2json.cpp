@@ -1,6 +1,6 @@
-#include "export.cpp"
+#include "export.hpp"
 #include "import.cpp"
-#include "utils.cpp"
+#include "utils.hpp"
 
 typedef libff::alt_bn128_pp ppT;
 

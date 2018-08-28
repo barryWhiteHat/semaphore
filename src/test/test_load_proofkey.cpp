@@ -1,7 +1,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
-#include "utils.cpp"
+#include "utils.hpp"
 
 
 int main( int argc, char **argv )

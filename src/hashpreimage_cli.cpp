@@ -6,7 +6,7 @@
 #include <fstream>  // ofstream
 
 #include "mod/hashpreimage.cpp"
-#include "utils.cpp" // hex_to_bytes
+#include "utils.hpp" // hex_to_bytes
 
 
 using std::cerr;

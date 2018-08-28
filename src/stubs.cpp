@@ -4,9 +4,9 @@
 
 #include <sstream>  // stringstream
 
-#include "utils.cpp"
+#include "utils.hpp"
 #include "import.cpp"
-#include "export.cpp"
+#include "export.hpp"
 
 bool stub_verify( const char *vk_json, const char *proof_json )
 {

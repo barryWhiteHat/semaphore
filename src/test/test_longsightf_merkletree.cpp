@@ -9,7 +9,7 @@
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 
 #include "gadgets/longsightf_bits.cpp"
-#include "utils.cpp"
+#include "utils.hpp"
 
 using libsnark::set_commitment_accumulator;
 using libff::convert_bit_vector_to_field_element;

@@ -25,12 +25,9 @@
 #include <iomanip>
 
 
-
-#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
-
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-
 #include <libsnark/gadgetlib1/gadget.hpp>
+
+#include "ethsnarks.hpp"
 
 
 using namespace libsnark;
@@ -79,8 +76,7 @@ std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p)
 }
 
 
-template<typename ppT>
-std::string proof_to_json(r1cs_gg_ppzksnark_zok_proof<ppT> &proof, r1cs_primary_input<libff::Fr<ppT>> &input) {
+std::string proof_to_json(ProofT &proof, PrimaryInputT &input) {
     std::stringstream ss;
 
     ss << "{\n";
@@ -104,8 +100,8 @@ std::string proof_to_json(r1cs_gg_ppzksnark_zok_proof<ppT> &proof, r1cs_primary_
     return(ss.str());
 }
 
-template<typename ppT>
-std::string vk2json(r1cs_gg_ppzksnark_zok_verification_key<ppT> &vk )
+
+std::string vk2json(VerificationKeyT &vk )
 {
     std::stringstream ss;
     unsigned icLength = vk.gamma_ABC_g1.rest.indices.size() + 1;
