@@ -2,10 +2,11 @@
 #include "import.cpp"
 #include "utils.hpp"
 
-typedef libff::alt_bn128_pp ppT;
-
 using std::cout;
 using std::cerr;
+using ethsnarks::vk2json_file;
+using ethsnarks::ppT;
+using ethsnarks::VerificationKeyT;
 
 int main( int argc, char **argv )
 {
@@ -17,10 +18,10 @@ int main( int argc, char **argv )
 	}
 
 	// Load raw serialised VK
-	auto vk = loadFromFile<r1cs_gg_ppzksnark_zok_verification_key<ppT>> (argv[1]);
+	auto vk = loadFromFile<VerificationKeyT> (argv[1]);
 
 	// Dump JSON serialised VK
-	vk2json_file<ppT>(vk, argv[2]);
+	vk2json_file(vk, argv[2]);
 
 	// Load JSON serialised VK
 	std::ifstream vk_input(argv[2]);

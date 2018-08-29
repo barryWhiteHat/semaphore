@@ -1,16 +1,16 @@
-#pragma once
-
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include <libsnark/gadgetlib1/protoboard.hpp>
 
 #include <sstream>  // stringstream
 
+#include "ethsnarks.hpp"
 #include "utils.hpp"
 #include "import.cpp"
 #include "export.hpp"
 
+namespace ethsnarks {
+
 bool stub_verify( const char *vk_json, const char *proof_json )
 {
-    typedef libff::alt_bn128_pp ppT;
     ppT::init_public_params();
 
     std::stringstream vk_stream;
@@ -26,25 +26,6 @@ bool stub_verify( const char *vk_json, const char *proof_json )
         return true;
 
     return false;
-}
-
-
-template< template <class> class GadgetT >
-int stub_genkeys( const char *pk_file, const char *vk_file )
-{
-    typedef libff::alt_bn128_pp ppT;
-    typedef libff::Fr<ppT> FieldT;
-    ppT::init_public_params();
-
-    libsnark::protoboard<FieldT> pb;
-    GadgetT<FieldT> mod(pb, "module");
-    mod.generate_r1cs_constraints();
-
-    auto keypair = libsnark::r1cs_gg_ppzksnark_zok_generator<ppT>(pb.get_constraint_system());
-    vk2json_file<ppT>(keypair.vk, vk_file);
-    writeToFile<decltype(keypair.pk)>(pk_file, keypair.pk);
-
-    return 0;
 }
 
 
@@ -92,24 +73,5 @@ int stub_main_verify( const char *prog_name, int argc, char **argv )
     return 1;
 }
 
-
-template< template <class> class GadgetT >
-static int stub_main_genkeys( const char *prog_name, int argc, char **argv )
-{
-    if( argc < 3 )
-    {
-        std::cerr << "Usage: " << prog_name << " " << argv[0] << " <pk-output.raw> <vk-output.json>" << std::endl;
-        return 1;
-    }
-
-    auto pk_file = argv[1];
-    auto vk_file = argv[2];
-
-    if( 0 != stub_genkeys<GadgetT>( pk_file, vk_file ) )
-    {
-        std::cerr << "Error: failed to generate proving and verifying keys" << std::endl;
-        return 1;
-    }
-
-    return 0;
 }
+// namespace ethsnarks

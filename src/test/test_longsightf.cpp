@@ -6,18 +6,18 @@
 #include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
 #include "gadgets/longsightf.cpp"
+#include "ethsnarks.hpp"
 
 
 using libsnark::r1cs_gg_ppzksnark_zok_generator;
 using libsnark::r1cs_gg_ppzksnark_zok_prover;
 using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
 
+using ethsnarks::ppT;
+using ethsnarks::FieldT;
 
-template<typename ppT>
 bool test_LongsightF()
 {
-    typedef libff::Fr<ppT> FieldT;
-
     std::vector<FieldT> round_constants;
     LongsightF322p5_constants_fill(round_constants);
 
@@ -71,10 +71,9 @@ bool test_LongsightF()
 int main( int argc, char **argv )
 {
     // Types for board
-    typedef libff::alt_bn128_pp ppT;    
     ppT::init_public_params();
 
-    if( ! test_LongsightF<ppT>() )
+    if( ! test_LongsightF() )
     {
         std::cerr << "FAIL\n";
         return 1;

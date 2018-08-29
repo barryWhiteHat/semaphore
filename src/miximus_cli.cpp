@@ -6,7 +6,7 @@
 #include <fstream>  // ofstream
 
 #include "mod/miximus.cpp"
-#include "stubs.cpp"
+#include "stubs.hpp"
 #include "utils.hpp" // hex_to_bytes
 
 
@@ -14,6 +14,9 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::ofstream;
+
+using ethsnarks::stub_main_genkeys;
+using ethsnarks::stub_main_verify;
 
 
 static int main_prove( int argc, char **argv )

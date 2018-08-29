@@ -3,6 +3,10 @@
 
 #include <sstream>
 
+using ethsnarks::ppT;
+using ethsnarks::FieldT;
+using ethsnarks::proof_to_json;
+
 
 static const char static_proof[] = "{\n"
 " \"a\" :[\"0x2a11cd2f23f4e729cd410542a6e805d70ca69b1686d24b1d6ef8b612963c70e5\", \"0x14444ba6ae0bd2bc58918362929f5e51073f88169ba0c7b7fedf21ceec73bf51\"],\n"
@@ -20,8 +24,6 @@ static const char static_proof[] = "{\n"
 
 int main( int argc, char **argv )
 {
-	typedef libff::alt_bn128_pp ppT;
-	typedef libff::Fr<ppT> FieldT;
 	ppT::init_public_params();
 
 	std::stringstream proof_input;
@@ -29,7 +31,7 @@ int main( int argc, char **argv )
 
 	auto proof = proof_from_json<ppT>(proof_input);
 
-	auto proof_output = proof_to_json<ppT>(proof.second, proof.first);
+	auto proof_output = proof_to_json(proof.second, proof.first);
 
 	const char *proof_output_cstr = proof_output.c_str();
 

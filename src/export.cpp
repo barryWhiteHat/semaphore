@@ -17,8 +17,6 @@
     along with Semaphore.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
 #include <fstream>
 #include <iostream>
 #include <cassert>
@@ -29,9 +27,7 @@
 
 #include "ethsnarks.hpp"
 
-
-using namespace libsnark;
-using namespace libff;
+namespace ethsnarks {
 
 
 std::string HexStringFromBigint(libff::bigint<libff::alt_bn128_r_limbs> _x){
@@ -52,7 +48,7 @@ std::string HexStringFromBigint(libff::bigint<libff::alt_bn128_r_limbs> _x){
 
 std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)
 {
-        libff::alt_bn128_G1 aff = _p;
+        G1T aff = _p;
         aff.to_affine_coordinates();
         //std::stringstream ss; 
         //ss << "0x"  << aff.X.as_bigint() << "," << aff.Y.as_bigint() << "," << aff.Z.as_bigint();
@@ -63,7 +59,7 @@ std::string outputPointG1AffineAsHex(libff::alt_bn128_G1 _p)
 
 std::string outputPointG2AffineAsHex(libff::alt_bn128_G2 _p)
 {
-        libff::alt_bn128_G2 aff = _p;
+        G2T aff = _p;
 
         if (aff.Z.c0.as_bigint() != "0" && aff.Z.c1.as_bigint() != "0" ) {
             aff.to_affine_coordinates();
@@ -125,8 +121,7 @@ std::string vk2json(VerificationKeyT &vk )
 }
 
 
-template<typename ppT>
-void vk2json_file(r1cs_gg_ppzksnark_zok_verification_key<ppT> &vk, std::string path )
+void vk2json_file(VerificationKeyT &vk, const std::string &path )
 {
     std::ofstream fh;
     fh.open(path, std::ios::binary);
@@ -134,3 +129,6 @@ void vk2json_file(r1cs_gg_ppzksnark_zok_verification_key<ppT> &vk, std::string p
     fh.flush();
     fh.close();
 }
+
+}
+// namespace ethsnarks

@@ -1,13 +1,16 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp>  // digest size
 
 #include "utils.hpp"
+#include "ethsnarks.hpp"
 
 #include <openssl/sha.h>
+
+using ethsnarks::ppT;
+using ethsnarks::FieldT;
 
 
 /**
@@ -33,7 +36,6 @@ unsigned char *fill_words( size_t n_words, const char *refstr, size_t *buffer_sz
 }
 
 
-template<typename FieldT>
 void test_packing_bytes_to_field( size_t n_words, const char *refstr )
 {
 	size_t buffer_sz;
@@ -56,8 +58,6 @@ void test_packing_bytes_to_field( size_t n_words, const char *refstr )
 int main( int argc, char **argv )
 {
 	// Types for board
-	typedef libff::alt_bn128_pp ppT;
-	typedef libff::Fr<ppT> FieldT;
 	ppT::init_public_params();
 
 	char refstr[100];
@@ -65,7 +65,7 @@ int main( int argc, char **argv )
 	for( size_t i = 0; i < 21; i++ )
 	{
 		::sprintf(refstr, "test%d", i);
-		test_packing_bytes_to_field<FieldT>(i, refstr);
+		test_packing_bytes_to_field(i, refstr);
 	}
 
 	return 0;

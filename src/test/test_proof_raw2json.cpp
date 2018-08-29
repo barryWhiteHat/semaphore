@@ -9,10 +9,13 @@ using std::endl;
 using std::ifstream;
 using std::stringstream;
 
+using ethsnarks::ppT;
+using ethsnarks::ProofT;
+using ethsnarks::proof_to_json;
+
 
 int main( int argc, char **argv )
 {
-	typedef libff::alt_bn128_pp ppT;
 	ppT::init_public_params();
 
 	if( argc < 3 ) {
@@ -26,10 +29,10 @@ int main( int argc, char **argv )
 	auto original_proof_json = proof_from_json<ppT>(original_proof_stream);
 
 	// Load raw serialised proof
-	auto proof = loadFromFile<r1cs_gg_ppzksnark_zok_proof<ppT>> (argv[2]);
+	auto proof = loadFromFile<ProofT> (argv[2]);
 
 	// Dump JSON serialised proof
-	auto proof_json_serialised = proof_to_json<ppT>(proof, original_proof_json.first);
+	auto proof_json_serialised = proof_to_json(proof, original_proof_json.first);
 
 	// Load JSON serialised proof
 	stringstream proof_stream;

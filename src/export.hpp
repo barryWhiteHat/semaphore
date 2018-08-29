@@ -1,8 +1,6 @@
 #ifndef ETHSNARKS_EXPORT_HPP_
 #define ETHSNARKS_EXPORT_HPP_
 
-#pragma once
-
 #include "ethsnarks.hpp"
 
 namespace ethsnarks {
@@ -17,7 +15,7 @@ std::string proof_to_json( ProofT &proof, PrimaryInputT &input );
 
 std::string vk2json( VerificationKeyT &vk );
 
-void vk2json_file( VerificationKeyT &vk, std::string path )
+void vk2json_file( VerificationKeyT &vk, const std::string &path );
 
 }
 
