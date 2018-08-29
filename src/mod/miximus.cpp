@@ -17,10 +17,15 @@
     along with Semaphore.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "miximus.hpp"
+#include "export.hpp"
+#include "import.cpp"
+#include "stubs.hpp"
+#include "utils.hpp"
+
 #include "gadgets/longsightf.cpp"
 #include "gadgets/longsightf_bits.cpp"
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
 
 #include <libsnark/common/data_structures/merkle_tree.hpp>
@@ -32,18 +37,20 @@ using libsnark::pb_variable;
 using libsnark::protoboard;
 using libsnark::merkle_authentication_path_variable;
 using libsnark::merkle_tree_check_read_gadget;
-
-#include "miximus.hpp"
+using libsnark::merkle_authentication_node;
+using libsnark::generate_r1cs_equals_const_constraint;
+using libff::convert_field_element_to_bit_vector;
+using ethsnarks::ppT;
+using ethsnarks::FieldT;
+using ethsnarks::ProvingKeyT;
 
 const size_t MIXIMUS_TREE_DEPTH = 29;
 
-#include "export.cpp"
-#include "import.cpp"
-#include "stubs.cpp"
-#include "utils.cpp"
 
 
-template<typename FieldT>
+
+
+
 class mod_miximus : public gadget<FieldT>
 {
 protected:
@@ -178,8 +185,6 @@ char *miximus_prove(
     const char *in_address,
     const char **in_path
 ) {
-    typedef libff::alt_bn128_pp ppT;
-    typedef libff::Fr<ppT> FieldT;
     ppT::init_public_params();
 
     FieldT arg_root(in_root);
@@ -212,7 +217,7 @@ char *miximus_prove(
     }
 
     protoboard<FieldT> pb;
-    mod_miximus<FieldT> mod(pb, "module");
+    mod_miximus mod(pb, "module");
     mod.generate_r1cs_constraints();
     mod.generate_r1cs_witness(arg_root, arg_nullifier, arg_exthash, arg_spend_preimage, address_bits, arg_path);
 
@@ -222,12 +227,12 @@ char *miximus_prove(
         return nullptr;
     }
 
-    auto proving_key = loadFromFile<r1cs_gg_ppzksnark_zok_proving_key<ppT>>(pk_file);
+    auto proving_key = loadFromFile<ProvingKeyT>(pk_file);
     // TODO: verify if proving key was loaded correctly, if not return NULL
 
     auto primary_input = pb.primary_input();
-    auto proof = r1cs_gg_ppzksnark_zok_prover<ppT>(proving_key, primary_input, pb.auxiliary_input());
-    auto json = proof_to_json(proof, primary_input);
+    auto proof = libsnark::r1cs_gg_ppzksnark_zok_prover<ppT>(proving_key, primary_input, pb.auxiliary_input());
+    auto json = ethsnarks::proof_to_json(proof, primary_input);
 
     return ::strdup(json.c_str());
 }
@@ -235,11 +240,11 @@ char *miximus_prove(
 
 int miximus_genkeys( const char *pk_file, const char *vk_file )
 {
-    return stub_genkeys<mod_miximus>(pk_file, vk_file);
+    return ethsnarks::stub_genkeys<mod_miximus>(pk_file, vk_file);
 }
 
 
 bool miximus_verify( const char *vk_json, const char *proof_json )
 {
-    return stub_verify( vk_json, proof_json );
+    return ethsnarks::stub_verify( vk_json, proof_json );
 }

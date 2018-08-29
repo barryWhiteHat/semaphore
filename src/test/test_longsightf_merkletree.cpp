@@ -9,7 +9,8 @@
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 
 #include "gadgets/longsightf_bits.cpp"
-#include "utils.cpp"
+#include "ethsnarks.hpp"
+#include "utils.hpp"
 
 using libsnark::set_commitment_accumulator;
 using libff::convert_bit_vector_to_field_element;
@@ -18,10 +19,11 @@ using libsnark::merkle_authentication_node;
 using libsnark::merkle_authentication_path_variable;
 using libsnark::merkle_tree_check_read_gadget;
 
-template<typename ppT>
+using ethsnarks::ppT;
+using ethsnarks::FieldT;
+
 bool test_LongsightF_merkle_read()
 {
-    typedef libff::Fr<ppT> FieldT;
     typedef LongsightF_bits_gadget<FieldT, LongsightF322p5_gadget<FieldT>> HashT;
 
     protoboard<FieldT> pb;
@@ -72,10 +74,9 @@ bool test_LongsightF_merkle_read()
 int main( int argc, char **argv )
 {
     // Types for board
-    typedef libff::alt_bn128_pp ppT;    
     ppT::init_public_params();
 
-    if( ! test_LongsightF_merkle_read<ppT>() )
+    if( ! test_LongsightF_merkle_read() )
     {
         std::cerr << "FAIL merkle read\n";
         return 1;

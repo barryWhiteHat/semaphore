@@ -6,12 +6,15 @@
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 
+#include "ethsnarks.hpp"
+
 using libsnark::gadget;
 using libsnark::pb_variable;
 using libsnark::pb_variable_array;
 using libsnark::protoboard;
 using libsnark::r1cs_constraint;
 using libsnark::generate_boolean_r1cs_constraint;
+using ethsnarks::FieldT;
 
 
 /**
@@ -42,7 +45,6 @@ using libsnark::generate_boolean_r1cs_constraint;
 * 
 * This ensures that only 1 item is toggled, and whichever one it is is ours.
 */
-template<typename FieldT>
 class one_of_n : public gadget<FieldT>
 {
 public:

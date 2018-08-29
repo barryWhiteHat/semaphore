@@ -4,43 +4,8 @@
 #include <iomanip>
 
 #include <libsnark/gadgetlib1/pb_variable.hpp>
-#include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
 
 using libsnark::pb_variable_array;
-using libsnark::digest_variable;
-
-
-template<typename T>
-void writeToFile(std::string path, T& obj) {
-    std::stringstream ss;
-    ss << obj;
-    std::ofstream fh;
-    fh.open(path, std::ios::binary);
-    ss.rdbuf()->pubseekpos(0, std::ios_base::out);
-    fh << ss.rdbuf();
-    fh.flush();
-    fh.close();
-}
-
-
-template<typename T>
-T loadFromFile(std::string path) {
-    std::stringstream ss;
-    std::ifstream fh(path, std::ios::binary);
-
-    // TODO: more useful error if file not found
-    assert(fh.is_open());
-
-    ss << fh.rdbuf();
-    fh.close();
-
-    ss.rdbuf()->pubseekpos(0, std::ios_base::in);
-
-    T obj;
-    ss >> obj;
-
-    return obj;
-}
 
 
 // Copied from `int_list_to_bits`
@@ -129,18 +94,6 @@ void bv_to_bytes(const libff::bit_vector &in_bits, uint8_t *out_bytes)
     for( auto& b : bit_list_to_ints(in_bits, 8) ) {
         *out_bytes++ = (uint8_t)b;
     }
-}
-
-
-template<typename FieldT>
-pb_variable_array<FieldT> block_from_left_right (
-    const digest_variable<FieldT> &left,
-    const digest_variable<FieldT> &right
-) {
-    pb_variable_array<FieldT> block;
-    block.insert(block.end(), left.bits.begin(), left.bits.end());
-    block.insert(block.end(), right.bits.begin(), right.bits.end());    
-    return block;
 }
 
 

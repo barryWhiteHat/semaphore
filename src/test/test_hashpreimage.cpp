@@ -1,14 +1,13 @@
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-
+#include "utils.hpp"
 #include "mod/hashpreimage.cpp"
-#include "utils.cpp"
+
+using ethsnarks::ppT;
+using ethsnarks::FieldT;
 
 
 int main( int argc, char **argv )
 {
 	// Types for board
-	typedef libff::alt_bn128_pp ppT;
-	typedef libff::Fr<ppT> FieldT;
 	ppT::init_public_params();
 
     const uint8_t input_buffer[SHA256_block_size_bytes] = {
@@ -28,7 +27,7 @@ int main( int argc, char **argv )
 
     // Setup new preimage hash
     protoboard<FieldT> pb;
-    mod_hashpreimage<FieldT> mod(pb, "mod_hashpreimage");
+    mod_hashpreimage mod(pb, "mod_hashpreimage");
     mod.generate_r1cs_constraints();
     mod.generate_r1cs_witness(input_buffer_bv, output_expected_bv);
 	if( ! pb.is_satisfied() )

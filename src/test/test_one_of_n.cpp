@@ -7,7 +7,7 @@
 
 #include "gadgets/one_of_n.cpp"
 
-#include "export.cpp"
+#include "export.hpp"
 #include "import.cpp"
 
 
@@ -15,12 +15,13 @@ using libsnark::r1cs_gg_ppzksnark_zok_generator;
 using libsnark::r1cs_gg_ppzksnark_zok_prover;
 using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
 
+using ethsnarks::ppT;
+using ethsnarks::proof_to_json;
+using ethsnarks::vk2json;
 
-template<typename ppT>
+
 bool test_one_of_n()
 {
-    typedef libff::Fr<ppT> FieldT;
-
     protoboard<FieldT> pb;
 
     const std::vector<FieldT> rand_items = {
@@ -42,7 +43,7 @@ bool test_one_of_n()
     pb.val(in_our_item) = rand_items[3];
 
     // Setup gadget
-    one_of_n<FieldT> the_gadget(pb, in_our_item, in_items);
+    one_of_n the_gadget(pb, in_our_item, in_items);
     the_gadget.generate_r1cs_witness();
     the_gadget.generate_r1cs_constraints();
     pb.set_input_sizes(rand_items.size());
@@ -68,7 +69,7 @@ bool test_one_of_n()
     // Verify that serialising and unserialising the proof and input via json
     // results in the same proof and input
     stringstream proof_json_stream;
-    proof_json_stream << proof_to_json<ppT>(proof, primary_input);
+    proof_json_stream << proof_to_json(proof, primary_input);
     auto loaded_proof = proof_from_json<ppT>(proof_json_stream);
     if( loaded_proof.first != primary_input ) {
         std::cerr << "Loaded primary input mismatch!\n";
@@ -81,7 +82,7 @@ bool test_one_of_n()
 
     // Then check if verification key can be serialised and unserialized
     stringstream saved_vk;
-    saved_vk << vk2json<ppT>(keypair.vk);
+    saved_vk << vk2json(keypair.vk);
     auto loaded_vk = vk_from_json<ppT>(saved_vk);
     if( false == (loaded_vk == keypair.vk) ) {
         std::cerr << "VK serialise/unserialise error!\n";
@@ -94,11 +95,10 @@ bool test_one_of_n()
 
 int main( int argc, char **argv )
 {
-    // Types for board
-    typedef libff::alt_bn128_pp ppT;    
+    // Types for board 
     ppT::init_public_params();
 
-    if( ! test_one_of_n<ppT>() )
+    if( ! test_one_of_n() )
     {
         std::cerr << "FAIL\n";
         return 1;

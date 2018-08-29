@@ -6,7 +6,8 @@
 #include <fstream>  // ofstream
 
 #include "mod/hashpreimage.cpp"
-#include "utils.cpp" // hex_to_bytes
+#include "utils.hpp"
+#include "stubs.hpp"
 
 
 using std::cerr;
@@ -14,6 +15,9 @@ using std::cout;
 using std::ofstream;
 using std::ifstream;
 using std::stringstream;
+
+using ethsnarks::stub_main_genkeys;
+using ethsnarks::stub_main_verify;
 
 
 static int main_prove( int argc, char **argv )

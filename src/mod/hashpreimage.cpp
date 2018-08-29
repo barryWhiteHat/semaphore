@@ -3,19 +3,23 @@
 
 #include "hashpreimage.hpp"
 
-#include "gadgets/sha256_full.cpp"
-#include "utils.cpp"
-#include "export.cpp"
-#include "import.cpp"
-#include "stubs.cpp"
+#include "ethsnarks.hpp"
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include "gadgets/sha256_full.cpp"
+#include "utils.hpp"
+#include "export.hpp"
+#include "import.cpp"
+#include "stubs.hpp"
+
 #include <libff/algebra/fields/field_utils.hpp>
 
 #include <openssl/sha.h>
 
+using ethsnarks::FieldT;
+using ethsnarks::ProvingKeyT;
+using ethsnarks::ppT;
+using ethsnarks::proof_to_json;
 
-template<typename FieldT>
 pb_variable_array<FieldT> pb_variable_array_allocate( protoboard<FieldT> &in_pb, size_t n, const std::string &annotation_prefix )
 {
     pb_variable_array<FieldT> res;
@@ -27,7 +31,6 @@ pb_variable_array<FieldT> pb_variable_array_allocate( protoboard<FieldT> &in_pb,
 /**
 * Verify that SHA256(private<512bit_block>) == public<output>
 */
-template<typename FieldT>
 class mod_hashpreimage : public gadget<FieldT>
 {
 public:
@@ -64,7 +67,7 @@ public:
         input_size_in_fields( libff::div_ceil(input_size_in_bits, FieldT::capacity()) ),
 
         // packed input, given to prover/verifier
-        input_as_field_elements( pb_variable_array_allocate<FieldT>(in_pb, input_size_in_fields, FMT(annotation_prefix, " input_as_field_elements")) ),
+        input_as_field_elements( pb_variable_array_allocate(in_pb, input_size_in_fields, FMT(annotation_prefix, " input_as_field_elements")) ),
 
         // public input digest, must match output
         expected_digest(in_pb, SHA256_digest_size, FMT(annotation_prefix, " expected_digest")),
@@ -149,12 +152,10 @@ public:
 
 char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
 {
-    typedef libff::alt_bn128_pp ppT;
-    typedef libff::Fr<ppT> FieldT;
     ppT::init_public_params();
 
     protoboard<FieldT> pb;
-    mod_hashpreimage<FieldT> mod(pb, "module");
+    mod_hashpreimage mod(pb, "module");
     mod.generate_r1cs_constraints();
     mod.generate_r1cs_witness(preimage_bytes64);
 
@@ -163,7 +164,7 @@ char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
         return nullptr;
     }
 
-    auto proving_key = loadFromFile<r1cs_gg_ppzksnark_zok_proving_key<ppT>>(pk_file);
+    auto proving_key = loadFromFile<ProvingKeyT>(pk_file);
     // TODO: verify if proving key was loaded correctly, if not return NULL
 
     auto primary_input = pb.primary_input();
@@ -176,11 +177,11 @@ char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
 
 int hashpreimage_genkeys( const char *pk_file, const char *vk_file )
 {
-    return stub_genkeys<mod_hashpreimage>(pk_file, vk_file);
+    return ethsnarks::stub_genkeys<mod_hashpreimage>(pk_file, vk_file);
 }
 
 
 bool hashpreimage_verify( const char *vk_json, const char *proof_json )
 {
-    return stub_verify( vk_json, proof_json );
+    return ethsnarks::stub_verify( vk_json, proof_json );
 }

@@ -4,16 +4,17 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 #include "gadgets/longsightf_bits.cpp"
-#include "utils.cpp"
+#include "utils.hpp"
+#include "ethsnarks.hpp"
 
 
 using libff::convert_bit_vector_to_field_element;
 
+using ethsnarks::ppT;
+using ethsnarks::FieldT;
 
-template<typename ppT>
 bool test_LongsightF_bits()
 {
-    typedef libff::Fr<ppT> FieldT;
     typedef LongsightF_bits_gadget<FieldT,LongsightF322p5_gadget<FieldT>> HashT;
 
     protoboard<FieldT> pb;
@@ -68,10 +69,9 @@ bool test_LongsightF_bits()
 int main( int argc, char **argv )
 {
     // Types for board
-    typedef libff::alt_bn128_pp ppT;    
     ppT::init_public_params();
 
-    if( ! test_LongsightF_bits<ppT>() )
+    if( ! test_LongsightF_bits() )
     {
         std::cerr << "FAIL\n";
         return 1;

@@ -11,7 +11,7 @@
 
 #include <openssl/sha.h>    // SHA256_CTX
 
-#include "utils.cpp"
+#include "utils.hpp"
 
 using namespace libsnark;
 
