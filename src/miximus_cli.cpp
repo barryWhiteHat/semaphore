@@ -21,7 +21,7 @@ using ethsnarks::stub_main_verify;
 
 static int main_prove( int argc, char **argv )
 {
-    if( argc < (9 + MIXIMUS_TREE_DEPTH) )
+    if( argc < (9 + (int)MIXIMUS_TREE_DEPTH) )
     {
         cerr << "Usage: " << argv[0] << " prove <pk.raw> <proof.json> <public:root> <public:nullifier> <public:exthash> <secret:preimage> <secret:merkle-address> <secret:merkle-path ...>" << endl;
         cerr << "Args: " << endl;
