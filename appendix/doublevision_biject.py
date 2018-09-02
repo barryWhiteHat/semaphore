@@ -1,16 +1,10 @@
-"""
-Verifies that various polynomials are bijections across prime numbers
-with different qualities.
 
-This aims to prove, intuitively, that the exponent (x^5) used in the
-LongsightF polynomial is a permutation.
-"""
-
+from collections import defaultdict
 from ethsnarks.longsight import powmod
 from random import randint
 import statistics
 
-from math import gcd
+from math import gcd, sqrt
 
 PRIMES = """
 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83
@@ -26,18 +20,78 @@ PRIMES = """
 104651 104659 104677 104681 104683 104693 104701 104707 104711
 """
 
+
+
+def analyze_sequences(sequences, p):
+	# Identify differential probability that any `f(x1) - f(x2) = g`
+	differential_g = randint(1, p-1)
+	found_gs = 0
+	for i, seq in enumerate(sequences[:-1]):
+		seq2 = sequences[i+1]
+		for j in range(0, p-1):
+			if (seq[j] - seq2[j]) % p == differential_g:
+				#print(i, j, seq[j], seq2[j], differential_g)
+				found_gs += 1
+	print("Found Gs = %.5f %.5f %.5f" % (found_gs/((p-1)*(p-1)), found_gs/(p-1), 1/p))
+
+	# Then determine if there are any cycles
+	all_subseqs_2 = []
+	all_subseqs_3 = []
+	all_subseqs_4 = []
+	all_subseqs_5 = []
+	all_subseqs_6 = []
+	outs = defaultdict(int)
+	for i, seq in enumerate(sequences):
+		for j in range(0, len(seq)):
+			#all_subseqs_6.append(tuple(seq[j % len(seq) - _] for _ in range(6,0,-1)))
+			#all_subseqs_5.append(tuple(seq[j % len(seq) - _] for _ in range(5,0,-1)))
+			all_subseqs_4.append(tuple(seq[j % len(seq) - _] for _ in range(4,0,-1)))
+			all_subseqs_3.append(tuple(seq[j % len(seq) - _] for _ in range(3,0,-1)))
+			all_subseqs_2.append(tuple(seq[j % len(seq) - _] for _ in range(2,0,-1)))
+			outs[seq[j]] += 1
+
+	print("Cycles 1", len(outs), statistics.variance(outs.values()))
+
+	outs = defaultdict(int)
+	for subseq in all_subseqs_2:
+		outs[subseq] += 1
+	print("Cycles 2", len(outs), statistics.variance(outs.values()))
+
+	outs = defaultdict(int)
+	for subseq in all_subseqs_3:
+		outs[subseq] += 1
+	print("Cycles 3", len(outs), statistics.variance(outs.values()))
+
+	outs = defaultdict(int)
+	for subseq in all_subseqs_4:
+		outs[subseq] += 1
+	print("Cycles 4", len(outs), statistics.variance(outs.values()))
+
+	"""
+	outs = defaultdict(int)
+	for subseq in all_subseqs_5:
+		outs[subseq] += 1
+	print("Cycles 5", len(outs), statistics.variance(outs.values()))
+
+	outs = defaultdict(int)
+	for subseq in all_subseqs_6:
+		outs[subseq] += 1
+	print("Cycles 6", len(outs), statistics.variance(outs.values()))
+	"""
+
+
 def test_biject(p, polynomial):
 	sequences = []
-	C = [randint(1, p-1) for _ in range(0, 5)]
+	C = [randint(1, p-1) for _ in range(0, 3)]
 	found_ms = []
 	found_ks = []
 	found_0s = []
-	for m in range(1, p-1):
-		found = set()
+	for m in range(0, p-1):	# or int(sqrt(p)) for smaller sample
+		found = list()
 		found_k = 0
 		found_m = 0
 		found_0 = 0
-		for k in range(1, p-1):
+		for k in range(0, p-1):
 			x = polynomial(m, k, p, C)
 			assert x >= 0
 			assert x < p
@@ -49,15 +103,18 @@ def test_biject(p, polynomial):
 				found_m += 1
 			if x == 0:
 				found_0 += 1
-			found.add(x)
-		if len(found) != p-2:
-			raise RuntimeError("Not a bijection! %d %d %d" % (i, j, p))
+			found.append(x)
+		if len(found) != p-1:
+			raise RuntimeError("Not a bijection! %d %d %d %d" % (m, k, p, len(found)))
 		if found in sequences:
 			raise RuntimeError("Duplicate sequence!")
-		sequences.append(tuple(sorted(found)))
+		sequences.append(tuple(found))
 		found_0s.append(found_0)
 		found_ms.append(found_m)
 		found_ks.append(found_k)
+
+	analyze_sequences(sequences, p)
+
 	print("stddev", "m=",statistics.stdev(found_ms), "k=",statistics.stdev(found_ks), "0=", statistics.stdev(found_0s))
 	print("variance", "m=",statistics.variance(found_ms), "k=",statistics.variance(found_ks), "0=", statistics.variance(found_0s))
 	return True
@@ -89,6 +146,7 @@ def eval_prime(p):
 	for name, poly in polynomials:
 		if test_biject(p, poly):
 			print(name, p)
+			print("")
 		else:
 			raise RuntimeError("No bijection for %d" % (p,))
 
