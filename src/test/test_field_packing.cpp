@@ -36,7 +36,7 @@ unsigned char *fill_words( size_t n_words, const char *refstr, size_t *buffer_sz
 }
 
 
-void test_packing_bytes_to_field( size_t n_words, const char *refstr )
+void test_packing_bytes_to_field( int n_words, const char *refstr )
 {
 	size_t buffer_sz;
 	auto buffer = fill_words(n_words, refstr, &buffer_sz);
@@ -62,7 +62,7 @@ int main( int argc, char **argv )
 
 	char refstr[100];
 
-	for( size_t i = 0; i < 21; i++ )
+	for( int i = 0; i < 21; i++ )
 	{
 		::sprintf(refstr, "test%d", i);
 		test_packing_bytes_to_field(i, refstr);
