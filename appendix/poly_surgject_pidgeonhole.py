@@ -14,18 +14,85 @@ hole contains 2 items then it's 'perfect', and it should be impossible
 for every hole to contain only 1 item as that would be a bijection.
 """
 
+import statistics
 from collections import defaultdict
 from math import gcd
+from random import randint
 
-from ethsnarks.mimc import powmod
+from ethsnarks.longsight import powmod, LongsightF, make_constants
 
 
-def test_pigeonhole(p, polynomial):
+def LongsightF4p3(x_L, x_R, p, C=None):
+    e = 3
+    R = 4
+    _, C = make_constants("LongsightF", R, e)
+    return LongsightF(x_L, x_R, C, R, e, p)
+
+def LongsightF6p5(x_L, x_R, p, C=None):
+    e = 5
+    R = 6
+    _, C = make_constants("LongsightF", R, e)
+    return LongsightF(x_L, x_R, C, R, e, p)
+
+
+def DoublevisionH_e(m, k, p, C, r=4):
+	y = (m + k) % p
+	for i in range(0, r):
+		m = powmod((m + C[i]) % p, 5, p)
+		k = powmod((k + y) % p, 5, p)
+		y = (m + k) % p
+	return y
+
+
+def DoublevisionH_xxy(k, m, p, C, r=5):
+	y = 0
+	for i in range(0, r):
+		m = powmod((m + C[(2*i)]) % p, 5, p)
+		k = powmod((k + C[(2*i)+1]) % p, 5, p) + m
+	y = (m * k) % p
+	return y
+
+
+def DoublevisionH_i(m, k, p, C, r=4):
+	y = 0
+	e = 5
+	for i in range(0, r):
+		y = (m + k) % p
+		m = (powmod((m + C[(2*i)]) % p, e, p) + y) % p
+		k = (powmod((k + C[(2*i)+1]) % p, e, p) + y) % p
+	return y
+
+
+def DoublevisionM(x_L, x_R, p, C, r=4):
+	a = x_L
+	b = x_R
+	for i in range(0, r):
+		y = (a + b) % p
+		a = powmod((a + C[(i * 2)]) % p, 5, p)
+		b = powmod((b + C[(i * 2) + 1]) % p, 5, p) + y % p
+	return a
+
+
+def DoublevisionH_x(m, k, p, C, r=4):
+	y = 0
+	for i in range(0, r):
+		y = (m * k) % p
+		m = powmod(m + y, 5, p) % p 
+		k = powmod(k + C[i], 5, p) % p
+	return y
+
+
+def test_pigeonhole(p, polynomial, C):
 	found = defaultdict(int)
 	for a in range(1, p-1):
 		for b in range(1, p-1):
-			m = polynomial(a, b, p)
+			m = polynomial(a, b, p, C)
 			found[m] += 1
+	print("stdev:", statistics.stdev(found.values()))
+	#print("median:", statistics.median(found.values()))
+	#print("mean:", statistics.mean(found.values()))
+	#print("harmonic_mean:", statistics.harmonic_mean(found.values()))
+	print("variance:", statistics.variance(found.values()))
 	#print(found)
 	return sum(found.values())
 
@@ -41,9 +108,12 @@ def eval_prime(p):
 		return
 
 	#poly = lambda a, b, p: (powmod(a, 2, p) + b) % p
-	poly = lambda a, b, p: (a + b) % p
-	result = test_pigeonhole(p, poly)
+	#poly = lambda a, b, p: (a + b) % p
+	C = [randint(1, p-1) for _ in range(0, 20)]
+	poly = DoublevisionH_e
+	result = test_pigeonhole(p, poly, C)
 	print(p, result, p/result, result/p)
+	print("")
 
 
 with open('first-mil-primes.txt', 'r') as handle:

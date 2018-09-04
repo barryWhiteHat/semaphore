@@ -4,6 +4,20 @@ project(ethsnarks)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
+
+if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # Common compilation flags and warning configuration
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wfatal-errors -Wno-unused-variable -pthread")
+   if("${MULTICORE}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+  endif()
+    # Default optimizations flags (to override, use -DOPT_FLAGS=...)
+  if("${OPT_FLAGS}" STREQUAL "")
+    set(OPT_FLAGS "-O3")
+  endif()
+endif()
+
+
 set(
   CURVE
   "ALT_BN128"
@@ -76,19 +90,6 @@ option(
   ON
 )
 
-if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # Common compilation flags and warning configuration
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wfatal-errors -Wno-unused-variable -pthread")
-
-  if("${MULTICORE}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-  endif()
-
-   # Default optimizations flags (to override, use -DOPT_FLAGS=...)
-  if("${OPT_FLAGS}" STREQUAL "")
-    set(OPT_FLAGS "-O3")
-  endif()
-endif()
 
 add_definitions(-DCURVE_${CURVE})
 
@@ -124,3 +125,4 @@ include_directories(.)
 
 add_subdirectory(depends)
 add_subdirectory(src)
+
