@@ -42,7 +42,7 @@ FieldT parse_F(string &input)
 
     // the '0' flag means auto-detect, e.g. '0x' or '0b' prefix for hex/binary
     value_error = ::mpz_set_str(value, input.c_str(), 0);
-    if( ! value_error ) {
+    if( value_error ) {
         throw std::invalid_argument("Invalid field element");
     }
 
