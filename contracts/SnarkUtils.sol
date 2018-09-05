@@ -8,8 +8,7 @@ library SnarkUtils
     function _bits(uint self, uint index, uint numBits)
         internal pure returns (uint)
     {
-        if (index + numBits > 256)
-            throw;
+        require( index + numBits <= 256 );
         return (self / 2**index) & (2**numBits - 1);
     }
 
