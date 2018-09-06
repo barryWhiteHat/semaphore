@@ -126,8 +126,9 @@ def LongsightL(x, k, C, R, e, p):
     x_i = x
 
     for C_i in C:
-        j = powmod(x_i + k + C_i, e, p)
-        x_i = (x_i + j) % p
+        t = (x_i + k + C_i) % p
+        sq5 = powmod(t, e, p)
+        x_i = (x_i + sq5) % p
 
     return x_i
 
