@@ -8,7 +8,6 @@ library LongsightL
     // altBN curve order
     uint256 constant curve_order = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
 
-    //event Derp(uint256
 
     /**
     * x + (x + k + c)^5
@@ -27,6 +26,7 @@ library LongsightL
 
         out_x = addmod(in_x, j, curve_order);
     }
+
 
     /**
     * According to MiMC paper, first and last round constants must be zero, so for 12 rounds, require 10 constants
@@ -49,6 +49,22 @@ library LongsightL
 
         return in_x;
     }
+
+
+    function LongsightL12p5_MP( uint256[2] memory in_M, uint256 in_IV, uint256[10] memory C )
+        internal pure returns (uint256 H_i)
+    {
+        uint256 i;
+        uint256 k_i = in_IV;
+        H_i = 0;
+
+        for( i = 0; i < in_M.length; i++ ) {
+            k_i = LongsightL12p5(in_M[i], k_i, C);
+            H_i = addmod(H_i, in_M[i], curve_order);
+            H_i = addmod(H_i, k_i, curve_order);
+        }
+    }
+
 
     function ConstantsL12p5( uint256[10] memory round_constants )
         internal pure
