@@ -96,16 +96,14 @@ LongsightF_gadget::LongsightF_gadget(
 {
     // Constants may be initialised after constructor
     // Allow allocation to happen separately
-    if( do_allocate ) {            
-        round_squares.allocate(in_pb, round_constants.size() * 4, FMT(in_annotation_prefix, " round_squares"));
-
-        rounds.allocate(in_pb, round_constants.size(), FMT(in_annotation_prefix, " rounds"));
+    if( do_allocate ) {
+        this->allocate();
     }
 }
 
 void LongsightF_gadget::allocate()
 {
-    round_squares.allocate(this->pb, round_constants.size() * 4, FMT(this->annotation_prefix, " round_squares"));
+    round_squares.allocate(this->pb, round_constants.size() * 2, FMT(this->annotation_prefix, " round_squares"));
 
     rounds.allocate(this->pb, round_constants.size(), FMT(this->annotation_prefix, " rounds"));
 }

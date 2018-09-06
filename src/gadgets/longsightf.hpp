@@ -45,7 +45,7 @@ public:
     ) :
         LongsightF_gadget(in_pb, LongsightF12p5_constants_assign(), in_x_L, in_x_R, in_annotation_prefix, false)
     {        
-
+		this->allocate();
     }
 };
 
