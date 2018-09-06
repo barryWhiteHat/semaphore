@@ -35,7 +35,7 @@ bool test_LongsightF()
     in_xR.allocate(pb);
     pb.val(in_xR) = rand_R;
 
-    LongsightF_gadget<FieldT> the_gadget(pb, round_constants, in_xL, in_xR);
+    LongsightF_gadget the_gadget(pb, round_constants, in_xL, in_xR);
 
     the_gadget.generate_r1cs_witness();
 

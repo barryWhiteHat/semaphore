@@ -1,8 +1,11 @@
-#include "longsightf.cpp"
+#include "longsightf.hpp"
 
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp> // digest_variable
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
+using libsnark::gadget;
+using libsnark::pb_variable;
+using libsnark::protoboard;
 using libsnark::packing_gadget;
 using libsnark::digest_variable;
 using libsnark::block_variable;

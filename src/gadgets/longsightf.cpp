@@ -1,9 +1,6 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
-#pragma once
-
-#include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 
 using libsnark::gadget;
@@ -12,7 +9,10 @@ using libsnark::pb_variable_array;
 using libsnark::protoboard;
 using libsnark::r1cs_constraint;
 
-#include "longsightf_constants.cpp"
+
+#include "longsightf.hpp"
+
+using ethsnarks::FieldT;
 
 /**
 * The LongsightF function can be represented as a circuit:
@@ -78,159 +78,113 @@ using libsnark::r1cs_constraint;
 *
 */
 
-template<typename FieldT>
-class LongsightF_gadget : public gadget<FieldT>
+
+LongsightF_gadget::LongsightF_gadget(
+    protoboard<FieldT> &in_pb,
+    const std::vector<FieldT> in_constants,
+    const pb_variable<FieldT> in_x_L,
+    const pb_variable<FieldT> in_x_R,
+    const std::string &in_annotation_prefix,
+    const bool do_allocate
+) :
+    gadget<FieldT>(in_pb, FMT(in_annotation_prefix, " LongsightF_gadget")),
+    round_constants(in_constants),
+    start_L(in_x_L),
+    start_R(in_x_R),
+    round_squares(),
+    rounds()
 {
-public:
-    const std::vector<FieldT> round_constants;
-    const pb_variable<FieldT> start_L;
-    const pb_variable<FieldT> start_R;
+    // Constants may be initialised after constructor
+    // Allow allocation to happen separately
+    if( do_allocate ) {            
+        round_squares.allocate(in_pb, round_constants.size() * 4, FMT(in_annotation_prefix, " round_squares"));
 
-    pb_variable_array<FieldT> round_squares;
-    pb_variable_array<FieldT> rounds;
-
-    LongsightF_gadget(
-        protoboard<FieldT> &in_pb,
-        const std::vector<FieldT> in_constants,
-        const pb_variable<FieldT> in_x_L,
-        const pb_variable<FieldT> in_x_R,
-        const std::string &in_annotation_prefix="",
-        const bool do_allocate=true
-    ) :
-        gadget<FieldT>(in_pb, FMT(in_annotation_prefix, " LongsightF_gadget")),
-        round_constants(in_constants),
-        start_L(in_x_L),
-        start_R(in_x_R),
-        round_squares(),
-        rounds()
-    {
-        // Constants may be initialised after constructor
-        // Allow allocation to happen separately
-        if( do_allocate ) {            
-            round_squares.allocate(in_pb, round_constants.size() * 4, FMT(in_annotation_prefix, " round_squares"));
-
-            rounds.allocate(in_pb, round_constants.size(), FMT(in_annotation_prefix, " rounds"));
-        }
+        rounds.allocate(in_pb, round_constants.size(), FMT(in_annotation_prefix, " rounds"));
     }
+}
 
-    void allocate()
-    {
-        round_squares.allocate(this->pb, round_constants.size() * 4, FMT(this->annotation_prefix, " round_squares"));
-
-        rounds.allocate(this->pb, round_constants.size(), FMT(this->annotation_prefix, " rounds"));
-    }
-
-    const pb_variable<FieldT>& result() const
-    {
-        return rounds[ round_constants.size() - 1 ];
-    }
-
-    void generate_r1cs_constraints()
-    {
-        size_t j = 0;
-
-        for( size_t i = 0; i < round_constants.size() - 2; i++ )
-        {
-            const pb_variable<FieldT>& xL = (
-                i == 0 ? start_L
-                       : rounds[i-1]);
-
-            const pb_variable<FieldT>& xR = (
-                i == 0 ? start_R
-                       : (i == 1 ? start_L
-                                 : rounds[i-2]));
-
-            // -------------------------------------------------
-            // Squares
-
-                // (xL+C[i]) * (xL+C[i]) = j[1]
-                this->pb.add_r1cs_constraint(
-                    r1cs_constraint<FieldT>(
-                        round_constants[i] + xL,
-                        round_constants[i] + xL,
-                        round_squares[j]));
-
-                // j[1] * (xL+C[i]) = j[2]
-                this->pb.add_r1cs_constraint(
-                    r1cs_constraint<FieldT>(
-                        round_squares[j],
-                        round_squares[j],
-                        round_squares[j+1]));
-
-            // -------------------------------------------------
-            // Intermediate outputs
-
-                // j[2] * (xL+C[i]) = x[i] - xR
-                this->pb.add_r1cs_constraint(
-                    r1cs_constraint<FieldT>(
-                        round_squares[j+1],
-                        round_constants[i] + xL,
-                        rounds[i] - xR));
-
-            // -------------------------------------------------
-            // Move to next block of squares
-            j += 2;
-        }        
-    }
-
-    void generate_r1cs_witness()
-    {
-        size_t h = 0;
-        for( size_t i = 0; i < round_constants.size(); i++ )
-        {
-            const FieldT& xR = (
-                i == 0 ? this->pb.val(start_R)
-                       : (i == 1 ? this->pb.val(start_L)
-                                 : this->pb.val(rounds[i-2])));
-
-            const FieldT& xL = (i == 0 ? this->pb.val(start_L) : this->pb.val(rounds[i-1]));
-
-            // Intermediate squarings
-            auto t = xL + round_constants[i];
-            this->pb.val(round_squares[h]) = t * t;        // ^2  
-            this->pb.val(round_squares[h+1]) = this->pb.val(round_squares[h]) * this->pb.val(round_squares[h]);    // ^4
-
-            // Then intermediate X point
-            this->pb.val(rounds[i]) = xR + (this->pb.val(round_squares[h+1]) * t);
-
-            // Next block of intermediate squarings
-            h += 2;
-        }
-    }
-};
-
-
-template<typename FieldT>
-class LongsightF12p5_gadget : public LongsightF_gadget<FieldT>
+void LongsightF_gadget::allocate()
 {
-public:
-    LongsightF12p5_gadget(
-        protoboard<FieldT> &in_pb,
-        const pb_variable<FieldT> &in_x_L,
-        const pb_variable<FieldT> &in_x_R,
-        const std::string &in_annotation_prefix=""
-    ) :
-        LongsightF_gadget<FieldT>(in_pb, LongsightF12p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
-    {        
-        this->allocate();
-    }
-};
+    round_squares.allocate(this->pb, round_constants.size() * 4, FMT(this->annotation_prefix, " round_squares"));
 
+    rounds.allocate(this->pb, round_constants.size(), FMT(this->annotation_prefix, " rounds"));
+}
 
-template<typename FieldT>
-class LongsightF322p5_gadget : public LongsightF_gadget<FieldT>
+const pb_variable<FieldT>& LongsightF_gadget::result() const
 {
-public:
-    LongsightF322p5_gadget(
-        protoboard<FieldT> &in_pb,
-        const pb_variable<FieldT> &in_x_L,
-        const pb_variable<FieldT> &in_x_R,
-        const std::string &in_annotation_prefix=""
-    ) :
-        LongsightF_gadget<FieldT>(in_pb, LongsightF322p5_constants_assign<FieldT>(), in_x_L, in_x_R, in_annotation_prefix, false)
-    {
-        this->allocate();
-    }
-};
+    return rounds[ rounds.size() - 1 ];
+}
 
+void LongsightF_gadget::generate_r1cs_constraints()
+{
+    size_t j = 0;
+
+    for( size_t i = 0; i < round_constants.size() - 2; i++ )
+    {
+        const pb_variable<FieldT>& xL = (
+            i == 0 ? start_L
+                   : rounds[i-1]);
+
+        const pb_variable<FieldT>& xR = (
+            i == 0 ? start_R
+                   : (i == 1 ? start_L
+                             : rounds[i-2]));
+
+        // -------------------------------------------------
+        // Squares
+
+            // (xL+C[i]) * (xL+C[i]) = j[1]
+            this->pb.add_r1cs_constraint(
+                r1cs_constraint<FieldT>(
+                    round_constants[i] + xL,
+                    round_constants[i] + xL,
+                    round_squares[j]));
+
+            // j[1] * (xL+C[i]) = j[2]
+            this->pb.add_r1cs_constraint(
+                r1cs_constraint<FieldT>(
+                    round_squares[j],
+                    round_squares[j],
+                    round_squares[j+1]));
+
+        // -------------------------------------------------
+        // Intermediate outputs
+
+            // j[2] * (xL+C[i]) = x[i] - xR
+            this->pb.add_r1cs_constraint(
+                r1cs_constraint<FieldT>(
+                    round_squares[j+1],
+                    round_constants[i] + xL,
+                    rounds[i] - xR));
+
+        // -------------------------------------------------
+        // Move to next block of squares
+        j += 2;
+    }        
+}
+
+void LongsightF_gadget::generate_r1cs_witness()
+{
+    size_t h = 0;
+    for( size_t i = 0; i < round_constants.size(); i++ )
+    {
+        const FieldT& xR = (
+            i == 0 ? this->pb.val(start_R)
+                   : (i == 1 ? this->pb.val(start_L)
+                             : this->pb.val(rounds[i-2])));
+
+        const FieldT& xL = (i == 0 ? this->pb.val(start_L) : this->pb.val(rounds[i-1]));
+
+        // Intermediate squarings
+        auto t = xL + round_constants[i];
+        this->pb.val(round_squares[h]) = t * t;        // ^2  
+        this->pb.val(round_squares[h+1]) = this->pb.val(round_squares[h]) * this->pb.val(round_squares[h]);    // ^4
+
+        // Then intermediate X point
+        this->pb.val(rounds[i]) = xR + (this->pb.val(round_squares[h+1]) * t);
+
+        // Next block of intermediate squarings
+        h += 2;
+    }
+}
 

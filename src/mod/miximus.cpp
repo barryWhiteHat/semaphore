@@ -69,8 +69,8 @@ protected:
         return x;
     }
 
-    typedef LongsightF322p5_gadget<FieldT> fHashT;
-    typedef LongsightF_bits_gadget<FieldT, LongsightF12p5_gadget<FieldT>> bHashT;
+    typedef LongsightF322p5_gadget fHashT;
+    typedef LongsightF_bits_gadget<FieldT, LongsightF12p5_gadget> bHashT;
 
 public:
     const size_t tree_depth = MIXIMUS_TREE_DEPTH;

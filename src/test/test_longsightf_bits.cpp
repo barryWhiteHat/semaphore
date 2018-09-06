@@ -15,7 +15,7 @@ using ethsnarks::FieldT;
 
 bool test_LongsightF_bits()
 {
-    typedef LongsightF_bits_gadget<FieldT,LongsightF322p5_gadget<FieldT>> HashT;
+    typedef LongsightF_bits_gadget<FieldT,LongsightF322p5_gadget> HashT;
 
     protoboard<FieldT> pb;
 

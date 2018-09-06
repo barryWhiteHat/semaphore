@@ -5,7 +5,7 @@ include_directories(
   ${DEPENDS_DIR}/libsnark/depends/libfqfft)
 
 add_library(ethsnarks_common STATIC export.cpp import.cpp stubs.cpp utils.cpp)
-target_link_libraries(ethsnarks_common snark)
+target_link_libraries(ethsnarks_common ethsnarks_gadgets snark)
 
 add_library(miximus_objs OBJECT mod/miximus.cpp)
 
@@ -36,6 +36,9 @@ target_link_libraries(verify ethsnarks_common)
 add_executable(test_vk_raw2json test/test_vk_raw2json.cpp)
 target_link_libraries(test_vk_raw2json ethsnarks_common)
 
+
+add_executable(test_shootout test/test_shootout.cpp)
+target_link_libraries(test_shootout snark)
 
 add_executable(test_load_proofkey test/test_load_proofkey.cpp)
 target_link_libraries(test_load_proofkey ethsnarks_common)
@@ -80,3 +83,5 @@ target_link_libraries(test_longsightf_merkletree ethsnarks_common)
 add_executable(test_r1cs_gg_ppzksnark_zok r1cs_gg_ppzksnark_zok/tests/test_r1cs_gg_zok_ppzksnark.cpp)
 target_link_libraries(test_r1cs_gg_ppzksnark_zok ethsnarks_common)
 
+
+add_subdirectory(gadgets)

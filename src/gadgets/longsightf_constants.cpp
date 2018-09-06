@@ -1,7 +1,7 @@
-#pragma once
+#include "longsightf_constants.hpp"
 
+using ethsnarks::FieldT;
 
-template<typename FieldT>
 void LongsightF12p5_constants_fill( std::vector<FieldT> &round_constants )
 {
     round_constants.resize(12);
@@ -20,18 +20,16 @@ void LongsightF12p5_constants_fill( std::vector<FieldT> &round_constants )
 }
 
 
-template<typename FieldT>
 const std::vector<FieldT> LongsightF12p5_constants_assign( )
 {
     std::vector<FieldT> round_constants;
 
-    LongsightF12p5_constants_fill<FieldT>(round_constants);
+    LongsightF12p5_constants_fill(round_constants);
 
     return round_constants;
 }
 
 
-template<typename FieldT>
 void LongsightF322p5_constants_fill( std::vector<FieldT> &round_constants )
 {
     round_constants.resize(322);
@@ -360,12 +358,11 @@ void LongsightF322p5_constants_fill( std::vector<FieldT> &round_constants )
 }
 
 
-template<typename FieldT>
 const std::vector<FieldT> LongsightF322p5_constants_assign( )
 {
     std::vector<FieldT> round_constants;
 
-    LongsightF322p5_constants_fill<FieldT>(round_constants);
+    LongsightF322p5_constants_fill(round_constants);
 
     return round_constants;
 }
