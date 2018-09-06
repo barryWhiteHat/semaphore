@@ -64,6 +64,7 @@ python-test:
 	$(COVERAGE) -m unittest discover test/
 
 cxx-tests:
+	./bin/test_longsightl
 	./bin/test_longsightf
 	./bin/test_longsightf_bits
 	./bin/test_longsightf_merkletree

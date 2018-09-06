@@ -37,7 +37,7 @@ def random_element():
     return randint(1, curve_order-1)
 
 
-def make_constants(name, n, e):
+def _make_constants(name, n, e):
     """
     Generate round constants for a Longsight/MiMC family algorithm
     """
@@ -49,17 +49,46 @@ def make_constants(name, n, e):
     return name, output
 
 
-def make_constants_cxx(name, n, e):
+def make_constants_L(name, n, e):
+    name, C = _make_constants(name, n, e)
+    C[0] = 0
+    C[-1] = 0
+    return name, C
+
+
+def make_constants_F(name, n, e):
+    # XXX: Previous version didn't zero out first and last round constants
+    return _make_constants(name, n, e)
+
+
+def _make_constants_cxx(name, constants_list):
     """
     Convert constants into a C++ function which populates a vector with them
     """
-    name, constants_list = make_constants(name, n, e)
-    output = "template<typename FieldT>\nvoid %s_constants( std::vector<FieldT> &round_constants )\n{\n" % (name,)
-    output += "\tround_constants.resize(%d);\n" % (n,)
+    output = "template<typename FieldT>\nvoid %s_constants_fill( std::vector<FieldT> &round_constants )\n{\n" % (name,)
+    output += "\tround_constants.resize(%d);\n" % (len(constants_list),)
     for i, constant in enumerate(constants_list):
         output += "\tround_constants[%d] = FieldT(\"%d\");\n" % (i, constant)
     output += "}\n"
+    output += """
+template<typename FieldT>
+const std::vector<FieldT> %s_constants_assign( )
+{
+    std::vector<FieldT> round_constants;
+
+    %s_constants_fill<FieldT>(round_constants);
+
+    return round_constants;
+}""" % (name, name,)
     return output
+
+
+def make_constants_cxx_F(name, n, e):
+    return _make_constants_cxx(*make_constants_F(name, n, e))
+
+
+def make_constants_cxx_L(name, n, e):
+    return _make_constants_cxx(*make_constants_L(name, n, e))
 
 
 def powmod(a, b, n):
@@ -77,7 +106,7 @@ def powmod(a, b, n):
     return f
 
 
-def LongsightL(x, C, R, e, p, k=0):
+def LongsightL(x, k, C, R, e, p):
     """
     @param x input
     @param C constants
@@ -96,9 +125,10 @@ def LongsightL(x, C, R, e, p, k=0):
 
     x_i = x
 
-    for i in range(0, R-1):
-        j = powmod(x_i + k + C[i], e, p)
-        x_i = (x_i + j) % p
+    for C_i in C:
+        t = (x_i + k + C_i) % p
+        sq5 = powmod(t, e, p)
+        x_i = (x_i + sq5) % p
 
     return x_i
 
@@ -140,11 +170,21 @@ def LongsightF(x_L, x_R, C, R, e, p, k=0):
     return x_L
 
 
+def LongsightL12p5(x, k):
+    p = curve_order
+    e = 5
+    R = 12
+    _, C = make_constants_L("LongsightL", R, e)
+    C[0] = 0
+    C[-1] = 0
+    return LongsightL(x, k, C, R, e, p)
+
+
 def LongsightF12p5(x_L, x_R):
     p = curve_order
     e = 5
     R = 12
-    _, C = make_constants("LongsightF", R, e)
+    _, C = make_constants_F("LongsightF", R, e)
     return LongsightF(x_L, x_R, C, R, e, p)
 
 
@@ -152,7 +192,7 @@ def LongsightF322p5(x_L, x_R):
     p = curve_order
     e = 5
     R = 322
-    _, C = make_constants("LongsightF", R, e)
+    _, C = make_constants_F("LongsightF", R, e)
     return LongsightF(x_L, x_R, C, R, e, p)
 
 
@@ -194,4 +234,4 @@ def sponge(p, n, r, F):
 
 if __name__ == "__main__":
     #print(LongsightF152p5(1, 1))
-    print(make_constants_cxx("LongsightF", 322, 5))
+    print(make_constants_cxx_L("LongsightL", 12, 5))

@@ -1,17 +1,17 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 #include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
-#include "gadgets/longsightf.cpp"
-#include "ethsnarks.hpp"
+#include "gadgets/longsightf.hpp"
 
 
 using libsnark::r1cs_gg_ppzksnark_zok_generator;
 using libsnark::r1cs_gg_ppzksnark_zok_prover;
 using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
+using libsnark::protoboard;
+using libsnark::pb_variable;
 
 using ethsnarks::ppT;
 using ethsnarks::FieldT;
@@ -35,7 +35,7 @@ bool test_LongsightF()
     in_xR.allocate(pb);
     pb.val(in_xR) = rand_R;
 
-    LongsightF_gadget<FieldT> the_gadget(pb, round_constants, in_xL, in_xR);
+    LongsightF_gadget the_gadget(pb, round_constants, in_xL, in_xR);
 
     the_gadget.generate_r1cs_witness();
 
