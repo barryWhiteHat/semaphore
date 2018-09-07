@@ -165,6 +165,7 @@ def MiyaguchiPreneel_OWF(M, IV, fn, p):
     for m_i in M:
         k_i = fn(m_i, k_i)
         H_i = (H_i + m_i + k_i) % p
+        k_i = H_i
     return H_i
 
 

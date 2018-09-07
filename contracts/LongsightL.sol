@@ -62,6 +62,7 @@ library LongsightL
             k_i = LongsightL12p5(in_M[i], k_i, C);
             H_i = addmod(H_i, in_M[i], curve_order);
             H_i = addmod(H_i, k_i, curve_order);
+            k_i = H_i;
         }
     }
 
