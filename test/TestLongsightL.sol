@@ -19,4 +19,20 @@ contract TestLongsightL
 
 		Assert.equal(result, expected, "Unexpected result");
 	}
+
+	function testKnownL12_MP () public
+	{
+		uint256[10] memory round_constants;
+		LongsightL.ConstantsL12p5(round_constants);
+
+		uint256 m_0 = 3703141493535563179657531719960160174296085208671919316200479060314459804651;
+		uint256 m_1 = 134551314051432487569247388144051420116740427803855572138106146683954151557;
+		uint256 IV = 918403109389145570117360101535982733651217667914747213867238065296420114726;
+
+		uint256 expected = 16743249391414211194903251836323254089433285237756741022465555151301952011503;
+
+		uint256 result = LongsightL.LongsightL12p5_MP([m_0, m_1], IV, round_constants);
+
+		Assert.equal(result, expected, "Unexpected result");
+	}
 }

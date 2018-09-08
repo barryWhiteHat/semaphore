@@ -5,6 +5,8 @@
 
 #include "ethsnarks.hpp"
 #include "longsightl_constants.hpp"
+#include "onewayfunction.hpp"
+
 
 class LongsightL_round : public libsnark::gadget<ethsnarks::FieldT>
 {
@@ -71,6 +73,23 @@ public:
     ) :
         LongsightL_gadget(in_pb, LongsightL12p5_constants_assign(), in_x, in_k, in_annotation_prefix)
     {
+    }
+};
+
+
+class LongsightL12p5_MP_gadget : public MiyaguchiPreneel_OWF<LongsightL12p5_gadget, libsnark::pb_variable<ethsnarks::FieldT>>
+{
+public:
+    using VariableT = libsnark::pb_variable<ethsnarks::FieldT>;
+    LongsightL12p5_MP_gadget(
+        libsnark::protoboard<ethsnarks::FieldT> &in_pb,
+        VariableT in_IV,
+        std::vector<VariableT> in_messages,
+        const std::string &in_annotation_prefix=""
+    ) :
+        MiyaguchiPreneel_OWF(in_pb, in_IV, in_messages, in_annotation_prefix)
+    {
+
     }
 };
 

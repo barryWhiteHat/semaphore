@@ -12,9 +12,11 @@ add_library(miximus_objs OBJECT mod/miximus.cpp)
 add_library(miximus_static STATIC $<TARGET_OBJECTS:miximus_objs>)
 target_link_libraries(miximus_static ethsnarks_common)
 
+
 add_library(miximus SHARED $<TARGET_OBJECTS:miximus_objs>)
 target_link_libraries(miximus miximus_static)
 set_property(TARGET miximus PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 
 add_library(hashpreimage SHARED mod/hashpreimage.cpp)
 target_link_libraries(hashpreimage ethsnarks_common)
@@ -33,8 +35,6 @@ add_executable(verify verify.cpp)
 target_link_libraries(verify ethsnarks_common)
 
 
-add_executable(test_r1cs_gg_ppzksnark_zok r1cs_gg_ppzksnark_zok/tests/test_r1cs_gg_zok_ppzksnark.cpp)
-target_link_libraries(test_r1cs_gg_ppzksnark_zok ethsnarks_common)
-
 add_subdirectory(test)
+add_subdirectory(r1cs_gg_ppzksnark_zok)
 add_subdirectory(gadgets)

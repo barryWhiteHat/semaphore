@@ -1,6 +1,6 @@
 import unittest
 
-from ethsnarks.longsight import LongsightF322p5, LongsightF12p5, LongsightL12p5
+from ethsnarks.longsight import LongsightF322p5, LongsightF12p5, LongsightL12p5, LongsightL12p5_MP
 
 class MiMCTests(unittest.TestCase):
     def test_LongsightF_322p5(self):
@@ -22,6 +22,14 @@ class MiMCTests(unittest.TestCase):
         k = 134551314051432487569247388144051420116740427803855572138106146683954151557
         expected = 9638538253242078011815100086590507856430665299520185056351852605094082194804
         actual = LongsightL12p5(x, k)
+        self.assertEqual(actual, expected)
+
+    def test_LongsightL12p5_MP(self):
+        m_0 = 3703141493535563179657531719960160174296085208671919316200479060314459804651
+        m_1 = 134551314051432487569247388144051420116740427803855572138106146683954151557
+        iv = 918403109389145570117360101535982733651217667914747213867238065296420114726
+        expected = 16743249391414211194903251836323254089433285237756741022465555151301952011503
+        actual = LongsightL12p5_MP([m_0, m_1], iv)
         self.assertEqual(actual, expected)
 
 

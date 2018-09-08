@@ -109,14 +109,13 @@ def powmod(a, b, n):
 def LongsightL(x, k, C, R, e, p):
     """
     @param x input
+    @param k key
     @param C constants
     @param R number of rounds
     @param e exponent
     @param p field prime
-    @param k optional key
     """
-    #assert math.gcd(p-1, e) == 1       # XXX: is a bijection required?
-    #assert R >= (int(math.log(p, 3)) + 1)
+    assert math.gcd(p-1, e) == 1       # XXX: is a bijection required?
     assert len(C) == R
 
     assert x > 0 and x < (p-1)
@@ -131,6 +130,43 @@ def LongsightL(x, k, C, R, e, p):
         x_i = (x_i + sq5) % p
 
     return x_i
+
+
+def MiyaguchiPreneel_OWF(M, IV, fn, p):
+    """
+    The Miyaguchi–Preneel single-block-length one-way compression
+    function is an extended variant of Matyas–Meyer–Oseas. It was
+    independently proposed by Shoji Miyaguchi and Bart Preneel.
+
+    H_i = E_{H_{i-1}}(m_i) + {H_{i-1}} + m_i
+
+    or..
+
+                 m_i
+                  |
+                  |----,
+                  v    |
+    H_{i-1}----->[E]   |
+             |    |    |
+             `-->(+)<--'
+                  |
+                  v
+               m_{i+1}
+
+    @param M list of inputs
+    @param IV initial key
+    @param C constants
+    @param fn Keyed hash function or block cipher
+    """
+    assert isinstance(M, (list, tuple))
+    assert len(M) > 1
+    k_i = IV
+    H_i = 0
+    for m_i in M:
+        k_i = fn(m_i, k_i)
+        H_i = (H_i + m_i + k_i) % p
+        k_i = H_i
+    return H_i
 
 
 def LongsightF(x_L, x_R, C, R, e, p, k=0):
@@ -178,6 +214,10 @@ def LongsightL12p5(x, k):
     C[0] = 0
     C[-1] = 0
     return LongsightL(x, k, C, R, e, p)
+
+
+def LongsightL12p5_MP(M, IV):
+    return MiyaguchiPreneel_OWF(M, IV, LongsightL12p5, curve_order)
 
 
 def LongsightF12p5(x_L, x_R):
