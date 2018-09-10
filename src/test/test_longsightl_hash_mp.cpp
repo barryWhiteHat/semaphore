@@ -4,6 +4,12 @@
 
 #include "gadgets/longsightl.hpp"
 
+#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
+
+using libsnark::r1cs_gg_ppzksnark_zok_generator;
+using libsnark::r1cs_gg_ppzksnark_zok_prover;
+using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
+
 using ethsnarks::VariableT;
 using ethsnarks::ProtoboardT;
 using ethsnarks::ppT;
@@ -35,7 +41,7 @@ bool test_LongsightL()
     the_gadget.generate_r1cs_witness();
     the_gadget.generate_r1cs_constraints();
 
-    pb.set_input_sizes(1);
+    pb.set_input_sizes(2);
 
     auto result_expected = FieldT("16743249391414211194903251836323254089433285237756741022465555151301952011503");
     if( result_expected != pb.val(the_gadget.result()) ) {
@@ -46,7 +52,19 @@ bool test_LongsightL()
 
     std::cout << pb.num_constraints() << " constraints" << std::endl;
 
-    return pb.is_satisfied();
+    if( ! pb.is_satisfied() ) {
+        std::cerr << "Not satisfied!" << std::endl;
+        return false;
+    }
+
+    auto constraints = pb.get_constraint_system();
+    auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(constraints);
+
+    auto primary_input = pb.primary_input();
+    auto auxiliary_input = pb.auxiliary_input();
+    auto proof = r1cs_gg_ppzksnark_zok_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
+
+    return r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
 }
 
 

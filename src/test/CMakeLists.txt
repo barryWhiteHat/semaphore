@@ -43,9 +43,5 @@ add_executable(test_longsightl_hash_mp test_longsightl_hash_mp.cpp)
 target_link_libraries(test_longsightl_hash_mp ethsnarks_common)
 
 
-add_executable(test_longsightf_bits test_longsightf_bits.cpp)
-target_link_libraries(test_longsightf_bits ethsnarks_common)
-
-
 add_executable(test_longsightf_merkletree test_longsightf_merkletree.cpp)
 target_link_libraries(test_longsightf_merkletree ethsnarks_common)

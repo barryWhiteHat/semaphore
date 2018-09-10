@@ -1,12 +1,12 @@
 #ifndef ETHSNARKS_UTILS_HPP_
 #define ETHSNARKS_UTILS_HPP_
 
-#include <libff/common/utils.hpp>
 #include <fstream>
 
 #include "ethsnarks.hpp"
 
 namespace ethsnarks {
+
 
 void print_bytes( const char *prefix, const size_t n_bytes, const uint8_t *in_bytes );
 
@@ -61,7 +61,8 @@ T loadFromFile(std::string path) {
     return obj;
 }
 
-}
 
+// namespace ethsnarks
+}
 
 #endif

@@ -16,11 +16,10 @@ public:
     const VariableT var_input_k;
     const FieldT round_constant;
 
-    const VariableT var_sq2;      // n^2
-    const VariableT var_sq4;      // n^4
-    const VariableT var_sq5;      // n^5
-
-    const VariableT var_output;
+    VariableT var_sq2;      // n^2
+    VariableT var_sq4;      // n^4
+    VariableT var_sq5;      // n^5
+    VariableT var_output;
 
     LongsightL_round(
         ProtoboardT &in_pb,

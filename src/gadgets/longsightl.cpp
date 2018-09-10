@@ -74,13 +74,12 @@ LongsightL_round::LongsightL_round(
     GadgetT(in_pb, FMT(in_annotation_prefix, " LongsightL_round")),
     var_input_x(in_x),
     var_input_k(in_k),
-    round_constant(in_constant),
-
-    var_sq2( make_variable(in_pb, FMT(this->annotation_prefix, ".sq2")) ),
-    var_sq4( make_variable(in_pb, FMT(this->annotation_prefix, ".sq4")) ),
-    var_sq5( make_variable(in_pb, FMT(this->annotation_prefix, ".sq5")) ),
-    var_output( make_variable(in_pb, FMT(this->annotation_prefix, ".out")) )
+    round_constant(in_constant)
 {
+    var_sq2.allocate(in_pb, FMT(this->annotation_prefix, ".sq2"));
+    var_sq4.allocate(in_pb, FMT(this->annotation_prefix, ".sq4"));
+    var_sq5.allocate(in_pb, FMT(this->annotation_prefix, ".sq5"));
+    var_output.allocate(in_pb, FMT(this->annotation_prefix, ".out"));
 }
 
 

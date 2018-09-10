@@ -23,13 +23,9 @@
 #include "stubs.hpp"
 #include "utils.hpp"
 
-#include "gadgets/longsightf_bits.cpp"
 #include "gadgets/longsightl.hpp"
 #include "gadgets/merkle_tree.cpp"
 
-#include <libff/algebra/fields/field_utils.hpp>
-
-#include <libsnark/gadgetlib1/gadget.hpp>
 
 using libsnark::generate_r1cs_equals_const_constraint;
 using libff::convert_field_element_to_bit_vector;
