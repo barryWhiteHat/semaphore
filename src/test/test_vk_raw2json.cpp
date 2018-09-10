@@ -1,5 +1,5 @@
 #include "export.hpp"
-#include "import.cpp"
+#include "import.hpp"
 #include "utils.hpp"
 
 using std::cout;
@@ -7,6 +7,7 @@ using std::cerr;
 using ethsnarks::vk2json_file;
 using ethsnarks::ppT;
 using ethsnarks::VerificationKeyT;
+using ethsnarks::vk_from_json;
 
 int main( int argc, char **argv )
 {
@@ -27,7 +28,7 @@ int main( int argc, char **argv )
 	std::ifstream vk_input(argv[2]);
 	std::stringstream vk_stream;
 	vk_stream << vk_input.rdbuf();
-	auto vk_json = vk_from_json<ppT>(vk_stream);
+	auto vk_json = vk_from_json(vk_stream);
 
 	// Verify serialisation is correct
 	if( ! (vk_json == vk) ) {

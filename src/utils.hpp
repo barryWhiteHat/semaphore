@@ -1,10 +1,12 @@
 #ifndef ETHSNARKS_UTILS_HPP_
 #define ETHSNARKS_UTILS_HPP_
 
-#pragma once
-
 #include <libff/common/utils.hpp>
 #include <fstream>
+
+#include "ethsnarks.hpp"
+
+namespace ethsnarks {
 
 void print_bytes( const char *prefix, const size_t n_bytes, const uint8_t *in_bytes );
 
@@ -19,6 +21,12 @@ int char2int( const char input );
 std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const size_t wordsize);
 
 libff::bit_vector bytes_to_bv(const uint8_t *in_bytes, const size_t in_count);
+
+VariableArrayT VariableArray_from_bits( ProtoboardT &in_pb, const libff::bit_vector& bits, const std::string annotation_prefix );
+
+const VariableT make_variable( ProtoboardT &in_pb, const std::string &annotation="" );
+
+const VariableArrayT make_var_array( ProtoboardT &in_pb, size_t n, const std::string &annotation="" );
 
 
 template<typename T>
@@ -51,6 +59,8 @@ T loadFromFile(std::string path) {
     ss >> obj;
 
     return obj;
+}
+
 }
 
 

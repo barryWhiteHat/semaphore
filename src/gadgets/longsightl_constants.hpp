@@ -3,9 +3,12 @@
 
 #include "ethsnarks.hpp"
 
-void LongsightL12p5_constants_fill( std::vector<ethsnarks::FieldT> &round_constants );
+namespace ethsnarks {
 
-const std::vector<ethsnarks::FieldT> LongsightL12p5_constants_assign( );
+void LongsightL12p5_constants_fill( std::vector<FieldT> &round_constants );
 
+const std::vector<FieldT> LongsightL12p5_constants_assign( );
+
+}
 
 #endif

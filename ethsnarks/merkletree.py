@@ -5,7 +5,7 @@ import hashlib
 import math
 from collections import defaultdict, namedtuple
 
-from .longsight import LongsightF12p5, curve_order
+from .longsight import LongsightL12p5_MP, curve_order
 
 class MerkleProof(object):
     __slots__ = ('leaf', 'address', 'path', '_hasher')
@@ -25,10 +25,10 @@ class MerkleProof(object):
         return root == item
 
 
-class MerkleHasherLongsightF(object):
+class MerkleHasherLongsight(object):
     @classmethod
     def hash_pair(cls, left, right):
-        return LongsightF12p5(left, right)
+        return LongsightL12p5_MP([left, right], 0)
 
     @classmethod
     def unique(cls, depth, index):

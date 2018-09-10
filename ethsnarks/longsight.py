@@ -56,11 +56,6 @@ def make_constants_L(name, n, e):
     return name, C
 
 
-def make_constants_F(name, n, e):
-    # XXX: Previous version didn't zero out first and last round constants
-    return _make_constants(name, n, e)
-
-
 def _make_constants_cxx(name, constants_list):
     """
     Convert constants into a C++ function which populates a vector with them
@@ -81,10 +76,6 @@ const std::vector<FieldT> %s_constants_assign( )
     return round_constants;
 }""" % (name, name,)
     return output
-
-
-def make_constants_cxx_F(name, n, e):
-    return _make_constants_cxx(*make_constants_F(name, n, e))
 
 
 def make_constants_cxx_L(name, n, e):
@@ -169,43 +160,6 @@ def MiyaguchiPreneel_OWF(M, IV, fn, p):
     return H_i
 
 
-def LongsightF(x_L, x_R, C, R, e, p, k=0):
-    """
-    As per MiMC-2n/n (Feistel)
-
-    By using the same non-linear permutation in a Feistel
-    network, we can process larger blocks at the cost of 
-    increasing the number of rounds by a factor of two.
-
-    The round function of MiMC-2n/n is defined as follows:
-
-        x_L || x_R <- x_R + (x_L + k + c_i)^e || x_L
-
-    @param x_L input 0
-    @param x_R input 1
-    @param C constants
-    @param R number of rounds
-    @param e exponent
-    @param p field prime
-    @param k optional key
-    """
-    #assert R >= 2 * (int(math.log(p, 3)) + 1)
-    #assert math.gcd(p-1, e) == 1       # XXX: is a bijection required?
-    assert len(C) == R
-
-    assert x_L > 0 and x_L < (p-1)
-    assert x_R > 0 and x_R < (p-1)
-    if k != 0:
-        assert k > 0 and k < (p-1)
-
-    # Calculate rounds
-    for i in range(0, R):
-        j = powmod(x_L + k + C[i], e, p)
-        x_L, x_R = (x_R + j) % p, x_L
-
-    return x_L
-
-
 def LongsightL12p5(x, k):
     p = curve_order
     e = 5
@@ -219,21 +173,6 @@ def LongsightL12p5(x, k):
 def LongsightL12p5_MP(M, IV):
     return MiyaguchiPreneel_OWF(M, IV, LongsightL12p5, curve_order)
 
-
-def LongsightF12p5(x_L, x_R):
-    p = curve_order
-    e = 5
-    R = 12
-    _, C = make_constants_F("LongsightF", R, e)
-    return LongsightF(x_L, x_R, C, R, e, p)
-
-
-def LongsightF322p5(x_L, x_R):
-    p = curve_order
-    e = 5
-    R = 322
-    _, C = make_constants_F("LongsightF", R, e)
-    return LongsightF(x_L, x_R, C, R, e, p)
 
 
 """
@@ -273,5 +212,4 @@ def sponge(p, n, r, F):
 """
 
 if __name__ == "__main__":
-    #print(LongsightF152p5(1, 1))
     print(make_constants_cxx_L("LongsightL", 12, 5))

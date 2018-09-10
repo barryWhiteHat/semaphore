@@ -1,6 +1,6 @@
 #include "longsightl_constants.hpp"
 
-using ethsnarks::FieldT;
+namespace ethsnarks {
 
 
 void LongsightL12p5_constants_fill( std::vector<FieldT> &round_constants )
@@ -28,4 +28,6 @@ const std::vector<FieldT> LongsightL12p5_constants_assign( )
     LongsightL12p5_constants_fill(round_constants);
 
     return round_constants;
+}
+
 }

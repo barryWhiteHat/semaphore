@@ -6,25 +6,27 @@
 
 #include "gadgets/longsightl.hpp"
 
-using libsnark::protoboard;
-using libsnark::pb_variable;
 using libsnark::r1cs_gg_ppzksnark_zok_generator;
 using libsnark::r1cs_gg_ppzksnark_zok_prover;
 using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
 
+using ethsnarks::VariableT;
+using ethsnarks::ProtoboardT;
 using ethsnarks::ppT;
 using ethsnarks::FieldT;
+using ethsnarks::LongsightL12p5_constants_fill;
+using ethsnarks::LongsightL12p5_MP_gadget;
 
 bool test_LongsightL()
 {
     std::vector<FieldT> round_constants;
     LongsightL12p5_constants_fill(round_constants);
 
-    protoboard<FieldT> pb;
+    ProtoboardT pb;
 
-    pb_variable<FieldT> m_0;
-    pb_variable<FieldT> m_1;
-    pb_variable<FieldT> iv;
+    VariableT m_0;
+    VariableT m_1;
+    VariableT iv;
 
     m_0.allocate(pb);
     pb.val(m_0) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");

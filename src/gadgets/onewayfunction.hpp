@@ -3,23 +3,23 @@
 
 #include "ethsnarks.hpp"
 
-#include <libsnark/gadgetlib1/gadget.hpp>
+namespace ethsnarks {
 
-template<class CipherT, typename MessageT>
-class MiyaguchiPreneel_OWF : libsnark::gadget<ethsnarks::FieldT>
+template<class CipherT>
+class MiyaguchiPreneel_OWF : public GadgetT
 {
 public:
 	std::vector<CipherT> m_ciphers;
-	libsnark::pb_variable_array<ethsnarks::FieldT> m_outputs;
-	std::vector<MessageT> m_messages;
+	VariableArrayT m_outputs;
+	std::vector<VariableT> m_messages;
 
 	MiyaguchiPreneel_OWF(
-		libsnark::protoboard<ethsnarks::FieldT> &in_pb,
-		MessageT &in_IV,
-		std::vector<MessageT> &in_messages,
+		ProtoboardT &in_pb,
+		VariableT &in_IV,
+		std::vector<VariableT> &in_messages,
 		const std::string &in_annotation_prefix=""
 	) :
-		gadget(in_pb, in_annotation_prefix),
+		GadgetT(in_pb, in_annotation_prefix),
 		m_messages(in_messages)
 	{
 		m_outputs.allocate(in_pb, in_messages.size());
@@ -36,7 +36,7 @@ public:
 		}
 	}
 
-	MessageT result() const {
+	VariableT result() const {
 		return m_outputs[ m_outputs.size() - 1 ];
 	}
 
@@ -83,6 +83,9 @@ public:
 		}
 	}
 };
+
+// ethsnarks
+}
 
 // ETHSNARKS_ONEWAYFUNCTION_HPP_
 #endif

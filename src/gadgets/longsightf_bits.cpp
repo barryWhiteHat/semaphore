@@ -1,42 +1,33 @@
-#include "longsightf.hpp"
-
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp> // digest_variable
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
-using libsnark::gadget;
-using libsnark::pb_variable;
-using libsnark::protoboard;
 using libsnark::packing_gadget;
 using libsnark::digest_variable;
 using libsnark::block_variable;
 using libsnark::merkle_authentication_path;
-using libsnark::pb_variable_array;
 using libsnark::multipacking_gadget;
-using libsnark::pb_linear_combination;
+
+
+#include "ethsnarks.hpp"
+#include "utils.hpp"
+
+
+namespace ethsnarks {
 
 /**
 * LongsightF gadget, but with input and output in bits
 *
 * With the 'bitness' check it requires an additional 764 constraints!
 */
-template<typename FieldT, typename HashT>
-class LongsightF_bits_gadget : public gadget<FieldT>
+template<typename HashT>
+class LongsightF_bits_gadget : public GadgetT
 {
-private:
-    /* `allocate_var_index` is private, must use this workaround... */
-    static pb_variable<FieldT> make_variable( protoboard<FieldT> &in_pb, const std::string &annotation="" )
-    {
-        pb_variable<FieldT> x;
-        x.allocate(in_pb, annotation);
-        return x.index;
-    }
-
 public:
-    const pb_variable<FieldT> left_element{make_variable(this->pb, FMT(this->annotation_prefix, " left_element"))};
-    const pb_variable<FieldT> right_element{make_variable(this->pb, FMT(this->annotation_prefix, " right_element"))};
+    const VariableT left_element{make_variable(this->pb, FMT(this->annotation_prefix, " left_element"))};
+    const VariableT right_element{make_variable(this->pb, FMT(this->annotation_prefix, " right_element"))};
 
-    const std::vector<pb_variable<FieldT> > packer_vars1{left_element, right_element};
-    const pb_variable_array<FieldT> packer_vars2{packer_vars1.begin(), packer_vars1.end()};
+    const std::vector<VariableT> packer_vars1{left_element, right_element};
+    const VariableArrayT packer_vars2{packer_vars1.begin(), packer_vars1.end()};
     multipacking_gadget<FieldT> left_right_packer;
 
     HashT hasher{this->pb, left_element, right_element, FMT(this->annotation_prefix, " hasher")};
@@ -48,13 +39,13 @@ public:
     typedef merkle_authentication_path merkle_authentication_path_type;
 
     LongsightF_bits_gadget(
-        protoboard<FieldT> &in_pb,
+        ProtoboardT &in_pb,
         const size_t block_length,
         const block_variable<FieldT> &in_block,
         const digest_variable<FieldT> &out_digest,
         const std::string &in_annotation_prefix=""
     ) :
-        gadget<FieldT>(in_pb, in_annotation_prefix),
+        GadgetT(in_pb, in_annotation_prefix),
         left_right_packer(in_pb, in_block.bits, packer_vars2, get_digest_len(), FMT(in_annotation_prefix, "left_right_packer")),
         output_digest(out_digest)
     {
@@ -70,13 +61,13 @@ public:
 
     static libff::bit_vector get_hash(const libff::bit_vector &input)
     {
-        protoboard<FieldT> pb;
+        ProtoboardT pb;
 
         assert( input.size() == get_block_len() );
 
         block_variable<FieldT> input_block(pb, get_block_len(), "block");
         digest_variable<FieldT> digest_output(pb, get_digest_len(), "digest_output");
-        LongsightF_bits_gadget<FieldT, HashT> the_gadget(pb, get_block_len(), input_block, digest_output);
+        LongsightF_bits_gadget<HashT> the_gadget(pb, get_block_len(), input_block, digest_output);
 
         input_block.generate_r1cs_witness(input);
         the_gadget.generate_r1cs_witness();
@@ -114,3 +105,6 @@ public:
         return get_digest_len() * 2;
     }
 };
+
+// ethsnarks
+}

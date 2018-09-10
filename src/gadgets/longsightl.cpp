@@ -11,9 +11,8 @@ using libsnark::r1cs_constraint;
 using libsnark::var_index_t;
 
 #include "ethsnarks.hpp"
+#include "utils.hpp"
 #include "longsightl.hpp"
-#include "longsightf_constants.hpp"
-using ethsnarks::FieldT;
 
 /**
 * First round
@@ -70,19 +69,14 @@ using ethsnarks::FieldT;
 */
 
 
-/* `allocate_var_index` is private, must use this workaround... */
-static const var_index_t make_variable( protoboard<FieldT> &in_pb, const std::string &annotation="" )
-{
-    pb_variable<FieldT> x;
-    x.allocate(in_pb, annotation);
-    return x.index;
-}
+namespace ethsnarks {
+
 
 
 LongsightL_round::LongsightL_round(
-    protoboard<FieldT> &in_pb,
-    const pb_variable<FieldT> &in_x,
-    const pb_variable<FieldT> &in_k,
+    ProtoboardT &in_pb,
+    const VariableT &in_x,
+    const VariableT &in_k,
     const FieldT in_constant,
     const std::string &in_annotation_prefix
 ) :
@@ -154,19 +148,19 @@ void LongsightL_round::generate_r1cs_witness()
 }
 
 
-const pb_variable<FieldT>& LongsightL_round::result() const {
+const VariableT& LongsightL_round::result() const {
     return var_output;
 }
 
 
 LongsightL_gadget::LongsightL_gadget(
-    protoboard<FieldT> &in_pb,
+    ProtoboardT &in_pb,
     const std::vector<FieldT> in_constants,
-    const pb_variable<FieldT> in_x,
-    const pb_variable<FieldT> in_k,
+    const VariableT in_x,
+    const VariableT in_k,
     const std::string &in_annotation_prefix
 ) :
-    gadget<FieldT>(in_pb, FMT(in_annotation_prefix, " LongsightL_gadget")),
+    GadgetT(in_pb, FMT(in_annotation_prefix, " LongsightL_gadget")),
     m_rounds(),
     m_constants(in_constants),
     start_x(in_x)
@@ -187,7 +181,7 @@ LongsightL_gadget::LongsightL_gadget(
 }
 
 
-const pb_variable<FieldT>& LongsightL_gadget::result() const
+const VariableT& LongsightL_gadget::result() const
 {
     return m_rounds[ m_rounds.size() - 1 ].result();
 }
@@ -210,3 +204,5 @@ void LongsightL_gadget::generate_r1cs_witness()
     }
 }
 
+// ethsnarks
+}

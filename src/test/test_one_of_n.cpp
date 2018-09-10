@@ -8,21 +8,27 @@
 #include "gadgets/one_of_n.cpp"
 
 #include "export.hpp"
-#include "import.cpp"
+#include "import.hpp"
 
+using std::stringstream;
 
 using libsnark::r1cs_gg_ppzksnark_zok_generator;
 using libsnark::r1cs_gg_ppzksnark_zok_prover;
 using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
 
+using ethsnarks::ProtoboardT;
+using ethsnarks::VariableArrayT;
+using ethsnarks::VariableT;
+using ethsnarks::FieldT;
 using ethsnarks::ppT;
 using ethsnarks::proof_to_json;
 using ethsnarks::vk2json;
-
+using ethsnarks::vk_from_json;
+using ethsnarks::proof_from_json;
 
 bool test_one_of_n()
 {
-    protoboard<FieldT> pb;
+    ProtoboardT pb;
 
     const std::vector<FieldT> rand_items = {
         FieldT::random_element(), FieldT::random_element(),
@@ -33,17 +39,17 @@ bool test_one_of_n()
     };
 
     // Allocate items first
-    pb_variable_array<FieldT> in_items;    
+    VariableArrayT in_items;    
     in_items.allocate(pb, rand_items.size());
     in_items.fill_with_field_elements(pb, rand_items);
 
     // Our item comes afterwards, is a private input
-    pb_variable<FieldT> in_our_item;
+    VariableT in_our_item;
     in_our_item.allocate(pb);
     pb.val(in_our_item) = rand_items[3];
 
     // Setup gadget
-    one_of_n the_gadget(pb, in_our_item, in_items);
+    ethsnarks::one_of_n the_gadget(pb, in_our_item, in_items);
     the_gadget.generate_r1cs_witness();
     the_gadget.generate_r1cs_constraints();
     pb.set_input_sizes(rand_items.size());
@@ -70,7 +76,7 @@ bool test_one_of_n()
     // results in the same proof and input
     stringstream proof_json_stream;
     proof_json_stream << proof_to_json(proof, primary_input);
-    auto loaded_proof = proof_from_json<ppT>(proof_json_stream);
+    auto loaded_proof = proof_from_json(proof_json_stream);
     if( loaded_proof.first != primary_input ) {
         std::cerr << "Loaded primary input mismatch!\n";
         return false;
@@ -83,7 +89,7 @@ bool test_one_of_n()
     // Then check if verification key can be serialised and unserialized
     stringstream saved_vk;
     saved_vk << vk2json(keypair.vk);
-    auto loaded_vk = vk_from_json<ppT>(saved_vk);
+    auto loaded_vk = vk_from_json(saved_vk);
     if( false == (loaded_vk == keypair.vk) ) {
         std::cerr << "VK serialise/unserialise error!\n";
         return false;

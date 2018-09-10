@@ -8,14 +8,11 @@
 
 #include "ethsnarks.hpp"
 
-using libsnark::gadget;
-using libsnark::pb_variable;
-using libsnark::pb_variable_array;
-using libsnark::protoboard;
 using libsnark::r1cs_constraint;
 using libsnark::generate_boolean_r1cs_constraint;
-using ethsnarks::FieldT;
 
+
+namespace ethsnarks {
 
 /**
 * The 1-of-N gadget verifies whether an Input exists within a set of items
@@ -45,25 +42,22 @@ using ethsnarks::FieldT;
 * 
 * This ensures that only 1 item is toggled, and whichever one it is is ours.
 */
-class one_of_n : public gadget<FieldT>
+class one_of_n : public GadgetT
 {
 public:
-    protoboard<FieldT> &pb;
-
-    const pb_variable<FieldT> &our_item;
-    const pb_variable_array<FieldT> &items;
-    pb_variable_array<FieldT> toggles;
-    pb_variable_array<FieldT> toggles_sum;
+    const VariableT &our_item;
+    const VariableArrayT &items;
+    VariableArrayT toggles;
+    VariableArrayT toggles_sum;
     const std::string annotation_prefix="";
 
     one_of_n(
-        protoboard<FieldT> &in_pb,
-        const pb_variable<FieldT> &in_our_item,
-        const pb_variable_array<FieldT> &in_items,
+        ProtoboardT &in_pb,
+        const VariableT &in_our_item,
+        const VariableArrayT &in_items,
         const std::string &in_annotation_prefix=""
     ) :
-        gadget<FieldT>(in_pb, FMT(in_annotation_prefix, " one_of_n")),
-        pb(in_pb),
+        GadgetT(in_pb, FMT(in_annotation_prefix, " one_of_n")),
         our_item(in_our_item),
         items(in_items),
         toggles(),
@@ -72,9 +66,9 @@ public:
     {
         assert( in_items.size() > 0 );
 
-        toggles.allocate(pb, in_items.size(), FMT(annotation_prefix, " toggles"));
+        toggles.allocate(in_pb, in_items.size(), FMT(annotation_prefix, " toggles"));
 
-        toggles_sum.allocate(pb, in_items.size(), FMT(annotation_prefix, " toggles_sum"));
+        toggles_sum.allocate(in_pb, in_items.size(), FMT(annotation_prefix, " toggles_sum"));
     }
 
     void generate_r1cs_constraints()
@@ -134,3 +128,6 @@ public:
         }
     }
 };
+
+// ethsnarks
+}

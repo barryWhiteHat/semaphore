@@ -1,7 +1,7 @@
 import unittest
 
 import hashlib
-from ethsnarks.merkletree import MerkleTree, MerkleHasherLongsightF, MerkleHasherSHA256, curve_order
+from ethsnarks.merkletree import MerkleTree, MerkleHasherLongsight, MerkleHasherSHA256, curve_order
 
 
 class TestMerkleTree(unittest.TestCase):
