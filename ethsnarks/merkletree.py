@@ -38,6 +38,17 @@ class MerkleHasherLongsight(object):
         return int.from_bytes(hasher.digest(), 'big') % curve_order
 
     @classmethod
+    def make_IVs(cls, tree_depth):
+        out = []
+        hasher = hashlib.sha256()
+        for i in range(0, tree_depth):
+            item = int(i).to_bytes(2, 'little')
+            hasher.update(b'MerkleTree-' + item)
+            digest = int.from_bytes(hasher.digest(), 'big') % curve_order
+            out.append(digest)
+        return out
+
+    @classmethod
     def valid(cls, item):
         return isinstance(item, int) and item > 0 and item < curve_order
 

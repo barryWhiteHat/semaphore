@@ -3,6 +3,7 @@
 
 using ethsnarks::ppT;
 using ethsnarks::ProvingKeyT;
+using ethsnarks::loadFromFile;
 
 
 int main( int argc, char **argv )

@@ -14,7 +14,7 @@ target_link_libraries(miximus_static ethsnarks_common)
 
 
 add_library(miximus SHARED $<TARGET_OBJECTS:miximus_objs>)
-target_link_libraries(miximus miximus_static)
+target_link_libraries(miximus ethsnarks_common)
 set_property(TARGET miximus PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 

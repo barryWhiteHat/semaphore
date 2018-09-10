@@ -36,6 +36,7 @@ std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const si
 
             current += (bit_list[i*wordsize+j] * (1ul<<(wordsize-1-j)));
       }
+
       res.push_back(current);
     }
 

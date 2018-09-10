@@ -1,15 +1,6 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
-#include <libsnark/gadgetlib1/gadget.hpp>
-#include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
-using libsnark::gadget;
-using libsnark::pb_variable;
-using libsnark::pb_variable_array;
-using libsnark::protoboard;
-using libsnark::r1cs_constraint;
-using libsnark::var_index_t;
-
 #include "ethsnarks.hpp"
 #include "utils.hpp"
 #include "longsightl.hpp"
@@ -80,17 +71,16 @@ LongsightL_round::LongsightL_round(
     const FieldT in_constant,
     const std::string &in_annotation_prefix
 ) :
-    gadget<FieldT>(in_pb, FMT(in_annotation_prefix, " LongsightL_round")),
+    GadgetT(in_pb, FMT(in_annotation_prefix, " LongsightL_round")),
     var_input_x(in_x),
     var_input_k(in_k),
     round_constant(in_constant),
 
-    var_sq2( make_variable(in_pb, FMT(in_annotation_prefix, " sq2")) ),
-    var_sq4( make_variable(in_pb, FMT(in_annotation_prefix, " sq4")) ),
-    var_sq5( make_variable(in_pb, FMT(in_annotation_prefix, " sq5")) ),
-    var_output( make_variable(in_pb, FMT(in_annotation_prefix, " out")) )
+    var_sq2( make_variable(in_pb, FMT(this->annotation_prefix, ".sq2")) ),
+    var_sq4( make_variable(in_pb, FMT(this->annotation_prefix, ".sq4")) ),
+    var_sq5( make_variable(in_pb, FMT(this->annotation_prefix, ".sq5")) ),
+    var_output( make_variable(in_pb, FMT(this->annotation_prefix, ".out")) )
 {
-
 }
 
 
@@ -101,28 +91,28 @@ void LongsightL_round::generate_r1cs_constraints()
 
     // sq2 == t * t == t^2
     this->pb.add_r1cs_constraint(
-                r1cs_constraint<FieldT>(
+                ConstraintT(
                     t,
                     t,
                     var_sq2));
 
     // sq2 * sq2 == sq4 == t^4
     this->pb.add_r1cs_constraint(
-                r1cs_constraint<FieldT>(
+                ConstraintT(
                     var_sq2,
                     var_sq2,
                     var_sq4));
 
     // sq4 * t == sq5 == t^5
     this->pb.add_r1cs_constraint(
-                r1cs_constraint<FieldT>(
+                ConstraintT(
                     var_sq4,
                     t,
                     var_sq5));
 
     // 1 * (sq5 + x) = out
     this->pb.add_r1cs_constraint(
-                r1cs_constraint<FieldT>(
+                ConstraintT(
                     1,
                     var_sq5 + var_input_x,
                     var_output));

@@ -8,6 +8,7 @@ using ethsnarks::vk2json_file;
 using ethsnarks::ppT;
 using ethsnarks::VerificationKeyT;
 using ethsnarks::vk_from_json;
+using ethsnarks::loadFromFile;
 
 int main( int argc, char **argv )
 {

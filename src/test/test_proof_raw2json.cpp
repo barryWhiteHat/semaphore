@@ -13,6 +13,7 @@ using ethsnarks::ppT;
 using ethsnarks::ProofT;
 using ethsnarks::proof_to_json;
 using ethsnarks::proof_from_json;
+using ethsnarks::loadFromFile;
 
 
 int main( int argc, char **argv )

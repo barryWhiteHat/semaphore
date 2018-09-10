@@ -11,6 +11,7 @@
 
 using ethsnarks::ppT;
 using ethsnarks::FieldT;
+using ethsnarks::bytes_to_bv;
 
 
 /**

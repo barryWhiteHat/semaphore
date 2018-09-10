@@ -15,8 +15,8 @@ public:
 
 	MiyaguchiPreneel_OWF(
 		ProtoboardT &in_pb,
-		VariableT &in_IV,
-		std::vector<VariableT> &in_messages,
+		const VariableT &in_IV,
+		const std::vector<VariableT> &in_messages,
 		const std::string &in_annotation_prefix=""
 	) :
 		GadgetT(in_pb, in_annotation_prefix),

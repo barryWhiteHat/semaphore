@@ -35,10 +35,6 @@ add_executable(test_one_of_n test_one_of_n.cpp)
 target_link_libraries(test_one_of_n ethsnarks_common)
 
 
-add_executable(test_longsightf test_longsightf.cpp)
-target_link_libraries(test_longsightf ethsnarks_common)
-
-
 add_executable(test_longsightl test_longsightl.cpp)
 target_link_libraries(test_longsightl ethsnarks_common)
 

@@ -25,14 +25,11 @@
 
 #include "gadgets/longsightf_bits.cpp"
 #include "gadgets/longsightl.hpp"
-#include "gadgets/merkle_tree.hpp"
+#include "gadgets/merkle_tree.cpp"
 
 #include <libff/algebra/fields/field_utils.hpp>
 
-#include <libsnark/common/data_structures/merkle_tree.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
-#include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.hpp>
-#include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
 
 using libsnark::generate_r1cs_equals_const_constraint;
 using libff::convert_field_element_to_bit_vector;
@@ -47,30 +44,34 @@ namespace ethsnarks {
 
 class mod_miximus : public GadgetT
 {
-    typedef LongsightL12p5_MP_gadget HashT;
-
 public:
+
+    typedef LongsightL12p5_MP_gadget HashT;
     const size_t tree_depth = MIXIMUS_TREE_DEPTH;
+
+    // public constants
+    const VariableArrayT m_IVs;
 
     // public inputs
     const VariableT root_var;
     const VariableT nullifier_var;
     const VariableT external_hash_var;
 
+    // constant inputs
+    const VariableT spend_hash_IV;
+    const VariableT leaf_hash_IV;
+
     // private inputs
     const VariableT spend_preimage_var;
     const VariableArrayT address_bits;    
+    const VariableArrayT path_var;
 
     // logic gadgets
     HashT spend_hash;
     HashT leaf_hash;
 
-    digest_variable<FieldT> leaf_hash_digest;
+    merkle_path_authenticator<HashT> m_authenticator;
 
-    digest_variable<FieldT> root_digest;
-
-    merkle_authentication_path_variable<FieldT, bHashT> path_var;
-    merkle_tree_check_read_gadget<FieldT, bHashT> check_read;
 
     mod_miximus(
         ProtoboardT &in_pb,
@@ -78,38 +79,45 @@ public:
     ) :
         GadgetT(in_pb, annotation_prefix),
 
+        m_IVs(merkle_tree_IVs(in_pb)),
+
         // public inputs
         root_var(make_variable(in_pb, FMT(annotation_prefix, ".root_var"))),
         nullifier_var(make_variable(in_pb, FMT(annotation_prefix, ".nullifier_var"))),
         external_hash_var(make_variable(in_pb, FMT(annotation_prefix, ".external_hash_var"))),
 
+        // constant inputs
+        spend_hash_IV(make_variable(in_pb, FMT(annotation_prefix, ".spend_hash_iv"))),
+        leaf_hash_IV(make_variable(in_pb, FMT(annotation_prefix, ".leaf_hash_iv"))),
+
         // private inputs
         spend_preimage_var(make_variable(in_pb, FMT(annotation_prefix, ".spend_preimage_var"))),
-        address_bits(make_var_array(in_pb, MIXIMUS_TREE_DEPTH, FMT(annotation_prefix, ".address_bits")) ),
+        address_bits(make_var_array(in_pb, tree_depth, FMT(annotation_prefix, ".address_bits")) ),
+        path_var(make_var_array(in_pb, tree_depth, FMT(annotation_prefix, ".path"))),
 
         // logic gadgets
-        spend_hash(in_pb, ZERO, {spend_preimage_var, nullifier_var}, FMT(annotation_prefix, ".spend_hash")),
-        leaf_hash(in_pb, ZERO, {nullifier_var, spend_hash.result()}, FMT(annotation_prefix, ".leaf_hash")),
-
-        path_var(in_pb, tree_depth, ".path"),
-        check_read(in_pb, tree_depth, address_bits, leaf_hash_digest, root_digest, path_var, ZERO, ".check_read")
+        spend_hash(in_pb, spend_hash_IV, {spend_preimage_var, nullifier_var}, FMT(annotation_prefix, ".spend_hash")),
+        leaf_hash(in_pb, leaf_hash_IV, {nullifier_var, spend_hash.result()}, FMT(annotation_prefix, ".leaf_hash")),
+        m_authenticator(in_pb, tree_depth, address_bits, m_IVs, leaf_hash.result(), root_var, path_var)
     {
         in_pb.set_input_sizes( 3 );
     }
 
     void generate_r1cs_constraints()
     {
-        generate_r1cs_equals_const_constraint<FieldT>(this->pb, ZERO, FieldT::zero(), "ZERO");
-
         spend_hash.generate_r1cs_constraints();
         leaf_hash.generate_r1cs_constraints();
-
-        path_var.generate_r1cs_constraints();
-        check_read.generate_r1cs_constraints();
+        m_authenticator.generate_r1cs_constraints();
     }
 
-    void generate_r1cs_witness(FieldT in_root, FieldT in_nullifier, FieldT in_exthash, FieldT in_preimage, libff::bit_vector in_address, std::vector<merkle_authentication_node> in_path)
-    {
+    void generate_r1cs_witness(
+        FieldT in_root,         // merkle tree root
+        FieldT in_nullifier,    // unique linkable tag
+        FieldT in_exthash,      // hash of external parameters
+        FieldT in_preimage,     // spend preimage
+        libff::bit_vector in_address,
+        std::vector<FieldT> in_path
+    ) {
         // public inputs
         this->pb.val(root_var) = in_root;
         this->pb.val(nullifier_var) = in_nullifier;
@@ -119,17 +127,10 @@ public:
         this->pb.val(spend_preimage_var) = in_preimage;
         address_bits.fill_with_bits(this->pb, in_address);
 
-        size_t tmp_address = address_bits.get_field_element_from_bits(this->pb).as_ulong();
-        path_var.generate_r1cs_witness(tmp_address, in_path);
-
         // gadgets
         spend_hash.generate_r1cs_witness();
         leaf_hash.generate_r1cs_witness();
-        leaf_hash_to_digest.generate_r1cs_witness_from_packed();
-
-        root_to_digest.generate_r1cs_witness_from_packed();
-
-        check_read.generate_r1cs_witness();
+        m_authenticator.generate_r1cs_witness();
     }
 };
 

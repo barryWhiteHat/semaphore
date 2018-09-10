@@ -1,6 +1,4 @@
 add_library(ethsnarks_gadgets STATIC
-	longsightf_bits.cpp
-
 	longsightl.cpp
 	longsightl_constants.cpp
 

@@ -22,7 +22,7 @@ std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const si
 
 libff::bit_vector bytes_to_bv(const uint8_t *in_bytes, const size_t in_count);
 
-VariableArrayT VariableArray_from_bits( ProtoboardT &in_pb, const libff::bit_vector& bits, const std::string annotation_prefix );
+VariableArrayT VariableArray_from_bits( ProtoboardT &in_pb, const libff::bit_vector& bits, const std::string annotation_prefix="" );
 
 const VariableT make_variable( ProtoboardT &in_pb, const std::string &annotation="" );
 

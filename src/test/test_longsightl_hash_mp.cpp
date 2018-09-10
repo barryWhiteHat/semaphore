@@ -2,13 +2,7 @@
 // License: LGPL-3.0+
 
 
-#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
-
 #include "gadgets/longsightl.hpp"
-
-using libsnark::r1cs_gg_ppzksnark_zok_generator;
-using libsnark::r1cs_gg_ppzksnark_zok_prover;
-using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
 
 using ethsnarks::VariableT;
 using ethsnarks::ProtoboardT;
