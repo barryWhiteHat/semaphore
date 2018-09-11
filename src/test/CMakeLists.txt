@@ -27,6 +27,10 @@ add_executable(test_field_packing test_field_packing.cpp)
 target_link_libraries(test_field_packing ethsnarks_common)
 
 
+add_executable(test_merkle_tree test_merkle_tree.cpp)
+target_link_libraries(test_merkle_tree ethsnarks_common)
+
+
 add_executable(test_hashpreimage test_hashpreimage.cpp)
 target_link_libraries(test_hashpreimage ethsnarks_common)
 
@@ -42,6 +46,3 @@ target_link_libraries(test_longsightl ethsnarks_common)
 add_executable(test_longsightl_hash_mp test_longsightl_hash_mp.cpp)
 target_link_libraries(test_longsightl_hash_mp ethsnarks_common)
 
-
-add_executable(test_longsightf_merkletree test_longsightf_merkletree.cpp)
-target_link_libraries(test_longsightf_merkletree ethsnarks_common)

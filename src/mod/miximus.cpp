@@ -75,7 +75,7 @@ public:
     ) :
         GadgetT(in_pb, annotation_prefix),
 
-        m_IVs(merkle_tree_IVs(in_pb)),
+        m_IVs(std::move(merkle_tree_IVs(in_pb))),
 
         // public inputs
         root_var(make_variable(in_pb, FMT(annotation_prefix, ".root_var"))),

@@ -65,12 +65,12 @@ python-test:
 
 cxx-tests:
 	./bin/test_longsightl
+	./bin/test_longsightl_hash_mp
 	./bin/test_r1cs_gg_ppzksnark_zok
 	./bin/test_one_of_n
 	./bin/test_shamir_poly
 	./bin/test_sha256_full_gadget || true
 	./bin/test_field_packing > /dev/null
-	./bin/test_longsightf_merkletree
 
 	time ./bin/hashpreimage_cli genkeys zksnark_element/hpi.pk.raw zksnark_element/hpi.vk.json
 	ls -lah zksnark_element/hpi.pk.raw

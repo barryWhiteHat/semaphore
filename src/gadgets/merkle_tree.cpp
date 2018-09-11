@@ -32,9 +32,9 @@ namespace ethsnarks {
 class merkle_path_selector : public GadgetT
 {
 public:
-    const VariableT& m_input;
-    const VariableT& m_pathvar;
-    const VariableT& m_is_right;
+    const VariableT m_input;
+    const VariableT m_pathvar;
+    const VariableT m_is_right;
 
     VariableT m_left_a;
     VariableT m_left_b;
@@ -46,9 +46,9 @@ public:
 
     merkle_path_selector(
         ProtoboardT &in_pb,
-        const VariableT &in_input,
-        const VariableT &in_pathvar,
-        const VariableT &in_is_right,
+        const VariableT in_input,
+        const VariableT in_pathvar,
+        const VariableT in_is_right,
         const std::string in_annotation_prefix=""
     ) :
         GadgetT(in_pb, in_annotation_prefix),
@@ -133,6 +133,7 @@ const VariableArrayT merkle_tree_IVs (ProtoboardT &in_pb)
     };
     x.fill_with_field_elements(in_pb, level_IVs);
 
+    // Add constraints to ensure IVs remain the same
     size_t i;
     for( i = 0; i < level_IVs.size(); i++ ) {
         in_pb.add_r1cs_constraint(
@@ -162,11 +163,11 @@ public:
     merkle_path_authenticator(
         ProtoboardT &in_pb,
         const size_t in_depth,
-        const VariableArrayT &in_address_bits,
+        const VariableArrayT in_address_bits,
         const VariableArrayT in_IVs,
-        const VariableT &in_leaf,
-        const VariableT &in_expected_root,
-        const VariableArrayT &in_path,
+        const VariableT in_leaf,
+        const VariableT in_expected_root,
+        const VariableArrayT in_path,
         const std::string in_annotation_prefix = ""
     ) :
         GadgetT(in_pb, FMT(in_annotation_prefix, " merkle_path_authenticator")),

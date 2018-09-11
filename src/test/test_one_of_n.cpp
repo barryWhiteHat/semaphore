@@ -1,30 +1,12 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-
-#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
-
 #include "gadgets/one_of_n.cpp"
+#include "stubs.hpp"
 
-#include "export.hpp"
-#include "import.hpp"
 
-using std::stringstream;
-
-using libsnark::r1cs_gg_ppzksnark_zok_generator;
-using libsnark::r1cs_gg_ppzksnark_zok_prover;
-using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
-
-using ethsnarks::ProtoboardT;
-using ethsnarks::VariableArrayT;
-using ethsnarks::VariableT;
-using ethsnarks::FieldT;
-using ethsnarks::ppT;
-using ethsnarks::proof_to_json;
-using ethsnarks::vk2json;
-using ethsnarks::vk_from_json;
-using ethsnarks::proof_from_json;
+namespace ethsnarks
+{
 
 bool test_one_of_n()
 {
@@ -59,52 +41,19 @@ bool test_one_of_n()
         return false;
     }
 
-    auto constraints = pb.get_constraint_system();
-    auto keypair = r1cs_gg_ppzksnark_zok_generator<ppT>(constraints);
+    return stub_test_proof_verify(pb);
+}
 
-    auto primary_input = pb.primary_input();
-    auto auxiliary_input = pb.auxiliary_input();
-    auto proof = r1cs_gg_ppzksnark_zok_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
-
-    auto proof_ok = r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
-    if( ! proof_ok ) {
-        std::cerr << "Verifier failed!\n";
-        return false;
-    }
-
-    // Verify that serialising and unserialising the proof and input via json
-    // results in the same proof and input
-    stringstream proof_json_stream;
-    proof_json_stream << proof_to_json(proof, primary_input);
-    auto loaded_proof = proof_from_json(proof_json_stream);
-    if( loaded_proof.first != primary_input ) {
-        std::cerr << "Loaded primary input mismatch!\n";
-        return false;
-    }
-    if( false == (loaded_proof.second == proof) ) {
-        std::cerr << "Loaded proof mismatch!\n";
-        return false;
-    }
-
-    // Then check if verification key can be serialised and unserialized
-    stringstream saved_vk;
-    saved_vk << vk2json(keypair.vk);
-    auto loaded_vk = vk_from_json(saved_vk);
-    if( false == (loaded_vk == keypair.vk) ) {
-        std::cerr << "VK serialise/unserialise error!\n";
-        return false;
-    }
-
-    return true;
+// namespace ethsnarks
 }
 
 
 int main( int argc, char **argv )
 {
     // Types for board 
-    ppT::init_public_params();
+    ethsnarks::ppT::init_public_params();
 
-    if( ! test_one_of_n() )
+    if( ! ethsnarks::test_one_of_n() )
     {
         std::cerr << "FAIL\n";
         return 1;
