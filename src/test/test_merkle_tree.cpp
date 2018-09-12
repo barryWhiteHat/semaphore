@@ -1,5 +1,6 @@
 #include "stubs.hpp"
 #include "gadgets/merkle_tree.cpp"
+#include "gadgets/longsightl.hpp"
 
 namespace ethsnarks {
 
@@ -57,8 +58,41 @@ bool test_merkle_path_authenticator() {
 	ProtoboardT pb;
 
 	VariableArrayT address_bits;
+	address_bits.allocate(pb, 1);
+	pb.val(address_bits[0]) = 1;
+
+	VariableArrayT path;
+	path.allocate(pb, 1);
+	pb.val(path[0]) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
+
+	VariableT leaf;
+	leaf.allocate(pb);
+	pb.val(leaf) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
+
+	VariableT expected_root;
+	expected_root.allocate(pb);
+	pb.val(expected_root) = FieldT("12232803403448551110711645741717605608347940439638387632993385741901727947062");
 
 	size_t tree_depth = 1;
+	merkle_path_authenticator<LongsightL12p5_MP_gadget> auth(
+		pb, 1, address_bits,
+		merkle_tree_IVs(pb),
+		leaf, expected_root, path);
+
+	auth.generate_r1cs_witness();
+	auth.generate_r1cs_constraints();
+
+	if( ! auth.is_valid() ) {
+		std::cerr << "Not valid!" << std::endl;
+		std::cerr << "Got " << pb.val(auth.calculated_root()) << std::endl;
+		return false;
+	}
+
+	if( ! pb.is_satisfied() ) {
+		std::cerr << "Not satisfied!" << std::endl;
+		return false;
+	}
+
 	return true;
 }
 

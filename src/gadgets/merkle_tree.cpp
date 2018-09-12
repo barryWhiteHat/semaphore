@@ -149,7 +149,7 @@ const VariableArrayT merkle_tree_IVs (ProtoboardT &in_pb)
 template<typename HashT>
 class merkle_path_authenticator : public GadgetT
 {
-private:
+public:
     const size_t m_depth;
     const VariableArrayT m_address_bits;
     const VariableT m_leaf;
@@ -159,7 +159,6 @@ private:
     std::vector<merkle_path_selector> m_selectors;
     std::vector<HashT> m_hashers;
 
-public:
     merkle_path_authenticator(
         ProtoboardT &in_pb,
         const size_t in_depth,
@@ -177,8 +176,9 @@ public:
         m_expected_root(in_expected_root),
         m_path(in_path)
     {
-        assert( in_IVs.size() == in_depth );
         assert( in_depth > 0 );
+        assert( in_address_bits.size() == in_depth );
+        assert( in_IVs.size() == in_depth );
 
         for( size_t i = 0; i < m_depth; i++ )
         {
@@ -201,9 +201,9 @@ public:
         }
     }
 
-    const VariableT& calculated_root() const
+    const VariableT calculated_root() const
     {
-        return m_hashers[ m_hashers.size() - 1 ];
+        return m_hashers[ m_hashers.size() - 1 ].result();
     }
 
     bool is_valid() const

@@ -12,6 +12,7 @@ public:
 	std::vector<CipherT> m_ciphers;
 	VariableArrayT m_outputs;
 	std::vector<VariableT> m_messages;
+	VariableT m_IV;
 
 	MiyaguchiPreneel_OWF(
 		ProtoboardT &in_pb,
@@ -20,7 +21,8 @@ public:
 		const std::string &in_annotation_prefix=""
 	) :
 		GadgetT(in_pb, in_annotation_prefix),
-		m_messages(in_messages)
+		m_messages(in_messages),
+		m_IV(in_IV)
 	{
 		m_outputs.allocate(in_pb, in_messages.size());
 
