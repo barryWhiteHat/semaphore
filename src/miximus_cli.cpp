@@ -17,6 +17,7 @@ using std::ofstream;
 
 using ethsnarks::stub_main_genkeys;
 using ethsnarks::stub_main_verify;
+using ethsnarks::mod_miximus;
 
 
 static int main_prove( int argc, char **argv )

@@ -1,19 +1,9 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
-#include <libsnark/gadgetlib1/gadget.hpp>
-#include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
-using libsnark::gadget;
-using libsnark::pb_variable;
-using libsnark::pb_variable_array;
-using libsnark::protoboard;
-using libsnark::r1cs_constraint;
-using libsnark::var_index_t;
-
 #include "ethsnarks.hpp"
+#include "utils.hpp"
 #include "longsightl.hpp"
-#include "longsightf_constants.hpp"
-using ethsnarks::FieldT;
 
 /**
 * First round
@@ -70,33 +60,26 @@ using ethsnarks::FieldT;
 */
 
 
-/* `allocate_var_index` is private, must use this workaround... */
-static const var_index_t make_variable( protoboard<FieldT> &in_pb, const std::string &annotation="" )
-{
-    pb_variable<FieldT> x;
-    x.allocate(in_pb, annotation);
-    return x.index;
-}
+namespace ethsnarks {
+
 
 
 LongsightL_round::LongsightL_round(
-    protoboard<FieldT> &in_pb,
-    const pb_variable<FieldT> &in_x,
-    const pb_variable<FieldT> &in_k,
+    ProtoboardT &in_pb,
+    const VariableT &in_x,
+    const VariableT &in_k,
     const FieldT in_constant,
     const std::string &in_annotation_prefix
 ) :
-    gadget<FieldT>(in_pb, FMT(in_annotation_prefix, " LongsightL_round")),
+    GadgetT(in_pb, FMT(in_annotation_prefix, " LongsightL_round")),
     var_input_x(in_x),
     var_input_k(in_k),
-    round_constant(in_constant),
-
-    var_sq2( make_variable(in_pb, FMT(in_annotation_prefix, " sq2")) ),
-    var_sq4( make_variable(in_pb, FMT(in_annotation_prefix, " sq4")) ),
-    var_sq5( make_variable(in_pb, FMT(in_annotation_prefix, " sq5")) ),
-    var_output( make_variable(in_pb, FMT(in_annotation_prefix, " out")) )
+    round_constant(in_constant)
 {
-
+    var_sq2.allocate(in_pb, FMT(this->annotation_prefix, ".sq2"));
+    var_sq4.allocate(in_pb, FMT(this->annotation_prefix, ".sq4"));
+    var_sq5.allocate(in_pb, FMT(this->annotation_prefix, ".sq5"));
+    var_output.allocate(in_pb, FMT(this->annotation_prefix, ".out"));
 }
 
 
@@ -107,28 +90,28 @@ void LongsightL_round::generate_r1cs_constraints()
 
     // sq2 == t * t == t^2
     this->pb.add_r1cs_constraint(
-                r1cs_constraint<FieldT>(
+                ConstraintT(
                     t,
                     t,
                     var_sq2));
 
     // sq2 * sq2 == sq4 == t^4
     this->pb.add_r1cs_constraint(
-                r1cs_constraint<FieldT>(
+                ConstraintT(
                     var_sq2,
                     var_sq2,
                     var_sq4));
 
     // sq4 * t == sq5 == t^5
     this->pb.add_r1cs_constraint(
-                r1cs_constraint<FieldT>(
+                ConstraintT(
                     var_sq4,
                     t,
                     var_sq5));
 
     // 1 * (sq5 + x) = out
     this->pb.add_r1cs_constraint(
-                r1cs_constraint<FieldT>(
+                ConstraintT(
                     1,
                     var_sq5 + var_input_x,
                     var_output));
@@ -154,19 +137,19 @@ void LongsightL_round::generate_r1cs_witness()
 }
 
 
-const pb_variable<FieldT>& LongsightL_round::result() const {
+const VariableT& LongsightL_round::result() const {
     return var_output;
 }
 
 
 LongsightL_gadget::LongsightL_gadget(
-    protoboard<FieldT> &in_pb,
-    const std::vector<FieldT> in_constants,
-    const pb_variable<FieldT> in_x,
-    const pb_variable<FieldT> in_k,
+    ProtoboardT &in_pb,
+    const std::vector<FieldT> &in_constants,
+    const VariableT in_x,
+    const VariableT in_k,
     const std::string &in_annotation_prefix
 ) :
-    gadget<FieldT>(in_pb, FMT(in_annotation_prefix, " LongsightL_gadget")),
+    GadgetT(in_pb, FMT(in_annotation_prefix, " LongsightL_gadget")),
     m_rounds(),
     m_constants(in_constants),
     start_x(in_x)
@@ -187,7 +170,7 @@ LongsightL_gadget::LongsightL_gadget(
 }
 
 
-const pb_variable<FieldT>& LongsightL_gadget::result() const
+const VariableT& LongsightL_gadget::result() const
 {
     return m_rounds[ m_rounds.size() - 1 ].result();
 }
@@ -210,3 +193,5 @@ void LongsightL_gadget::generate_r1cs_witness()
     }
 }
 
+// ethsnarks
+}

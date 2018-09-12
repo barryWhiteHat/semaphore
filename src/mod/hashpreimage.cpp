@@ -8,69 +8,59 @@
 #include "gadgets/sha256_full.cpp"
 #include "utils.hpp"
 #include "export.hpp"
-#include "import.cpp"
+#include "import.hpp"
 #include "stubs.hpp"
 
 #include <libff/algebra/fields/field_utils.hpp>
 
 #include <openssl/sha.h>
 
-using ethsnarks::FieldT;
-using ethsnarks::ProvingKeyT;
-using ethsnarks::ppT;
-using ethsnarks::proof_to_json;
-
-pb_variable_array<FieldT> pb_variable_array_allocate( protoboard<FieldT> &in_pb, size_t n, const std::string &annotation_prefix )
-{
-    pb_variable_array<FieldT> res;
-    res.allocate(in_pb, n, annotation_prefix);
-    return res;
-}
+namespace ethsnarks {
 
 
 /**
 * Verify that SHA256(private<512bit_block>) == public<output>
 */
-class mod_hashpreimage : public gadget<FieldT>
+class mod_hashpreimage : public GadgetT
 {
 public:
-    static const size_t SHA256_digest_size_bytes = SHA256_digest_size / 8;
+    static const size_t SHA256_digest_size_bytes = libsnark::SHA256_digest_size / 8;
 
-    static const size_t SHA256_block_size_bytes = SHA256_block_size / 8;
+    static const size_t SHA256_block_size_bytes = libsnark::SHA256_block_size / 8;
 
-    const size_t input_size_in_bits = SHA256_digest_size;
+    const size_t input_size_in_bits = libsnark::SHA256_digest_size;
 
     const size_t input_size_in_fields;
 
-    const pb_variable_array<FieldT> input_as_field_elements;
+    const VariableArrayT input_as_field_elements;
 
-    digest_variable<FieldT> expected_digest;
+    libsnark::digest_variable<FieldT> expected_digest;
 
-    const pb_variable_array<FieldT> input_as_bits;
+    const VariableArrayT input_as_bits;
 
-    multipacking_gadget<FieldT> unpacker;
+    libsnark::multipacking_gadget<FieldT> unpacker;
 
-    block_variable<FieldT> input_block;
+    libsnark::block_variable<FieldT> input_block;
 
-    digest_variable<FieldT> output;
+    libsnark::digest_variable<FieldT> output;
 
     sha256_full_gadget_512<FieldT> full_hasher;
 
 
     mod_hashpreimage(
-        protoboard<FieldT> &in_pb,
+        ProtoboardT &in_pb,
         const std::string &annotation_prefix
     ) :
-        gadget<FieldT>(in_pb, annotation_prefix),
+        GadgetT(in_pb, annotation_prefix),
 
         // number of field packed elements as input
         input_size_in_fields( libff::div_ceil(input_size_in_bits, FieldT::capacity()) ),
 
         // packed input, given to prover/verifier
-        input_as_field_elements( pb_variable_array_allocate(in_pb, input_size_in_fields, FMT(annotation_prefix, " input_as_field_elements")) ),
+        input_as_field_elements( make_var_array(in_pb, input_size_in_fields, FMT(annotation_prefix, " input_as_field_elements")) ),
 
         // public input digest, must match output
-        expected_digest(in_pb, SHA256_digest_size, FMT(annotation_prefix, " expected_digest")),
+        expected_digest(in_pb, libsnark::SHA256_digest_size, FMT(annotation_prefix, " expected_digest")),
 
         // unpacked input bits, mapped to the input digest
         input_as_bits(expected_digest.bits.begin(), expected_digest.bits.end()),
@@ -79,10 +69,10 @@ public:
         unpacker(in_pb, input_as_bits, input_as_field_elements, FieldT::capacity(), "unpacker"),
 
         // private input block for hashing, 512 bits
-        input_block(in_pb, SHA256_block_size, FMT(annotation_prefix, " input_block")),
+        input_block(in_pb, libsnark::SHA256_block_size, FMT(annotation_prefix, " input_block")),
 
         // output digest variable, 256 bits
-        output(in_pb, SHA256_digest_size, FMT(annotation_prefix, " output")),
+        output(in_pb, libsnark::SHA256_digest_size, FMT(annotation_prefix, " output")),
 
         // HASH(input_block) -> output
         full_hasher(in_pb, input_block, output, FMT(annotation_prefix, " full_hasher"))
@@ -140,7 +130,7 @@ public:
     }
 
 
-    static r1cs_primary_input<FieldT> make_primary_input(const libff::bit_vector &in_block_bv)
+    static PrimaryInputT make_primary_input(const libff::bit_vector &in_block_bv)
     {
         assert( in_block_bv.size() == SHA256_block_size );
 
@@ -148,14 +138,16 @@ public:
     }
 };
 
+// ethsnarks
+}
 
 
 char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
 {
-    ppT::init_public_params();
+    ethsnarks::ppT::init_public_params();
 
-    protoboard<FieldT> pb;
-    mod_hashpreimage mod(pb, "module");
+    ethsnarks::ProtoboardT pb;
+    ethsnarks::mod_hashpreimage mod(pb, "module");
     mod.generate_r1cs_constraints();
     mod.generate_r1cs_witness(preimage_bytes64);
 
@@ -164,12 +156,12 @@ char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
         return nullptr;
     }
 
-    auto proving_key = loadFromFile<ProvingKeyT>(pk_file);
+    auto proving_key = ethsnarks::loadFromFile<ethsnarks::ProvingKeyT>(pk_file);
     // TODO: verify if proving key was loaded correctly, if not return NULL
 
     auto primary_input = pb.primary_input();
-    auto proof = r1cs_gg_ppzksnark_zok_prover<ppT>(proving_key, primary_input, pb.auxiliary_input());
-    auto json = proof_to_json(proof, primary_input);
+    auto proof = libsnark::r1cs_gg_ppzksnark_zok_prover<ethsnarks::ppT>(proving_key, primary_input, pb.auxiliary_input());
+    auto json = ethsnarks::proof_to_json(proof, primary_input);
 
     return ::strdup(json.c_str());
 }
@@ -177,7 +169,7 @@ char *hashpreimage_prove( const char *pk_file, const uint8_t *preimage_bytes64 )
 
 int hashpreimage_genkeys( const char *pk_file, const char *vk_file )
 {
-    return ethsnarks::stub_genkeys<mod_hashpreimage>(pk_file, vk_file);
+    return ethsnarks::stub_genkeys<ethsnarks::mod_hashpreimage>(pk_file, vk_file);
 }
 
 

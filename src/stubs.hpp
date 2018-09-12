@@ -2,12 +2,15 @@
 #define ETHSNARKS_STUBS_HPP
 
 #include "utils.hpp"
+#include "export.hpp"
 
 namespace ethsnarks {
 
 bool stub_verify( const char *vk_json, const char *proof_json );
 
 int stub_main_verify( const char *prog_name, int argc, char **argv );
+
+bool stub_test_proof_verify( const ProtoboardT &in_pb );
 
 template<class GadgetT>
 int stub_genkeys( const char *pk_file, const char *vk_file )
@@ -19,7 +22,7 @@ int stub_genkeys( const char *pk_file, const char *vk_file )
     mod.generate_r1cs_constraints();
 
     auto keypair = libsnark::r1cs_gg_ppzksnark_zok_generator<ppT>(pb.get_constraint_system());
-    ethsnarks::vk2json_file(keypair.vk, vk_file);
+    vk2json_file(keypair.vk, vk_file);
     writeToFile<decltype(keypair.pk)>(pk_file, keypair.pk);
 
     return 0;

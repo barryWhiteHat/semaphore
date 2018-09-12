@@ -1,5 +1,5 @@
 #include "export.hpp"
-#include "import.cpp"
+#include "import.hpp"
 #include "utils.hpp"
 
 
@@ -12,6 +12,8 @@ using std::stringstream;
 using ethsnarks::ppT;
 using ethsnarks::ProofT;
 using ethsnarks::proof_to_json;
+using ethsnarks::proof_from_json;
+using ethsnarks::loadFromFile;
 
 
 int main( int argc, char **argv )
@@ -26,7 +28,7 @@ int main( int argc, char **argv )
 	ifstream original_proof_input(argv[1]);
 	stringstream original_proof_stream;
 	original_proof_stream << original_proof_input.rdbuf();
-	auto original_proof_json = proof_from_json<ppT>(original_proof_stream);
+	auto original_proof_json = proof_from_json(original_proof_stream);
 
 	// Load raw serialised proof
 	auto proof = loadFromFile<ProofT> (argv[2]);
@@ -37,7 +39,7 @@ int main( int argc, char **argv )
 	// Load JSON serialised proof
 	stringstream proof_stream;
 	proof_stream << proof_json_serialised;
-	auto proof_json = proof_from_json<ppT>(proof_stream);
+	auto proof_json = proof_from_json(proof_stream);
 
 	// Verify serialisation is correct
 	if( ! (proof_json.second == proof) ) {

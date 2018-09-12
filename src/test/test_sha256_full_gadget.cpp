@@ -7,7 +7,13 @@
 #include <openssl/sha.h>
 #include <openssl/rand.h>
 
+using libsnark::digest_variable;
+using libsnark::block_variable;
+using libsnark::SHA256_digest_size;
 
+using ethsnarks::ppT;
+
+namespace ethsnarks {
 
 /**
 * Verifies that the SHA256_full gadget matches a reference implementation
@@ -20,7 +26,6 @@
 *  - Flip bits in left/right
 *  - all flip options toggleable
 */
-template<typename FieldT>
 bool test_sha256_full_gadget()
 {
     // Create a block_size'd buffer of random bytes
@@ -55,7 +60,7 @@ bool test_sha256_full_gadget()
     // ----------------------------------------------------------------
     // Setup circuit to do full_output = SHA256(left, right)
 
-    protoboard<FieldT> pb;
+    ProtoboardT pb;
 
     // split the input buffer into the right & left components
     digest_variable<FieldT> left(pb, SHA256_digest_size, "left");
@@ -118,14 +123,14 @@ bool test_sha256_full_gadget()
     return pb.is_satisfied();
 }
 
+// namespace ethsnarks
+}
+
 int main( int argc, char **argv )
 {
-	// Types for board
-	typedef libff::alt_bn128_pp ppT;
-	typedef libff::Fr<ppT> FieldT;
 	ppT::init_public_params();
 
-	if( ! test_sha256_full_gadget<FieldT>() )
+	if( ! ethsnarks::test_sha256_full_gadget() )
 	{
 		std::cerr << "FAIL\n";
 		return 1;

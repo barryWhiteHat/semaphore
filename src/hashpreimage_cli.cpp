@@ -18,6 +18,8 @@ using std::stringstream;
 
 using ethsnarks::stub_main_genkeys;
 using ethsnarks::stub_main_verify;
+using ethsnarks::hex_to_bytes;
+using ethsnarks::mod_hashpreimage;
 
 
 static int main_prove( int argc, char **argv )

@@ -13,11 +13,11 @@
 
 #include "utils.hpp"
 
-using namespace libsnark;
+namespace ethsnarks {
 
-static const size_t SHA256_digest_size_bytes = SHA256_digest_size / 8;
+static const size_t SHA256_digest_size_bytes = libsnark::SHA256_digest_size / 8;
 
-static const size_t SHA256_block_size_bytes = SHA256_block_size / 8;
+static const size_t SHA256_block_size_bytes = libsnark::SHA256_block_size / 8;
 
 
 /**
@@ -56,50 +56,35 @@ static const libff::bit_vector _final_padding_512 = libff::int_list_to_bits({
     0x00, 0x00, 0x02, 0x00}, 8);
 
 
-/**
-* Convert a bit vector to a pb_variable_array
-*/
-template<typename FieldT>
-pb_variable_array<FieldT> pb_variable_array_from_bits(
-    protoboard<FieldT> &in_pb,
-    const libff::bit_vector& bits,
-    const std::string annotation_prefix )
-{
-    pb_variable_array<FieldT> out;
-    out.allocate(in_pb, bits.size(), annotation_prefix);
-    out.fill_with_bits(in_pb, bits);
-    return out;
-}
-
 
 /**
 * Perform full round of SHA-256 on a 512 bit input
 */
 template<typename FieldT>
-class sha256_full_gadget_512 : public gadget<FieldT>
+class sha256_full_gadget_512 : public GadgetT
 {
 public:
-    digest_variable<FieldT> intermediate_hash;
+    libsnark::digest_variable<FieldT> intermediate_hash;
 
-    const block_variable<FieldT> input_block;
+    const libsnark::block_variable<FieldT> input_block;
 
-    const digest_variable<FieldT> output;
+    const libsnark::digest_variable<FieldT> output;
 
-    sha256_compression_function_gadget<FieldT> input_hasher;
+    libsnark::sha256_compression_function_gadget<FieldT> input_hasher;
 
-    const pb_variable_array<FieldT> length_padding;
+    const VariableArrayT length_padding;
 
-    sha256_compression_function_gadget<FieldT> final_hasher;
+    libsnark::sha256_compression_function_gadget<FieldT> final_hasher;
 
     sha256_full_gadget_512(
-        protoboard<FieldT> &in_pb,
-        const block_variable<FieldT> &in_input_block,
-        const digest_variable<FieldT> &in_output,
+        ProtoboardT &in_pb,
+        const libsnark::block_variable<FieldT> &in_input_block,
+        const libsnark::digest_variable<FieldT> &in_output,
         const std::string &annotation_prefix
     ) :
-        gadget<FieldT>(in_pb, FMT(annotation_prefix, "sha256_full_gadget_512")),
+        GadgetT(in_pb, FMT(annotation_prefix, "sha256_full_gadget_512")),
 
-        intermediate_hash(in_pb, SHA256_digest_size, FMT(annotation_prefix, " intermediate_hash")),
+        intermediate_hash(in_pb, libsnark::SHA256_digest_size, FMT(annotation_prefix, " intermediate_hash")),
 
         input_block(in_input_block),
 
@@ -111,7 +96,7 @@ public:
                      intermediate_hash,         // output
                      FMT(annotation_prefix, " input_hasher")),
 
-        length_padding(pb_variable_array_from_bits<FieldT>(in_pb, _final_padding_512, FMT(annotation_prefix, " length_padding"))),
+        length_padding(VariableArray_from_bits(in_pb, _final_padding_512, FMT(annotation_prefix, " length_padding"))),
 
         final_hasher(in_pb,
                      intermediate_hash.bits,    // prev_output
@@ -170,3 +155,6 @@ public:
         this->generate_r1cs_witness( input_bv, output_bv );
     }
 };
+
+// ethsnarks
+}

@@ -1,8 +1,19 @@
 #include "utils.hpp"
 #include "mod/hashpreimage.cpp"
 
+using libsnark::r1cs_gg_ppzksnark_zok_generator;
+using libsnark::r1cs_gg_ppzksnark_zok_prover;
+using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
+
 using ethsnarks::ppT;
 using ethsnarks::FieldT;
+using ethsnarks::ProtoboardT;
+using ethsnarks::SHA256_block_size_bytes;
+using ethsnarks::SHA256_digest_size_bytes;
+using ethsnarks::bytes_to_bv;
+using ethsnarks::bv_to_bytes;
+using ethsnarks::print_bv;
+using ethsnarks::mod_hashpreimage;
 
 
 int main( int argc, char **argv )
@@ -26,7 +37,7 @@ int main( int argc, char **argv )
     auto output_expected_bv = bytes_to_bv(output_expected, SHA256_digest_size_bytes);
 
     // Setup new preimage hash
-    protoboard<FieldT> pb;
+    ProtoboardT pb;
     mod_hashpreimage mod(pb, "mod_hashpreimage");
     mod.generate_r1cs_constraints();
     mod.generate_r1cs_witness(input_buffer_bv, output_expected_bv);

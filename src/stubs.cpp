@@ -2,10 +2,11 @@
 
 #include <sstream>  // stringstream
 
-#include "ethsnarks.hpp"
 #include "utils.hpp"
-#include "import.cpp"
+#include "import.hpp"
 #include "export.hpp"
+
+#include "r1cs_gg_ppzksnark_zok/r1cs_gg_ppzksnark_zok.hpp"
 
 namespace ethsnarks {
 
@@ -15,11 +16,11 @@ bool stub_verify( const char *vk_json, const char *proof_json )
 
     std::stringstream vk_stream;
     vk_stream << vk_json;
-    auto vk = vk_from_json<ppT>(vk_stream);
+    auto vk = vk_from_json(vk_stream);
 
     std::stringstream proof_stream;
     proof_stream << proof_json;
-    auto proof_pair = proof_from_json<ppT>(proof_stream);
+    auto proof_pair = proof_from_json(proof_stream);
 
     auto status = libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);
     if( status )
@@ -72,6 +73,20 @@ int stub_main_verify( const char *prog_name, int argc, char **argv )
 
     return 1;
 }
+
+
+bool stub_test_proof_verify( const ProtoboardT &in_pb )
+{
+    auto constraints = in_pb.get_constraint_system();
+    auto keypair = libsnark::r1cs_gg_ppzksnark_zok_generator<ppT>(constraints);
+
+    auto primary_input = in_pb.primary_input();
+    auto auxiliary_input = in_pb.auxiliary_input();
+    auto proof = libsnark::r1cs_gg_ppzksnark_zok_prover<ppT>(keypair.pk, primary_input, auxiliary_input);
+
+    return libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (keypair.vk, primary_input, proof);
+}
+
 
 }
 // namespace ethsnarks

@@ -1,9 +1,9 @@
 #include <fstream>
 #include <iomanip>
 
-#include <libsnark/gadgetlib1/pb_variable.hpp>
+#include "utils.hpp"
 
-using libsnark::pb_variable_array;
+namespace ethsnarks {
 
 
 // Copied from `int_list_to_bits`
@@ -13,7 +13,7 @@ libff::bit_vector bytes_to_bv(const uint8_t *in_bytes, const size_t in_count)
     for( size_t i = 0; i < in_count; i++ )
     {
         for( size_t j = 0; j < 8; j++ ) {
-            res[i * 8 + j] = in_bytes[i] & (1 << (8 - 1 - j)) ? 1 : 0;
+            res[i * 8 + j] = (in_bytes[i] & (1 << (8 - 1 - j))) ? 1 : 0;
         }
     }
     return res;
@@ -36,11 +36,46 @@ std::vector<unsigned long> bit_list_to_ints(std::vector<bool> bit_list, const si
 
             current += (bit_list[i*wordsize+j] * (1ul<<(wordsize-1-j)));
       }
+
       res.push_back(current);
     }
 
     return res;
 }
+
+
+const VariableArrayT make_var_array( ProtoboardT &in_pb, size_t n, const std::string &annotation )
+{
+    VariableArrayT x;
+    x.allocate(in_pb, n, annotation);
+    return x;
+}
+
+
+/* `allocate_var_index` is private, must use this workaround... */
+const VariableT make_variable( ProtoboardT &in_pb, const std::string &annotation )
+{
+    VariableT x;
+    x.allocate(in_pb, annotation);
+    return x;
+}
+
+
+
+/**
+* Convert a bit vector to a pb_variable_array
+*/
+VariableArrayT VariableArray_from_bits(
+    ProtoboardT &in_pb,
+    const libff::bit_vector& bits,
+    const std::string &annotation_prefix )
+{
+    VariableArrayT out;
+    out.allocate(in_pb, bits.size(), annotation_prefix);
+    out.fill_with_bits(in_pb, bits);
+    return out;
+}
+
 
 
 int char2int( const char input )
@@ -117,4 +152,7 @@ void print_bytes( const char *prefix, const size_t n_bytes, const uint8_t *in_by
        printf("%02X", in_bytes[i]);
     }
     printf("\n");
+}
+
+// ethsnarks
 }

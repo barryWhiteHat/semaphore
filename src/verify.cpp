@@ -5,13 +5,16 @@
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include "import.cpp"
+#include "import.hpp"
 
 using namespace std;
 
 using libsnark::r1cs_gg_ppzksnark_zok_verifier_strong_IC;
 
-typedef libff::alt_bn128_pp ppT;
+using ethsnarks::vk_from_json;
+using ethsnarks::proof_from_json;
+using ethsnarks::ppT;
+
 
 struct noop {
 	void operator()(...) const {}
@@ -44,7 +47,7 @@ int main( int argc, char **argv )
 		vk_stream << vk_input.rdbuf();
 		vk_input.close();
 	}
-	auto vk = vk_from_json<ppT>(vk_stream);
+	auto vk = vk_from_json(vk_stream);
 
 	// Load proof from JSON
 	stringstream proof_stream;
@@ -55,7 +58,7 @@ int main( int argc, char **argv )
 	}
 	proof_stream << proof_input.rdbuf();
 	proof_input.close();
-	auto proof_pair = proof_from_json<ppT>(proof_stream);
+	auto proof_pair = proof_from_json(proof_stream);
 
 	// Then perform verification
 	auto status = r1cs_gg_ppzksnark_zok_verifier_strong_IC <ppT> (vk, proof_pair.first, proof_pair.second);

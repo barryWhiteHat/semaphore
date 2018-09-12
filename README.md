@@ -33,7 +33,8 @@ If you have any ideas for new components, please file a ticket.
 # Gadgets
 
  * 1-of-N
- * MiMC / LongsightF
+ * MiMC / LongsightL
+ * Miyaguchi-Preneel construct
  * SHA256 (full round)
  * Shamir's Secret Sharing Scheme (generation)
 

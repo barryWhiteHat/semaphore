@@ -7,25 +7,25 @@
 #include "longsightl_constants.hpp"
 #include "onewayfunction.hpp"
 
+namespace ethsnarks {
 
-class LongsightL_round : public libsnark::gadget<ethsnarks::FieldT>
+class LongsightL_round : public GadgetT
 {
 public:
-    const libsnark::pb_variable<ethsnarks::FieldT> var_input_x;
-    const libsnark::pb_variable<ethsnarks::FieldT> var_input_k;
-    const ethsnarks::FieldT round_constant;
+    const VariableT var_input_x;
+    const VariableT var_input_k;
+    const FieldT round_constant;
 
-    const libsnark::pb_variable<ethsnarks::FieldT> var_sq2;      // n^2
-    const libsnark::pb_variable<ethsnarks::FieldT> var_sq4;      // n^4
-    const libsnark::pb_variable<ethsnarks::FieldT> var_sq5;      // n^5
-
-    const libsnark::pb_variable<ethsnarks::FieldT> var_output;
+    VariableT var_sq2;      // n^2
+    VariableT var_sq4;      // n^4
+    VariableT var_sq5;      // n^5
+    VariableT var_output;
 
     LongsightL_round(
-        libsnark::protoboard<ethsnarks::FieldT> &in_pb,
-        const libsnark::pb_variable<ethsnarks::FieldT> &in_x,
-        const libsnark::pb_variable<ethsnarks::FieldT> &in_k,
-        const ethsnarks::FieldT in_constant,
+        ProtoboardT &in_pb,
+        const VariableT &in_x,
+        const VariableT &in_k,
+        const FieldT in_constant,
         const std::string &in_annotation_prefix=""
     );
 
@@ -33,42 +33,41 @@ public:
 
     void generate_r1cs_witness();
 
-    const libsnark::pb_variable<ethsnarks::FieldT>& result() const;
+    const VariableT& result() const;
 };
 
 
-class LongsightL_gadget : public libsnark::gadget<ethsnarks::FieldT>
+class LongsightL_gadget : public GadgetT
 {
 public:
     std::vector<LongsightL_round> m_rounds;
-    const std::vector<ethsnarks::FieldT> m_constants;
+    const std::vector<FieldT> m_constants;
 
-    const libsnark::pb_variable<ethsnarks::FieldT> start_x;
+    const VariableT start_x;
 
     LongsightL_gadget(
-        libsnark::protoboard<ethsnarks::FieldT> &in_pb,
-        const std::vector<ethsnarks::FieldT> in_constants,
-        const libsnark::pb_variable<ethsnarks::FieldT> in_x,
-        const libsnark::pb_variable<ethsnarks::FieldT> in_k,
+        ProtoboardT &in_pb,
+        const std::vector<FieldT> &in_constants,
+        const VariableT in_x,
+        const VariableT in_k,
         const std::string &in_annotation_prefix=""
     );
 
-    const libsnark::pb_variable<ethsnarks::FieldT>& result() const;
+    const VariableT& result() const;
 
     void generate_r1cs_constraints();
 
     void generate_r1cs_witness();
 };
-
 
 
 class LongsightL12p5_gadget : public LongsightL_gadget
 {
 public:
     LongsightL12p5_gadget(
-        libsnark::protoboard<ethsnarks::FieldT> &in_pb,
-        const libsnark::pb_variable<ethsnarks::FieldT> &in_x,
-        const libsnark::pb_variable<ethsnarks::FieldT> &in_k,
+        ProtoboardT &in_pb,
+        const VariableT &in_x,
+        const VariableT &in_k,
         const std::string &in_annotation_prefix=""
     ) :
         LongsightL_gadget(in_pb, LongsightL12p5_constants_assign(), in_x, in_k, in_annotation_prefix)
@@ -77,12 +76,11 @@ public:
 };
 
 
-class LongsightL12p5_MP_gadget : public MiyaguchiPreneel_OWF<LongsightL12p5_gadget, libsnark::pb_variable<ethsnarks::FieldT>>
+class LongsightL12p5_MP_gadget : public MiyaguchiPreneel_OWF<LongsightL12p5_gadget>
 {
 public:
-    using VariableT = libsnark::pb_variable<ethsnarks::FieldT>;
     LongsightL12p5_MP_gadget(
-        libsnark::protoboard<ethsnarks::FieldT> &in_pb,
+        ProtoboardT &in_pb,
         VariableT in_IV,
         std::vector<VariableT> in_messages,
         const std::string &in_annotation_prefix=""
@@ -92,6 +90,9 @@ public:
 
     }
 };
+
+// ethsnarks
+}
 
 
 #endif
