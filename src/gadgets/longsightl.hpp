@@ -47,7 +47,7 @@ public:
 
     LongsightL_gadget(
         ProtoboardT &in_pb,
-        const std::vector<FieldT> in_constants,
+        const std::vector<FieldT> &in_constants,
         const VariableT in_x,
         const VariableT in_k,
         const std::string &in_annotation_prefix=""

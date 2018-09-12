@@ -30,7 +30,7 @@ def main(vk_filename, name='_getStaticProof'):
         for i, v in enumerate(proof.input):
             out.append("\t\toutput.input[%d] = %s;" % (i, hex(v)))
 
-        out.append("\t}");
+        out.append("\t}")
         print('\n'.join(out))
 
 

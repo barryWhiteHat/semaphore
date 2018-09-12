@@ -49,7 +49,7 @@ public:
         const VariableT in_input,
         const VariableT in_pathvar,
         const VariableT in_is_right,
-        const std::string in_annotation_prefix=""
+        const std::string &in_annotation_prefix=""
     ) :
         GadgetT(in_pb, in_annotation_prefix),
         m_input(in_input),
@@ -167,7 +167,7 @@ public:
         const VariableT in_leaf,
         const VariableT in_expected_root,
         const VariableArrayT in_path,
-        const std::string in_annotation_prefix = ""
+        const std::string &in_annotation_prefix = ""
     ) :
         GadgetT(in_pb, FMT(in_annotation_prefix, " merkle_path_authenticator")),
         m_depth(in_depth),

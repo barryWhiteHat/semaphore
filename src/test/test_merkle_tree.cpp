@@ -75,7 +75,7 @@ bool test_merkle_path_authenticator() {
 
 	size_t tree_depth = 1;
 	merkle_path_authenticator<LongsightL12p5_MP_gadget> auth(
-		pb, 1, address_bits,
+		pb, tree_depth, address_bits,
 		merkle_tree_IVs(pb),
 		leaf, expected_root, path);
 

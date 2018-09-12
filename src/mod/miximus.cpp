@@ -41,7 +41,6 @@ namespace ethsnarks {
 class mod_miximus : public GadgetT
 {
 public:
-
     typedef LongsightL12p5_MP_gadget HashT;
     const size_t tree_depth = MIXIMUS_TREE_DEPTH;
 
@@ -83,8 +82,8 @@ public:
         external_hash_var(make_variable(in_pb, FMT(annotation_prefix, ".external_hash_var"))),
 
         // constant inputs
-        spend_hash_IV(make_variable(in_pb, FMT(annotation_prefix, ".spend_hash_iv"))),
-        leaf_hash_IV(make_variable(in_pb, FMT(annotation_prefix, ".leaf_hash_iv"))),
+        spend_hash_IV(make_variable(in_pb, FMT(annotation_prefix, ".spend_hash_IV"))),
+        leaf_hash_IV(make_variable(in_pb, FMT(annotation_prefix, ".leaf_hash_IV"))),
 
         // private inputs
         spend_preimage_var(make_variable(in_pb, FMT(annotation_prefix, ".spend_preimage_var"))),
@@ -112,7 +111,7 @@ public:
         FieldT in_exthash,      // hash of external parameters
         FieldT in_preimage,     // spend preimage
         libff::bit_vector in_address,
-        std::vector<FieldT> in_path
+        std::vector<FieldT> &in_path
     ) {
         // public inputs
         this->pb.val(root_var) = in_root;
@@ -122,6 +121,10 @@ public:
         // private inputs
         this->pb.val(spend_preimage_var) = in_preimage;
         address_bits.fill_with_bits(this->pb, in_address);
+
+        for( size_t i = 0; i < tree_depth; i++ ) {
+            this->pb.val(path_var[i]) = in_path[i];
+        }
 
         // gadgets
         spend_hash.generate_r1cs_witness();

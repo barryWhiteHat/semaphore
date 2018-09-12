@@ -10,8 +10,8 @@ def main(vk_filename, name='_getVerifyingKey'):
     """Outputs the solidity code necessary to instansiate a VerifyingKey variable"""
     with open(vk_filename, 'r') as handle:
         vk = VerifyingKey.from_dict(json.load(handle))
-        indent = "\t\t";
-        varname = "vk";
+        indent = "\t\t"
+        varname = "vk"
         out = [
             "\tfunction %s (Verifier.VerifyingKey memory %s)" % (name, varname),
             "\t\tinternal pure",
@@ -27,7 +27,7 @@ def main(vk_filename, name='_getVerifyingKey'):
         out.append("%s%s.gammaABC = new Pairing.G1Point[](%d);" % (indent, varname, len(vk.gammaABC)))
         for i, v in enumerate(vk.gammaABC):
             out.append("%s%s.gammaABC[%d] = %s;" % (indent, varname, i, g1_to_sol(v)))
-        out.append("\t}");
+        out.append("\t}")
 
         print('\n'.join(out))
 
