@@ -84,7 +84,6 @@ bool test_merkle_path_authenticator() {
 
 	if( ! auth.is_valid() ) {
 		std::cerr << "Not valid!" << std::endl;
-		std::cerr << "Got " << pb.val(auth.calculated_root()) << std::endl;
 		return false;
 	}
 

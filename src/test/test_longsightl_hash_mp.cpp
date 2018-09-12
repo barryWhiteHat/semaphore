@@ -37,7 +37,6 @@ bool test_LongsightL()
     auto result_expected = FieldT("16743249391414211194903251836323254089433285237756741022465555151301952011503");
     if( result_expected != pb.val(the_gadget.result()) ) {
         std::cerr << "Unexpected result!\n";
-        std::cerr << "Got " << pb.val(the_gadget.result()) << "\n";
         return false;
     }
 
