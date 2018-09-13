@@ -104,6 +104,21 @@ coverage-html:
 #######################################################################
 
 
+lint: python-pyflakes python-pylint cxx-lint
+
+python-pyflakes:
+	$(PYTHON) -mpyflakes $(NAME)
+
+python-pylint:
+	$(PYTHON) -mpylint $(NAME) || true
+
+cxx-lint:
+	cppcheck -I depends/libsnark/ -I depends/libsnark/depends/libff/ -I depends/libsnark/depends/libfqfft/ -I src/ --enable=all src/ || true
+
+
+#######################################################################
+
+
 python-dependencies: requirements requirements-dev
 
 requirements:
@@ -146,12 +161,3 @@ truffle-compile: $(TRUFFLE)
 testrpc: $(TRUFFLE)
 	$(NPM) run testrpc
 
-
-#######################################################################
-
-
-python-pyflakes:
-	$(PYTHON) -mpyflakes $(NAME)
-
-python-pylint:
-	$(PYTHON) -mpylint $(NAME)

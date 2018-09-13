@@ -1,84 +1,141 @@
-contract MerkleTree {
-    mapping (bytes32 => bool) public serials;
-    mapping (bytes32 => bool) public roots;
-    uint public tree_depth = 29;
-    uint public no_leaves = 536870912;
-    struct Mtree {
+pragma solidity ^0.4.24;
+
+import "./LongsightL.sol";
+
+library MerkleTree
+{
+    // ceil(log2(2<<28))
+    uint constant public tree_depth = 29;
+
+
+    // 2<<28 leaves
+    uint constant public MaxLeafCount = 536870912;
+
+
+    struct Data
+    {
         uint cur;
-        bytes32[536870912][30] leaves2;
+        mapping (uint256 => bool) roots;
+        uint256[536870912][30] leaves;
     }
 
-    Mtree public MT;
 
-    event leafAdded(uint index);
+    function HashImpl (uint256 left, uint256 right)
+        internal pure returns (uint256)
+    {
+        // XXX: it is inefficient to fill the constants every time!
+        uint256[10] memory C;
+        LongsightL.ConstantsL12p5(C);
 
-    //Merkletree.append(com)
-    function insert(bytes32 com) internal returns (bool res) {
-        require (MT.cur != no_leaves - 1);
-        MT.leaves2[0][MT.cur] = com;
-        updateTree();
-        leafAdded(MT.cur);
-        MT.cur++;
+        uint256 IV = 0;
+
+        return LongsightL.LongsightL12p5_MP([left, right], IV, C);
+    }
+
+
+    function Insert(Data storage self, uint256 com)
+        internal returns (bool)
+    {
+        uint256 offset = self.cur;
+
+        require (offset != MaxLeafCount - 1);
+
+        self.leaves[0][offset] = com;
+
+        UpdateTree(self);
+
+        self.cur = offset + 1;
    
         return true;
     }
 
 
-    function getMerkleProof(uint index) constant returns (bytes32[29], uint[29]) {
+    function GetProof(Data storage self, uint index)
+        internal view returns (uint256[29], bool[29])
+    {
+        bool[29] memory address_bits;
 
-        uint[29] memory address_bits;
-        bytes32[29] memory merkleProof;
+        uint256[29] memory proof_path;
 
-        for (uint i=0 ; i < tree_depth; i++) {
-            address_bits[i] = index%2;
-            if (index%2 == 0) {
-                merkleProof[i] = getUniqueLeaf(MT.leaves2[i][index + 1],i);
+        for (uint i=0 ; i < tree_depth; i++)
+        {
+            address_bits[i] = index % 2 == 0 ? false : true;
+
+            if (index%2 == 0)
+            {
+                proof_path[i] = GetUniqueLeaf(self.leaves[i][index + 1], i);
             }
             else {
-                merkleProof[i] = getUniqueLeaf(MT.leaves2[i][index - 1],i);
+                proof_path[i] = GetUniqueLeaf(self.leaves[i][index - 1], i);
             }
-            index = uint(index/2);
+
+            index = uint(index / 2);
         }
-        return(merkleProof, address_bits);   
+
+        return(proof_path, address_bits);
     }
 
-    function getUniqueLeaf(bytes32 leaf, uint depth)
-        pure returns (bytes32)
+
+    function GetUniqueLeaf(uint256 leaf, uint depth)
+        internal pure returns (uint256)
     {
-        if (leaf == 0x0) {
-            for (uint i=0;i<depth;i++) {
-                leaf = sha256(leaf, leaf);
+        if (leaf == 0x0)
+        {
+            for (uint i=0; i < depth; i++)
+            {
+                leaf = HashImpl(leaf, leaf);
             }
         }
+
         return(leaf);
     }
-    
-    function updateTree() internal returns(bytes32 root) {
-        uint CurrentIndex = MT.cur;
-        bytes32 leaf1;
-        bytes32 leaf2;
-        for (uint i=0 ; i < tree_depth; i++) {
+
+
+    function UpdateTree(Data storage self)
+        internal returns(uint256 root)
+    {
+        uint CurrentIndex = self.cur;
+
+        uint256 leaf1;
+
+        uint256 leaf2;
+
+        for (uint i=0 ; i < tree_depth; i++)
+        {
             uint NextIndex = uint(CurrentIndex/2);
-            if (CurrentIndex%2 == 0) {
-                leaf1 =  MT.leaves2[i][CurrentIndex];
-                leaf2 = getUniqueLeaf(MT.leaves2[i][CurrentIndex + 1], i);
-            } else {
-                leaf1 = getUniqueLeaf(MT.leaves2[i][CurrentIndex - 1], i);
-                leaf2 =  MT.leaves2[i][CurrentIndex];
+
+            if (CurrentIndex%2 == 0)
+            {
+                leaf1 = self.leaves[i][CurrentIndex];
+
+                leaf2 = GetUniqueLeaf(self.leaves[i][CurrentIndex + 1], i);
             }
-            MT.leaves2[i+1][NextIndex] = (sha256( leaf1, leaf2));
+            else
+            {
+                leaf1 = GetUniqueLeaf(self.leaves[i][CurrentIndex - 1], i);
+
+                leaf2 = self.leaves[i][CurrentIndex];
+            }
+
+            self.leaves[i+1][NextIndex] = HashImpl(leaf1, leaf2);
+
             CurrentIndex = NextIndex;
         }
-        return MT.leaves2[tree_depth][0];
+
+        return self.leaves[tree_depth][0];
     }
     
    
-    function getLeaf(uint j,uint k) constant returns (bytes32 root) {
-        root = MT.leaves2[j][k];
+    function GetLeaf(Data storage self, uint depth, uint offset)
+        internal view returns (uint256)
+    {
+        return self.leaves[depth][offset];
     }
 
-    function getRoot() constant returns(bytes32 root) {
-        root = MT.leaves2[tree_depth][0];
-    }
 
+    function GetRoot (Data storage self)
+        internal view returns(uint256)
+    {
+        return self.leaves[tree_depth][0];
+    }
 }
