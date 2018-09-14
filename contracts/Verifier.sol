@@ -9,6 +9,12 @@ library Verifier
     using Pairing for Pairing.G1Point;
     using Pairing for Pairing.G2Point;
 
+    function ScalarField ()
+        public pure returns (uint256)
+    {
+        return 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    }
+
     struct VerifyingKey
     {
         Pairing.G1Point alpha;

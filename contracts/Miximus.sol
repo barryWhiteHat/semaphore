@@ -18,66 +18,64 @@
 */
 
 pragma solidity ^0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "./Verifier.sol";
+import "./SnarkUtils.sol";
+import "./MerkleTree.sol";
 
-library Miximus
+
+contract Miximus
 {
-    struct Data {    
-        bytes32 root;
-        mapping (bytes32 => bool) nullifiers;
-        Verifier zksnark_verify;
-    }
+    using MerkleTree for MerkleTree.Data;
 
-    function isTrue (
-        Data self,
-        uint[2] a,
-        uint[2] a_p,
-        uint[2][2] b,
-        uint[2] b_p,
-        uint[2] c,
-        uint[2] c_p,
-        uint[2] h,
-        uint[2] k,
-        uint[] input)
-        internal view returns (bool)
+    uint constant AMOUNT = 1 ether;
+
+    mapping (uint256 => bool) nullifiers;
+
+    MerkleTree.Data tree;
+
+    function GetVerifyingKey ()
+        internal pure returns (Verifier.VerifyingKey memory);
+
+    function Deposit(uint256 leaf)
+        public payable returns (uint256)
     {
+        require( msg.value == AMOUNT );
 
-        bytes32 _root = padZero(reverse(bytes32(input[0])));
-        require(_root == padZero(self.root));
-
-        //require( self.nulifiers[x] == false );
-
-        //require(self.zksnark_verify.verifyTx(a,a_p,b,b_p,c,c_p,h,k,input));      
-        return(true);
+        return tree.Insert(leaf);
     }
 
-    function padZero(bytes32 x)
-        internal pure returns(bytes32)
+
+    function Withdraw(
+        uint256 in_root,
+        uint256 in_nullifier,
+        Verifier.Proof in_proof
+    )
+        public
     {
-                 //0x1111111111111111111111113fdc3192693e28ff6aee95320075e4c26be03308
-        return(x & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0);
-    }
+        require( false == nullifiers[in_nullifier] );
 
-    function reverseByte(uint a) public pure returns (uint) {
-        uint c = 0xf070b030d0509010e060a020c0408000;
+        uint256[] memory snark_input = new uint256[](3);
 
-        return (( c >> ((a & 0xF)*8)) & 0xF0)   +
-               (( c >> (((a >> 4)&0xF)*8) + 4) & 0xF);
-    }
+        snark_input[0] = SnarkUtils.ReverseBits(in_root);
 
-    //flip endinaness
-    function reverse(bytes32 a)
-        internal pure returns(bytes32)
-    {
-        uint r;
-        uint i;
-        uint b;
-        for (i=0; i<32; i++) {
-            b = (uint(a) >> ((31-i)*8)) & 0xff;
-            b = reverseByte(b);
-            r += b << (i*8);
-        }
-        return bytes32(r);
+        snark_input[1] = SnarkUtils.ReverseBits(in_nullifier);
+
+        snark_input[2] = SnarkUtils.ReverseBits(uint256(sha256(
+            abi.encodePacked(
+                address(this),
+                msg.sender
+            )))) % Verifier.ScalarField();
+
+        Verifier.VerifyingKey memory vk = GetVerifyingKey();
+
+        bool is_valid = Verifier.Verify( vk, in_proof, snark_input );
+
+        require( is_valid );
+
+        nullifiers[in_nullifier] = true;
+
+        msg.sender.transfer(AMOUNT);
     }
 }

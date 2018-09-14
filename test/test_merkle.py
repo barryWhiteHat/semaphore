@@ -1,7 +1,7 @@
 import unittest
 
 import hashlib
-from ethsnarks.merkletree import MerkleTree, curve_order
+from ethsnarks.merkletree import MerkleTree, MerkleHasherLongsight, curve_order
 
 
 class TestMerkleTree(unittest.TestCase):
@@ -44,6 +44,20 @@ class TestMerkleTree(unittest.TestCase):
         proof_b = tree.proof(1)
         self.assertEqual(proof_b.path, [item_a])
 
+    def test_known_2pow28(self):
+        tree = MerkleTree(2<<28)
+
+        item_a = 3703141493535563179657531719960160174296085208671919316200479060314459804651
+        tree.append(item_a)
+
+        item_b = 134551314051432487569247388144051420116740427803855572138106146683954151557
+        tree.append(item_b)
+
+        self.assertEqual(tree.root, 10928083011190212400724282287039881565290562079447442292540304400330695864757)
+
+    def test_uniques(self):
+        hasher = MerkleHasherLongsight(29)
+        self.assertEqual(hasher.unique(20, 20), 6738165491478210350639451800403024427867073896603076888955948358229240057870)
 
 if __name__ == "__main__":
     unittest.main()

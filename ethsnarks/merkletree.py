@@ -3,9 +3,9 @@
 
 import hashlib
 import math
-from collections import defaultdict, namedtuple
 
 from .longsight import LongsightL12p5_MP, curve_order
+
 
 class MerkleProof(object):
     __slots__ = ('leaf', 'address', 'path', '_hasher')

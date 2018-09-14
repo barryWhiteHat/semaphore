@@ -8,7 +8,7 @@ from binascii import unhexlify
 from collections import namedtuple
 
 from py_ecc import bn128
-from py_ecc.bn128 import pairing, G1, G2, FQ, FQ2, FQ12, neg, multiply, add
+from py_ecc.bn128 import pairing, FQ, FQ2, FQ12, neg, multiply, add
 
 
 _VerifyingKeyStruct = namedtuple('_VerifyingKeyStruct',

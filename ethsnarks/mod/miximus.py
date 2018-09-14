@@ -2,9 +2,7 @@ __all__ = ('Miximus',)
 
 import os
 import re
-import json
 import ctypes
-from collections import namedtuple
 
 from ..verifier import Proof, VerifyingKey
 
@@ -63,10 +61,13 @@ class Miximus(object):
         if pk_file is None:
             raise RuntimeError("No proving key file")
 
+        # Public parameters
         root = ctypes.c_char_p(str(root).encode('ascii'))
         nullifier = ctypes.c_char_p(str(nullifier).encode('ascii'))
-        spend_preimage = ctypes.c_char_p(str(spend_preimage).encode('ascii'))
         exthash = ctypes.c_char_p(str(exthash).encode('ascii'))
+    
+        # Private parameters
+        spend_preimage = ctypes.c_char_p(str(spend_preimage).encode('ascii'))
         address_bits = ctypes.c_char_p(address_bits.encode('ascii'))
         path = [ctypes.c_char_p(str(_).encode('ascii')) for _ in path]
         path_carr = (ctypes.c_char_p * len(path))()
@@ -74,7 +75,7 @@ class Miximus(object):
 
         pk_file_cstr = ctypes.c_char_p(pk_file.encode('ascii'))
 
-        data = self._prove(pk_file_cstr, root, nullifier, spend_preimage, exthash, address_bits, path_carr)
+        data = self._prove(pk_file_cstr, root, nullifier, exthash, spend_preimage, address_bits, path_carr)
         if data is None:
             raise RuntimeError("Could not prove!")
         return Proof.from_json(data)

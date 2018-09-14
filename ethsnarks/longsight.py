@@ -30,8 +30,6 @@ from random import randint
 from hashlib import sha256
 from py_ecc.bn128 import curve_order
 
-from .r1cs import r1cs_constraint
-
 
 def random_element():
     return randint(1, curve_order-1)

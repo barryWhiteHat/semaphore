@@ -1,7 +1,6 @@
 __all__ = ('HashPreimage',)
 
 import os
-import json
 import ctypes
 from ctypes import cdll
 

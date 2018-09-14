@@ -6,8 +6,13 @@ pragma solidity ^0.4.24;
 library LongsightL
 {
     // altBN curve order
-    uint256 constant curve_order = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
+    uint256 constant CURVE_ORDER = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
 
+    function GetCurveOrder()
+        internal pure returns (uint256)
+    {
+        return CURVE_ORDER;
+    }
 
     /**
     * x + (x + k + c)^5
@@ -18,13 +23,13 @@ library LongsightL
         uint256 t;
         uint256 j;
 
-        t = addmod(in_x, in_C, curve_order);
-        t = addmod(t, in_k, curve_order);
-        j = mulmod(t, t, curve_order);  // t^2
-        j = mulmod(j, j, curve_order);  // t^4
-        j = mulmod(j, t, curve_order);  // t^5
+        t = addmod(in_x, in_C, CURVE_ORDER);
+        t = addmod(t, in_k, CURVE_ORDER);
+        j = mulmod(t, t, CURVE_ORDER);  // t^2
+        j = mulmod(j, j, CURVE_ORDER);  // t^4
+        j = mulmod(j, t, CURVE_ORDER);  // t^5
 
-        out_x = addmod(in_x, j, curve_order);
+        out_x = addmod(in_x, j, CURVE_ORDER);
     }
 
 
@@ -60,8 +65,8 @@ library LongsightL
 
         for( i = 0; i < in_M.length; i++ ) {
             k_i = LongsightL12p5(in_M[i], k_i, C);
-            H_i = addmod(H_i, in_M[i], curve_order);
-            H_i = addmod(H_i, k_i, curve_order);
+            H_i = addmod(H_i, in_M[i], CURVE_ORDER);
+            H_i = addmod(H_i, k_i, CURVE_ORDER);
             k_i = H_i;
         }
     }
