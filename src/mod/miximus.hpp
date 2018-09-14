@@ -15,8 +15,8 @@ char *miximus_prove(
     const char *pk_file,
     const char *in_root,
     const char *in_nullifier,
-    const char *in_spend_preimage,
     const char *in_exthash,
+    const char *in_spend_preimage,
     const char *in_address,
     const char **in_path
 );
