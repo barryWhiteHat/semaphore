@@ -1,11 +1,8 @@
-include_directories(
-  .
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libff
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft)
+include_directories(.)
+
 
 add_library(ethsnarks_common STATIC export.cpp import.cpp stubs.cpp utils.cpp)
-target_link_libraries(ethsnarks_common ethsnarks_gadgets snark)
+target_link_libraries(ethsnarks_common ethsnarks_gadgets ff)
 
 add_library(miximus_objs OBJECT mod/miximus.cpp)
 

@@ -4,10 +4,9 @@ project(ethsnarks)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
-
 if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # Common compilation flags and warning configuration
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wfatal-errors -Wno-unused-variable -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wfatal-errors -Wno-unused-variable")
    if("${MULTICORE}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
   endif()
@@ -29,6 +28,22 @@ set(
 set(
   DEPENDS_DIR
   "${CMAKE_CURRENT_SOURCE_DIR}/depends"
+  CACHE
+  STRING
+  "Optionally specify the dependency installation directory relative to the source directory (default: inside dependency folder)"
+)
+
+set(
+  DEPENDS_DIR_LIBSNARK
+  "${CMAKE_CURRENT_SOURCE_DIR}/depends/libsnark/"
+  CACHE
+  STRING
+  "Optionally specify the dependency installation directory relative to the source directory (default: inside dependency folder)"
+)
+
+set(
+  DEPENDS_DIR_LIBFF
+  "${DEPENDS_DIR_LIBSNARK}/depends/libff/"
   CACHE
   STRING
   "Optionally specify the dependency installation directory relative to the source directory (default: inside dependency folder)"
@@ -121,8 +136,42 @@ else()
   add_definitions(-DNO_PROCPS)
 endif()
 
-include_directories(.)
+include_directories(
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libff
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft)
 
-add_subdirectory(depends)
+
+add_library(
+  ff
+  STATIC
+
+  ${DEPENDS_DIR_LIBFF}/libff/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+  ${DEPENDS_DIR_LIBFF}/libff/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+  ${DEPENDS_DIR_LIBFF}/libff/algebra/curves/alt_bn128/alt_bn128_init.cpp
+  ${DEPENDS_DIR_LIBFF}/libff/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
+  ${DEPENDS_DIR_LIBFF}/libff/algebra/curves/alt_bn128/alt_bn128_pp.cpp
+  ${DEPENDS_DIR_LIBFF}/libff/common/double.cpp
+  ${DEPENDS_DIR_LIBFF}/libff/common/profiling.cpp
+  ${DEPENDS_DIR_LIBFF}/libff/common/utils.cpp
+)
+
+find_path(GMP_INCLUDE_DIR NAMES gmp.h)
+find_library(GMP_LIBRARY gmp)
+if(GMP_LIBRARY MATCHES ${CMAKE_SHARED_LIBRARY_SUFFIX})
+  set(gmp_library_type SHARED)
+else()
+  set(gmp_library_type STATIC)
+endif()
+message(STATUS "GMP: ${GMP_LIBRARY}, ${GMP_INCLUDE_DIR}")
+add_library(GMP::gmp ${gmp_library_type} IMPORTED)
+set_target_properties(
+  GMP::gmp PROPERTIES
+  IMPORTED_LOCATION ${GMP_LIBRARY}
+  INTERFACE_INCLUDE_DIRECTORIES ${GMP_INCLUDE_DIR}
+)
+target_link_libraries(ff GMP::gmp)
+
+#add_subdirectory(depends)
 add_subdirectory(src)
 

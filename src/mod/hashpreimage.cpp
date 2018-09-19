@@ -93,9 +93,9 @@ public:
         const libff::bit_vector &in_block,
         const libff::bit_vector &in_expected_bv
     ) {
-        assert( in_block.size() == SHA256_block_size );
+        assert( in_block.size() == libsnark::SHA256_block_size );
 
-        assert( in_expected_bv.size() == SHA256_digest_size );
+        assert( in_expected_bv.size() == libsnark::SHA256_digest_size );
 
         input_block.generate_r1cs_witness(in_block);
 
@@ -132,7 +132,7 @@ public:
 
     static PrimaryInputT make_primary_input(const libff::bit_vector &in_block_bv)
     {
-        assert( in_block_bv.size() == SHA256_block_size );
+        assert( in_block_bv.size() == libsnark::SHA256_block_size );
 
         return libff::pack_bit_vector_into_field_element_vector<FieldT>(in_block_bv);
     }
