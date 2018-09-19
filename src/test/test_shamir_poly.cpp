@@ -29,10 +29,10 @@ bool test_shamirs_poly()
     pb_variable<FieldT> in_input;
     pb_variable_array<FieldT> in_alpha;
 
-    in_input.allocate(pb);
+    in_input.allocate(pb, "in_input");
     pb.val(in_input) = rand_input;
 
-    in_alpha.allocate(pb, rand_alpha.size());
+    in_alpha.allocate(pb, rand_alpha.size(), "in_alpha");
     in_alpha.fill_with_field_elements(pb, rand_alpha);
 
     shamir_poly<FieldT> the_gadget(pb, in_input, in_alpha);

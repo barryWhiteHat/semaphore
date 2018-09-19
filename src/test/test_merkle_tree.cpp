@@ -14,16 +14,16 @@ bool test_merkle_path_selector(int is_right)
 
 	is_right = is_right ? 1 : 0;
 
-	VariableT var_A = make_variable(pb);
+	VariableT var_A = make_variable(pb, "var_A");
 	pb.val(var_A) = value_A;
 
-	VariableT var_B = make_variable(pb);
+	VariableT var_B = make_variable(pb, "var_B");
 	pb.val(var_B) = value_B;
 
-	VariableT var_is_right = make_variable(pb);
+	VariableT var_is_right = make_variable(pb, "var_is_right");
 	pb.val(var_is_right) = is_right;
 
-	merkle_path_selector selector(pb, var_A, var_B, var_is_right);
+	merkle_path_selector selector(pb, var_A, var_B, var_is_right, "test_merkle_path_selector");
 
 	selector.generate_r1cs_witness();
 	selector.generate_r1cs_constraints();
@@ -58,19 +58,19 @@ bool test_merkle_path_authenticator() {
 	ProtoboardT pb;
 
 	VariableArrayT address_bits;
-	address_bits.allocate(pb, 1);
+	address_bits.allocate(pb, 1, "address_bits");
 	pb.val(address_bits[0]) = 1;
 
 	VariableArrayT path;
-	path.allocate(pb, 1);
+	path.allocate(pb, 1, "path");
 	pb.val(path[0]) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
 
 	VariableT leaf;
-	leaf.allocate(pb);
+	leaf.allocate(pb, "leaf");
 	pb.val(leaf) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
 	VariableT expected_root;
-	expected_root.allocate(pb);
+	expected_root.allocate(pb, "expected_root");
 	pb.val(expected_root) = FieldT("12232803403448551110711645741717605608347940439638387632993385741901727947062");
 
 	size_t tree_depth = 1;

@@ -18,15 +18,15 @@ bool test_LongsightL()
     VariableT m_1;
     VariableT iv;
 
-    m_0.allocate(pb);
+    m_0.allocate(pb, "m_0");
     pb.val(m_0) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
 
-    m_1.allocate(pb);
+    m_1.allocate(pb, "m_1");
     pb.val(m_1) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
     pb.set_input_sizes(2);
 
-    iv.allocate(pb);
+    iv.allocate(pb, "iv");
     pb.val(iv) = FieldT("918403109389145570117360101535982733651217667914747213867238065296420114726");
 
     LongsightL12p5_MP_gadget the_gadget(pb, iv, {m_0, m_1});

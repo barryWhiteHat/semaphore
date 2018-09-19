@@ -10,6 +10,7 @@
 using libsnark::digest_variable;
 using libsnark::block_variable;
 using libsnark::SHA256_digest_size;
+using libsnark::SHA256_block_size;
 
 using ethsnarks::ppT;
 

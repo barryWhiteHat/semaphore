@@ -93,28 +93,28 @@ void LongsightL_round::generate_r1cs_constraints()
                 ConstraintT(
                     t,
                     t,
-                    var_sq2));
+                    var_sq2), "t*t=sq2");
 
     // sq2 * sq2 == sq4 == t^4
     this->pb.add_r1cs_constraint(
                 ConstraintT(
                     var_sq2,
                     var_sq2,
-                    var_sq4));
+                    var_sq4), "sq2*sq2=sq4");
 
     // sq4 * t == sq5 == t^5
     this->pb.add_r1cs_constraint(
                 ConstraintT(
                     var_sq4,
                     t,
-                    var_sq5));
+                    var_sq5), "sq4*t=sq5");
 
     // 1 * (sq5 + x) = out
     this->pb.add_r1cs_constraint(
                 ConstraintT(
                     1,
                     var_sq5 + var_input_x,
-                    var_output));
+                    var_output), "sq5+x=out");
 }
 
 

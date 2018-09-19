@@ -17,8 +17,8 @@ typedef ppT::Fp_type curve_Fr;
 int main() {
     curve_pp::init_public_params();
     #ifdef DEBUG
-    libsnark::inhibit_profiling_info = true;
-    libsnark::inhibit_profiling_counters = true;
+    libff::inhibit_profiling_info = true;
+    libff::inhibit_profiling_counters = true;
     #endif
 
     curve_G1 a = curve_G1::one();

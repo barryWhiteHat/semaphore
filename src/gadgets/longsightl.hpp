@@ -85,7 +85,7 @@ public:
         std::vector<VariableT> in_messages,
         const std::string &in_annotation_prefix=""
     ) :
-        MiyaguchiPreneel_OWF(in_pb, in_IV, in_messages, in_annotation_prefix)
+        MiyaguchiPreneel_OWF(in_pb, in_IV, in_messages, FMT(in_annotation_prefix, ".MP_OWF"))
     {
 
     }

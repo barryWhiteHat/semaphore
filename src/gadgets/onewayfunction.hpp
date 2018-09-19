@@ -24,7 +24,7 @@ public:
 		m_messages(in_messages),
 		m_IV(in_IV)
 	{
-		m_outputs.allocate(in_pb, in_messages.size());
+		m_outputs.allocate(in_pb, in_messages.size(), FMT(this->annotation_prefix, ".outputs"));
 
 		int i = 0;		
 		for( auto& m_i : in_messages ) {
@@ -55,7 +55,7 @@ public:
 						1,
 						m_ciphers[i].result() + m_messages[i],
 						m_outputs[i]
-						));
+						), "E(m_i) + m_i = out");
 			}
 			else {
 				this->pb.add_r1cs_constraint(
@@ -63,7 +63,7 @@ public:
 						1,
 						m_outputs[i-1] + m_ciphers[i].result() + m_messages[i],
 						m_outputs[i]
-						));
+						), "E(m_i) + H_i-1 + m_i");
 			}
 		}
 	}

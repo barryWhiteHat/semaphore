@@ -1,11 +1,8 @@
-include_directories(
-  .
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libff
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft)
+include_directories(.)
+
 
 add_library(ethsnarks_common STATIC export.cpp import.cpp stubs.cpp utils.cpp)
-target_link_libraries(ethsnarks_common ethsnarks_gadgets snark)
+target_link_libraries(ethsnarks_common ethsnarks_gadgets ff)
 
 add_library(miximus_objs OBJECT mod/miximus.cpp)
 
@@ -19,7 +16,7 @@ set_property(TARGET miximus PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 
 add_library(hashpreimage SHARED mod/hashpreimage.cpp)
-target_link_libraries(hashpreimage ethsnarks_common)
+target_link_libraries(hashpreimage ethsnarks_common crypto)
 set_property(TARGET hashpreimage PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 
@@ -28,7 +25,7 @@ target_link_libraries(miximus_cli miximus_static)
 
 
 add_executable(hashpreimage_cli hashpreimage_cli.cpp)
-target_link_libraries(hashpreimage_cli ethsnarks_common)
+target_link_libraries(hashpreimage_cli ethsnarks_common crypto)
 
 
 add_executable(verify verify.cpp)

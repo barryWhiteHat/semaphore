@@ -5,7 +5,7 @@ target_link_libraries(test_vk_raw2json ethsnarks_common)
 
 
 add_executable(test_shootout test_shootout.cpp)
-target_link_libraries(test_shootout snark)
+target_link_libraries(test_shootout ff)
 
 add_executable(test_load_proofkey test_load_proofkey.cpp)
 target_link_libraries(test_load_proofkey ethsnarks_common)
@@ -16,7 +16,7 @@ target_link_libraries(test_shamir_poly ethsnarks_common)
 
 
 add_executable(test_sha256_full_gadget test_sha256_full_gadget.cpp)
-target_link_libraries(test_sha256_full_gadget ethsnarks_common)
+target_link_libraries(test_sha256_full_gadget ethsnarks_common crypto)
 
 
 add_executable(test_proof_raw2json test_proof_raw2json.cpp)
@@ -24,7 +24,7 @@ target_link_libraries(test_proof_raw2json ethsnarks_common)
 
 
 add_executable(test_field_packing test_field_packing.cpp)
-target_link_libraries(test_field_packing ethsnarks_common)
+target_link_libraries(test_field_packing ethsnarks_common crypto)
 
 
 add_executable(test_merkle_tree test_merkle_tree.cpp)
@@ -32,7 +32,7 @@ target_link_libraries(test_merkle_tree ethsnarks_common)
 
 
 add_executable(test_hashpreimage test_hashpreimage.cpp)
-target_link_libraries(test_hashpreimage ethsnarks_common)
+target_link_libraries(test_hashpreimage ethsnarks_common crypto)
 
 
 add_executable(test_one_of_n test_one_of_n.cpp)

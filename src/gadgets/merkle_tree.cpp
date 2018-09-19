@@ -67,13 +67,24 @@ public:
 
     void generate_r1cs_constraints()
     {
-        this->pb.add_r1cs_constraint(ConstraintT(1 - m_is_right, m_input, m_left_a));
-        this->pb.add_r1cs_constraint(ConstraintT(m_is_right, m_pathvar, m_left_b));
-        this->pb.add_r1cs_constraint(ConstraintT(1, m_left_a + m_left_b, m_left));
+        this->pb.add_r1cs_constraint(
+            ConstraintT(1 - m_is_right, m_input, m_left_a),
+            FMT(this->annotation_prefix, "1-is_right * input = left_a"));
 
-        this->pb.add_r1cs_constraint(ConstraintT(m_is_right, m_input, m_right_a));
-        this->pb.add_r1cs_constraint(ConstraintT(1 - m_is_right, m_pathvar, m_right_b));
-        this->pb.add_r1cs_constraint(ConstraintT(1, m_right_a + m_right_b, m_right));
+        this->pb.add_r1cs_constraint(ConstraintT(m_is_right, m_pathvar, m_left_b),
+            FMT(this->annotation_prefix, "is_right * pathvar = left_b"));
+
+        this->pb.add_r1cs_constraint(ConstraintT(1, m_left_a + m_left_b, m_left),
+            FMT(this->annotation_prefix, "1 * left_a + left_b = left"));
+
+        this->pb.add_r1cs_constraint(ConstraintT(m_is_right, m_input, m_right_a),
+            FMT(this->annotation_prefix, "is_right * input = right_a"));
+
+        this->pb.add_r1cs_constraint(ConstraintT(1 - m_is_right, m_pathvar, m_right_b),
+            FMT(this->annotation_prefix, "1-is_right * pathvar = right_b"));
+
+        this->pb.add_r1cs_constraint(ConstraintT(1, m_right_a + m_right_b, m_right),
+            FMT(this->annotation_prefix, "1 * right_a + right_b = right"));
     }
 
     void generate_r1cs_witness()
@@ -99,7 +110,7 @@ public:
 
 const VariableArrayT merkle_tree_IVs (ProtoboardT &in_pb)
 {
-    auto x = make_var_array(in_pb, 29);
+    auto x = make_var_array(in_pb, 29, "IVs");
     std::vector<FieldT> level_IVs = {
         FieldT("149674538925118052205057075966660054952481571156186698930522557832224430770"),
         FieldT("9670701465464311903249220692483401938888498641874948577387207195814981706974"),
@@ -132,13 +143,6 @@ const VariableArrayT merkle_tree_IVs (ProtoboardT &in_pb)
         FieldT("6037428193077828806710267464232314380014232668931818917272972397574634037180")
     };
     x.fill_with_field_elements(in_pb, level_IVs);
-
-    // Add constraints to ensure IVs remain the same
-    size_t i;
-    for( i = 0; i < level_IVs.size(); i++ ) {
-        in_pb.add_r1cs_constraint(
-            ConstraintT(1, x[i], level_IVs[i]));
-    }
 
     return x;
 }
@@ -178,7 +182,7 @@ public:
     {
         assert( in_depth > 0 );
         assert( in_address_bits.size() == in_depth );
-        assert( in_IVs.size() == in_depth );
+        assert( in_IVs.size() >= in_depth );
 
         for( size_t i = 0; i < m_depth; i++ )
         {
@@ -186,12 +190,14 @@ public:
             {
                 m_selectors.push_back(
                     merkle_path_selector(
-                        in_pb, in_leaf, in_path[i], in_address_bits[i]));
+                        in_pb, in_leaf, in_path[i], in_address_bits[i],
+                        FMT(this->annotation_prefix, ".selector_%zu", i)));
             }
             else {
                 m_selectors.push_back(
                     merkle_path_selector(
-                        in_pb, m_hashers[i - 1].result(), in_path[i], in_address_bits[i]));
+                        in_pb, m_hashers[i - 1].result(), in_path[i], in_address_bits[i],
+                        FMT(this->annotation_prefix, ".selector_%zu", i)));
             }
 
             m_hashers.push_back(HashT(
@@ -222,7 +228,8 @@ public:
 
         // Ensure root matches calculated path hash
         this->pb.add_r1cs_constraint(
-            ConstraintT(1, m_hashers[i-1].result(), m_expected_root));
+            ConstraintT(1, m_hashers[i-1].result(), m_expected_root),
+            FMT(this->annotation_prefix, "expected_root matches"));
     }
 
     void generate_r1cs_witness()
