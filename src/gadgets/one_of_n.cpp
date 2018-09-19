@@ -76,7 +76,7 @@ public:
         // ensure bitness of toggles
         for( size_t i = 0; i < items.size(); i++ )
         {
-            generate_boolean_r1cs_constraint<FieldT>(pb, toggles[i], FMT(annotation_prefix, " toggles_%zu", i));
+            generate_boolean_r1cs_constraint<FieldT>(pb, toggles[i], FMT(annotation_prefix, ".toggles_%zu_bitness", i));
         }
 
         // ensure the sum of toggles equals 1
@@ -86,13 +86,15 @@ public:
                 r1cs_constraint<FieldT>(
                     toggles_sum[i-1] + toggles[i],
                     FieldT::one(),
-                    toggles_sum[i]));
+                    toggles_sum[i]),
+                FMT(this->annotation_prefix, ".toggles_sum_%zu", i));
         }
         pb.add_r1cs_constraint(
                 r1cs_constraint<FieldT>(
                     toggles_sum[items.size()-1],
                     FieldT::one(),
-                    FieldT::one()));
+                    FieldT::one()),
+                FMT(this->annotation_prefix, ".toggles_sum_eq_1"));
 
         // XXX: why use `lc_val` here?
         auto our_item_lc_val = pb.lc_val(our_item);
@@ -105,7 +107,8 @@ public:
                 r1cs_constraint<FieldT>(
                     items[i],
                     toggles[i],
-                    toggles[i] * our_item_lc_val));
+                    toggles[i] * our_item_lc_val),
+                FMT(this->annotation_prefix, ".were_selected"));
         }
     }
 

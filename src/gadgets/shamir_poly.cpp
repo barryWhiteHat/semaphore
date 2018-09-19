@@ -92,7 +92,8 @@ public:
                     r1cs_constraint<FieldT>(
                         FieldT::one(),
                         intermediate_squares[i],
-                        FieldT::one()));
+                        FieldT::one()),
+                    FMT(this->annotation_prefix, "1 * squares[%zu] = 1", i));
             }
             else if( i == 1 ) {
                 // (input * input) - S[2] = 0
@@ -100,7 +101,8 @@ public:
                     r1cs_constraint<FieldT>(
                         input,
                         input,
-                        intermediate_squares[i+1]));
+                        intermediate_squares[i+1]),
+                    FMT(this->annotation_prefix, "input * input = squares[%zu]", i));
             }
             else if( i < (alpha.size() - 1) ) {
                 // (I * S[i]) - S[i+1] = 0
@@ -108,7 +110,8 @@ public:
                     r1cs_constraint<FieldT>(
                         input,
                         intermediate_squares[i],
-                        intermediate_squares[i+1]));
+                        intermediate_squares[i+1]),
+                    FMT(this->annotation_prefix, "input * squares[%zu] = squares[%zu]", i, i+1));
             }
 
             // Totals
@@ -118,7 +121,8 @@ public:
                     r1cs_constraint<FieldT>(
                         alpha[i],
                         intermediate_squares[i],
-                        intermediate_total[i]));
+                        intermediate_total[i]),
+                    FMT(this->annotation_prefix, "alpha[%zu] * squares[%zu] = total[%zu]", i, i, i));
             }
             else {
                 // (A[i] * S[i]) - (T[i] - T[i-1]) = 0
@@ -126,7 +130,8 @@ public:
                     r1cs_constraint<FieldT>(
                         alpha[i],
                         intermediate_squares[i],
-                        (intermediate_total[i] - intermediate_total[i-1])));
+                        (intermediate_total[i] - intermediate_total[i-1])),
+                    FMT(this->annotation_prefix, "alpha[%zu] * squares[%zu] = (total[%zu] - total[%zu])", i, i, i, i-1));
             }
         }
     }

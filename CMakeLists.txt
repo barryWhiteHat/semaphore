@@ -11,9 +11,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
   endif()
     # Default optimizations flags (to override, use -DOPT_FLAGS=...)
-  if("${OPT_FLAGS}" STREQUAL "")
-    set(OPT_FLAGS "-O3")
-  endif()
 endif()
 
 
@@ -47,12 +44,6 @@ set(
   CACHE
   STRING
   "Optionally specify the dependency installation directory relative to the source directory (default: inside dependency folder)"
-)
-
-option(
-  WITH_SUPERCOP
-  "Support for Ed25519 signatures required by ADSNARK"
-  OFF
 )
 
 set(
@@ -122,6 +113,9 @@ endif()
 
 if("${DEBUG}")
   add_definitions(-DDEBUG=1)
+  add_compile_options(-g)
+else()
+  add_compile_options(-O3)
 endif()
 
 

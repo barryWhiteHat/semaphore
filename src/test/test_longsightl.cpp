@@ -21,10 +21,10 @@ bool test_LongsightL()
     VariableT in_x;
     VariableT in_k;
 
-    in_x.allocate(pb);
+    in_x.allocate(pb, "in_x");
     pb.val(in_x) = FieldT("3703141493535563179657531719960160174296085208671919316200479060314459804651");
 
-    in_k.allocate(pb);
+    in_k.allocate(pb, "in_k");
     pb.val(in_k) = FieldT("134551314051432487569247388144051420116740427803855572138106146683954151557");
 
     LongsightL_gadget the_gadget(pb, round_constants, in_x, in_k);

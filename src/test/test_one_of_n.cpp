@@ -22,12 +22,12 @@ bool test_one_of_n()
 
     // Allocate items first
     VariableArrayT in_items;    
-    in_items.allocate(pb, rand_items.size());
+    in_items.allocate(pb, rand_items.size(), "in_items");
     in_items.fill_with_field_elements(pb, rand_items);
 
     // Our item comes afterwards, is a private input
     VariableT in_our_item;
-    in_our_item.allocate(pb);
+    in_our_item.allocate(pb, "our_item");
     pb.val(in_our_item) = rand_items[3];
 
     // Setup gadget

@@ -93,7 +93,7 @@ public:
         // logic gadgets
         spend_hash(in_pb, spend_hash_IV, {spend_preimage_var, nullifier_var}, FMT(annotation_prefix, ".spend_hash")),
         leaf_hash(in_pb, leaf_hash_IV, {nullifier_var, spend_hash.result()}, FMT(annotation_prefix, ".leaf_hash")),
-        m_authenticator(in_pb, tree_depth, address_bits, m_IVs, leaf_hash.result(), root_var, path_var)
+        m_authenticator(in_pb, tree_depth, address_bits, m_IVs, leaf_hash.result(), root_var, path_var, FMT(annotation_prefix, ".authenticator"))
     {
         in_pb.set_input_sizes( 3 );
     }
