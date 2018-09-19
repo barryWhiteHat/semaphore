@@ -120,12 +120,65 @@ if("${MULTICORE}")
   add_definitions(-DMULTICORE=1)
 endif()
 
+if("${DEBUG}")
+  add_definitions(-DDEBUG=1)
+endif()
 
-add_compile_options(-fPIC)
+
+if("${BINARY_OUTPUT}")
+  add_definitions(-DBINARY_OUTPUT)
+endif()
+
+if("${MONTGOMERY_OUTPUT}")
+  add_definitions(-DMONTGOMERY_OUTPUT)
+endif()
+
+if(NOT "${USE_PT_COMPRESSION}")
+  add_definitions(-DNO_PT_COMPRESSION=1)
+endif()
+
+
+if("${USE_MIXED_ADDITION}")
+  add_definitions(-DUSE_MIXED_ADDITION=1)
+endif()
 
 if("${CPPDEBUG}")
   add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 endif()
+
+include(FindPkgConfig)
+if("${WITH_PROCPS}")
+  pkg_check_modules(
+    PROCPS
+    REQUIRED
+
+    libprocps
+  )
+else()
+  add_definitions(
+    -DNO_PROCPS
+  )
+endif()
+
+
+find_path(GMP_INCLUDE_DIR NAMES gmp.h)
+find_library(GMP_LIBRARY gmp)
+if(GMP_LIBRARY MATCHES ${CMAKE_SHARED_LIBRARY_SUFFIX})
+  set(gmp_library_type SHARED)
+else()
+  set(gmp_library_type STATIC)
+endif()
+message(STATUS "GMP: ${GMP_LIBRARY}, ${GMP_INCLUDE_DIR}")
+add_library(GMP::gmp ${gmp_library_type} IMPORTED)
+set_target_properties(
+  GMP::gmp PROPERTIES
+  IMPORTED_LOCATION ${GMP_LIBRARY}
+  INTERFACE_INCLUDE_DIRECTORIES ${GMP_INCLUDE_DIR}
+)
+find_library(GMPXX_LIBRARIES NAMES gmpxx libgmpxx)
+
+
+add_compile_options(-fPIC)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPT_FLAGS}")
 
@@ -156,21 +209,7 @@ add_library(
   ${DEPENDS_DIR_LIBFF}/libff/common/utils.cpp
 )
 
-find_path(GMP_INCLUDE_DIR NAMES gmp.h)
-find_library(GMP_LIBRARY gmp)
-if(GMP_LIBRARY MATCHES ${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(gmp_library_type SHARED)
-else()
-  set(gmp_library_type STATIC)
-endif()
-message(STATUS "GMP: ${GMP_LIBRARY}, ${GMP_INCLUDE_DIR}")
-add_library(GMP::gmp ${gmp_library_type} IMPORTED)
-set_target_properties(
-  GMP::gmp PROPERTIES
-  IMPORTED_LOCATION ${GMP_LIBRARY}
-  INTERFACE_INCLUDE_DIRECTORIES ${GMP_INCLUDE_DIR}
-)
-target_link_libraries(ff GMP::gmp)
+target_link_libraries(ff GMP::gmp gmpxx ${PROCPS_LIBRARIES})
 
 #add_subdirectory(depends)
 add_subdirectory(src)
