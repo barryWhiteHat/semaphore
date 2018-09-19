@@ -1,4 +1,11 @@
-from py_ecc.bn128 import curve_order
+from .field import FQ
 
 def r1cs_constraint(a, b, c):
-    assert ((((a * b) % curve_order) - c) % curve_order) == 0
+	if not isinstance(a, FQ):
+		a = FQ(a)
+	if not isinstance(b, FQ):
+		b = FQ(b)
+	if not isinstance(c, FQ):
+		c = FQ(c)
+	if not a * b == c:
+		raise RuntimeError("R1CS Constraint Failed!")
