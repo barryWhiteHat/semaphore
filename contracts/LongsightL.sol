@@ -6,16 +6,16 @@ pragma solidity ^0.4.24;
 library LongsightL
 {
     // altBN curve order
-    uint256 constant CURVE_ORDER = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
+    uint256 constant SCALAR_FIELD = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
 
-    function GetCurveOrder()
+    function GetScalarField()
         internal pure returns (uint256)
     {
-        return CURVE_ORDER;
+        return SCALAR_FIELD;
     }
 
     /**
-    * x + (x + k + c)^5
+    * x = (x + k + c)^5
     */
     function LongsightL_round( uint256 in_x, uint256 in_k, uint256 in_C )
         internal pure returns (uint256 out_x)
@@ -23,13 +23,11 @@ library LongsightL
         uint256 t;
         uint256 j;
 
-        t = addmod(in_x, in_C, CURVE_ORDER);
-        t = addmod(t, in_k, CURVE_ORDER);
-        j = mulmod(t, t, CURVE_ORDER);  // t^2
-        j = mulmod(j, j, CURVE_ORDER);  // t^4
-        j = mulmod(j, t, CURVE_ORDER);  // t^5
-
-        out_x = addmod(in_x, j, CURVE_ORDER);
+        t = addmod(in_x, in_C, SCALAR_FIELD);
+        t = addmod(t, in_k, SCALAR_FIELD);
+        j = mulmod(t, t, SCALAR_FIELD);  // t^2
+        j = mulmod(j, j, SCALAR_FIELD);  // t^4
+        out_x = mulmod(j, t, SCALAR_FIELD);  // t^5
     }
 
 
@@ -50,13 +48,35 @@ library LongsightL
             in_x = LongsightL_round(in_x, in_k, C[i]);
         }
 
-        in_x = LongsightL_round(in_x, in_k, 0);
-
-        return in_x;
+        return addmod(in_x, in_k, SCALAR_FIELD);
     }
 
 
-    function LongsightL12p5_MP( uint256[2] memory in_M, uint256 in_IV, uint256[10] memory C )
+    /**
+    * The Miyaguchi–Preneel single-block-length one-way compression
+    * function is an extended variant of Matyas–Meyer–Oseas. It was
+    * independently proposed by Shoji Miyaguchi and Bart Preneel.
+    * 
+    * H_i = E_{H_{i-1}}(m_i) + {H_{i-1}} + m_i
+    * 
+    * or..
+    *
+    *              m_i
+    *               |
+    *               |----,
+    *               v    |
+    * H_{i-1}----->[E]   |
+    *          |    |    |
+    *          `-->(+)<--'
+    *               |
+    *               v
+    *              H_i
+    *
+    * @param in_M list of inputs
+    * @param in_IV initial key
+    * @param in_C constants
+    */
+    function LongsightL12p5_MP( uint256[2] memory in_M, uint256 in_IV, uint256[10] memory in_C )
         internal pure returns (uint256 H_i)
     {
         uint256 i;
@@ -64,9 +84,9 @@ library LongsightL
         H_i = 0;
 
         for( i = 0; i < in_M.length; i++ ) {
-            k_i = LongsightL12p5(in_M[i], k_i, C);
-            H_i = addmod(H_i, in_M[i], CURVE_ORDER);
-            H_i = addmod(H_i, k_i, CURVE_ORDER);
+            k_i = LongsightL12p5(in_M[i], k_i, in_C);
+            H_i = addmod(H_i, in_M[i], SCALAR_FIELD);
+            H_i = addmod(H_i, k_i, SCALAR_FIELD);
             k_i = H_i;
         }
     }
@@ -75,15 +95,15 @@ library LongsightL
     function ConstantsL12p5( uint256[10] memory round_constants )
         internal pure
     {
-        round_constants[0] = 1123290141928164279008888891766378473818224497744673926276953901234820430642;
-        round_constants[1] = 10985366949788476814992264851760069583580863264413713065688271499338204201663;
-        round_constants[2] = 697060791212164642694445403044920191448639837622426114750683064775524708091;
-        round_constants[3] = 2927275006259720461621994090854281014055545305739622272831795049357503845045;
-        round_constants[4] = 10412319102912193718627660805338892121530111706856302539498702298083887810988;
-        round_constants[5] = 620349011339579072558087154478991228793293385614105914560448303472115289790;
-        round_constants[6] = 10511143232444605554382744833253216315052468071414858166502934581708567653712;
-        round_constants[7] = 14812403264587974755203859916430999098674340519454779971315944472173228373660;
-        round_constants[8] = 11084405208266551212633630110871834096841516447067573520449405021724864800341;
-        round_constants[9] = 5309209836577867454067352188316145237209274990329546025817814580523329585168;
+        round_constants[0] = 11320456767883992575540216531659159576888907600959638766206030019748976127606;
+        round_constants[1] = 7981126051239707003404038749078222981671967097536451175036296852326189803512;
+        round_constants[2] = 7177016095912962923423600183006851057882812872551720265919580867301753242163;
+        round_constants[3] = 8098911980008466624346445261656915633454189000125625847988658771331954170343;
+        round_constants[4] = 1032632784196571780292853138329928818496444871110283900956706333284256874691;
+        round_constants[5] = 17559578801496357866545202012242818709850618304526541533401975266004490452593;
+        round_constants[6] = 20105898635002360807557831381163536261238002929830115424973371306325234092701;
+        round_constants[7] = 9821031787055617703014732039788161451595861640101098344778391103120052870883;
+        round_constants[8] = 13594207757815484006858931156275898631089441276351317178509382393302956999941;
+        round_constants[9] = 18368721345647595535348572980589403703594399342587924949617577258470281904352;
     }
 }

@@ -33,7 +33,7 @@ bool test_LongsightL()
 
     pb.set_input_sizes(2);
 
-    auto result_expected = FieldT("9638538253242078011815100086590507856430665299520185056351852605094082194804");
+    auto result_expected = FieldT("14412061461933611701703094472891440142598479500786943729495502117590964244418");
     if( result_expected != pb.val(the_gadget.result()) ) {
         std::cerr << "Unexpected result!\n";
         return false;

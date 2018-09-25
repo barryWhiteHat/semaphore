@@ -72,7 +72,7 @@ cxx-tests:
 	./bin/test_one_of_n
 	./bin/test_r1cs_gg_ppzksnark_zok
 	./bin/test_shamir_poly
-	./bin/test_sha256_full_gadget || true
+	./bin/test_sha256_full_gadget
 
 	time ./bin/hashpreimage_cli genkeys zksnark_element/hpi.pk.raw zksnark_element/hpi.vk.json
 	ls -lah zksnark_element/hpi.pk.raw

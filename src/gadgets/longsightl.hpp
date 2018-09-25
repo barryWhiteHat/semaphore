@@ -18,8 +18,7 @@ public:
 
     VariableT var_sq2;      // n^2
     VariableT var_sq4;      // n^4
-    VariableT var_sq5;      // n^5
-    VariableT var_output;
+    VariableT var_output;   // n^5
 
     LongsightL_round(
         ProtoboardT &in_pb,
@@ -44,6 +43,8 @@ public:
     const std::vector<FieldT> m_constants;
 
     const VariableT start_x;
+    const VariableT key;
+    VariableT output_y;
 
     LongsightL_gadget(
         ProtoboardT &in_pb,
