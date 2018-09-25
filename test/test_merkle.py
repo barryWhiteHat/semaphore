@@ -1,12 +1,13 @@
 import unittest
 
 import hashlib
-from ethsnarks.merkletree import MerkleTree, MerkleHasherLongsight, curve_order
+from ethsnarks.merkletree import MerkleTree, MerkleHasherLongsight
+from ethsnarks.field import SNARK_SCALAR_FIELD
 
 
 class TestMerkleTree(unittest.TestCase):
     def test_tree(self):
-        n_items = 100
+        n_items = 32
         tree = MerkleTree(n_items)
         self.assertEqual(tree.root, None)
         self.assertEqual(len(tree), 0)
@@ -15,7 +16,7 @@ class TestMerkleTree(unittest.TestCase):
         hasher = hashlib.sha256()
         for n in range(0, n_items):
             hasher.update(bytes([n]) * 32)
-            item = int.from_bytes(hasher.digest(), 'big') % curve_order
+            item = int.from_bytes(hasher.digest(), 'big') % SNARK_SCALAR_FIELD
             tree.append(item)
             self.assertEqual(len(tree), n + 1)
             self.assertNotEqual(tree.root, previous_root)
@@ -36,7 +37,7 @@ class TestMerkleTree(unittest.TestCase):
         item_b = 134551314051432487569247388144051420116740427803855572138106146683954151557
         tree.append(item_b)
 
-        self.assertEqual(tree.root, 12232803403448551110711645741717605608347940439638387632993385741901727947062)
+        self.assertEqual(tree.root, 13981856331482487152452149678096232821987624395720231314895268163963385035507)
 
         proof_a = tree.proof(0)
         self.assertEqual(proof_a.path, [item_b])
@@ -53,7 +54,7 @@ class TestMerkleTree(unittest.TestCase):
         item_b = 134551314051432487569247388144051420116740427803855572138106146683954151557
         tree.append(item_b)
 
-        self.assertEqual(tree.root, 10928083011190212400724282287039881565290562079447442292540304400330695864757)
+        self.assertEqual(tree.root, 12880293998234311228895747943713504338160238149993004139365982527556885579681)
 
     def test_uniques(self):
         hasher = MerkleHasherLongsight(29)

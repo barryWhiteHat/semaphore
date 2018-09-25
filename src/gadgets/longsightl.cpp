@@ -8,60 +8,41 @@
 /**
 * First round
 *
-*       x         k
-*       |         |
-*       |         |
-*       |---(+)---|     X[0] = x + k
-*       |    |    |
-*       |  (n^5)  |     Y[0] = X[0]^5
-*       |    |    |
-*        `--(+)   |     Z[0] = Y[0] + x 
+*            x    k
 *            |    |
+*            |    |
+*           (+)---|     X[0] = x + k
+*            |    |
+*          (n^5)  |     Y[0] = X[0]^5
 *            |    |
 ******************************************
 * Second round
 *            |    |
-*  ,---------|    |
-*  |         |    |
-*  |        (+)---|     X[1] = Z[0] + k  
-*  |         |    |
-*  | C[0] --(+)   |     Y[1] = X[1] + C[0]
-*  |         |    |
-*  |       (n^5)  |     W[1] = Y[1]^5
-*  |         |    |
-*  `--------(+)   |     Z[1] = Z[0] + Y[1]
+*           (+)---|     X[1] = Z[0] + k  
+*            |    |
+*    C[0] --(+)   |     Y[1] = X[1] + C[0]
+*            |    |
+*          (n^5)  |     W[1] = Y[1]^5
 *            |    |
 ******************************************
 * i'th round
 *            |    |
-*  ,---------|    |
-*  |         |    |
-*  |        (+)---|     X[i] = Z[i-1] + k  
-*  |         |    |
-*  | C[i] --(+)   |     Y[i] = X[i] + C[i]
-*  |         |    |
-*  |       (n^5)  |     W[i] = Y[i]^5
-*  |         |    |
-*  `--------(+)   |     Z[i] = Z[i-1] + Y[i]
+*           (+)---|     X[i] = Z[i-1] + k  
+*            |    |
+*    C[i] --(+)   |     Y[i] = X[i] + C[i]
+*            |    |
+*          (n^5)  |     W[i] = Y[i]^5
 *            |    |
 ******************************************
 * Last round
 *            |    |
-*       ,----|    |
-*       |    |    |
-*       |   (+)---'     X[i] = X[i-1] + k
-*       |    |     
-*       |  (n^5)        Y[i] = X[i]^5
-*       |    |     
-*        `--(+)         Z[i] = Z[i-1] + Y[i] 
-*            |    
+*           (+)---'     X[i] = X[i-1] + k
 *            |
 *          result
 */
 
 
 namespace ethsnarks {
-
 
 
 LongsightL_round::LongsightL_round(
@@ -78,7 +59,6 @@ LongsightL_round::LongsightL_round(
 {
     var_sq2.allocate(in_pb, FMT(this->annotation_prefix, ".sq2"));
     var_sq4.allocate(in_pb, FMT(this->annotation_prefix, ".sq4"));
-    var_sq5.allocate(in_pb, FMT(this->annotation_prefix, ".sq5"));
     var_output.allocate(in_pb, FMT(this->annotation_prefix, ".out"));
 }
 
@@ -107,14 +87,7 @@ void LongsightL_round::generate_r1cs_constraints()
                 ConstraintT(
                     var_sq4,
                     t,
-                    var_sq5), "sq4*t=sq5");
-
-    // 1 * (sq5 + x) = out
-    this->pb.add_r1cs_constraint(
-                ConstraintT(
-                    1,
-                    var_sq5 + var_input_x,
-                    var_output), "sq5+x=out");
+                    var_output), "sq4*t=output");
 }
 
 
@@ -129,11 +102,8 @@ void LongsightL_round::generate_r1cs_witness()
     // sq4 = sq2 * sq2  (t^4)
     this->pb.val(var_sq4) = this->pb.val(var_sq2) * this->pb.val(var_sq2);
 
-    // sq5 = sq2 * t    (t^5)
-    this->pb.val(var_sq5) = this->pb.val(var_sq4) * t;
-
-    // out = sq5 + x
-    this->pb.val(var_output) = this->pb.val(var_input_x) + this->pb.val(var_sq5);
+    // sq5 = sq4 * t    (t^5)
+    this->pb.val(var_output) = this->pb.val(var_sq4) * t;
 }
 
 
@@ -152,45 +122,59 @@ LongsightL_gadget::LongsightL_gadget(
     GadgetT(in_pb, FMT(in_annotation_prefix, " LongsightL_gadget")),
     m_rounds(),
     m_constants(in_constants),
-    start_x(in_x)
+    start_x(in_x),
+    key(in_k)
 {
-    int i = 0;
-    for( auto& round_constant : in_constants ) {
-        if( i++ == 0 ) {
-            // first round
-            m_rounds.push_back(LongsightL_round(this->pb, start_x, in_k, round_constant,
-                                             FMT(in_annotation_prefix, "round-%d", i)));
-        }
-        else {
-            // Every other round
-            m_rounds.push_back(LongsightL_round(this->pb, m_rounds[m_rounds.size() - 1].result(), in_k, round_constant,
-                                             FMT(in_annotation_prefix, "round-%d", i)));
-        }
+    output_y.allocate(in_pb, FMT(this->annotation_prefix, ".output_y"));
+
+    m_rounds.push_back(LongsightL_round(this->pb, start_x, in_k, 0,
+                                        FMT(in_annotation_prefix, "round-%d", 0)));
+
+    int i = 1;
+    for( auto& round_constant : in_constants )
+    {
+        const auto& previous_result = m_rounds[m_rounds.size() - 1].result();
+
+        m_rounds.push_back(
+            LongsightL_round(this->pb, previous_result, in_k, round_constant,
+                             FMT(in_annotation_prefix, "round-%d", i)));
+
+        i += 1;
     }
 }
 
 
 const VariableT& LongsightL_gadget::result() const
 {
-    return m_rounds[ m_rounds.size() - 1 ].result();
+    return output_y;
 }
 
 
 void LongsightL_gadget::generate_r1cs_constraints()
 {
-    for( size_t i = 0; i < m_rounds.size(); i++ )
+    for( auto& round_gadget : m_rounds )
     {
-        m_rounds[i].generate_r1cs_constraints();
+        round_gadget.generate_r1cs_constraints();
     }
+
+    this->pb.add_r1cs_constraint(
+                ConstraintT(
+                    m_rounds[ m_rounds.size() - 1 ].result(),
+                    1,
+                    output_y - key), "last_round + k = output_y");
 }
 
 
 void LongsightL_gadget::generate_r1cs_witness()
 {
-    for( size_t i = 0; i < m_rounds.size(); i++ )
+    for( auto& round_gadget : m_rounds )
     {
-        m_rounds[i].generate_r1cs_witness();
+        round_gadget.generate_r1cs_witness();
     }
+
+    const auto& last_round = m_rounds[ m_rounds.size() - 1 ].result();
+
+    this->pb.val(output_y) = this->pb.val(last_round) + this->pb.val(key);
 }
 
 // ethsnarks

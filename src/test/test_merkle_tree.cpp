@@ -71,7 +71,7 @@ bool test_merkle_path_authenticator() {
 
 	VariableT expected_root;
 	expected_root.allocate(pb, "expected_root");
-	pb.val(expected_root) = FieldT("12232803403448551110711645741717605608347940439638387632993385741901727947062");
+	pb.val(expected_root) = FieldT("13981856331482487152452149678096232821987624395720231314895268163963385035507");
 
 	size_t tree_depth = 1;
 	merkle_path_authenticator<LongsightL12p5_MP_gadget> auth(

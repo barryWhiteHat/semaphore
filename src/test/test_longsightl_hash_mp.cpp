@@ -34,7 +34,7 @@ bool test_LongsightL()
     the_gadget.generate_r1cs_constraints();
 
 
-    auto result_expected = FieldT("16743249391414211194903251836323254089433285237756741022465555151301952011503");
+    auto result_expected = FieldT("17828528097540207980615582400605592397196799544205247666616062148860893885796");
     if( result_expected != pb.val(the_gadget.result()) ) {
         std::cerr << "Unexpected result!\n";
         return false;

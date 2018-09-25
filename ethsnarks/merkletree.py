@@ -4,7 +4,8 @@
 import hashlib
 import math
 
-from .longsight import LongsightL12p5_MP, curve_order
+from .longsight import LongsightL12p5_MP
+from .field import SNARK_SCALAR_FIELD
 
 
 class MerkleProof(object):
@@ -40,7 +41,7 @@ class MerkleHasherLongsight(object):
         item = int(depth).to_bytes(2, 'big') + int(index).to_bytes(30, 'big')
         hasher = hashlib.sha256()
         hasher.update(item)
-        return int.from_bytes(hasher.digest(), 'big') % curve_order
+        return int.from_bytes(hasher.digest(), 'big') % SNARK_SCALAR_FIELD
 
     def _make_IVs(self):
         out = []
@@ -48,12 +49,12 @@ class MerkleHasherLongsight(object):
         for i in range(0, self._tree_depth):
             item = int(i).to_bytes(2, 'little')
             hasher.update(b'MerkleTree-' + item)
-            digest = int.from_bytes(hasher.digest(), 'big') % curve_order
+            digest = int.from_bytes(hasher.digest(), 'big') % SNARK_SCALAR_FIELD
             out.append(digest)
         return out
 
     def valid(self, item):
-        return isinstance(item, int) and item > 0 and item < curve_order
+        return isinstance(item, int) and item > 0 and item < SNARK_SCALAR_FIELD
 
 
 class MerkleTree(object):

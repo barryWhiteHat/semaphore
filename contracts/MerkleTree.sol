@@ -122,7 +122,7 @@ library MerkleTree
                 sha256(
                     abi.encodePacked(
                         uint16(depth),
-                        uint240(offset)))) % LongsightL.GetCurveOrder();
+                        uint240(offset)))) % LongsightL.GetScalarField();
         }
 
         return leaf;

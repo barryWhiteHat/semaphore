@@ -25,36 +25,60 @@ from __future__ import print_function
 
 import math
 import struct
+from binascii import unhexlify
 from random import randint
 
 from hashlib import sha256
-from py_ecc.bn128 import curve_order
+
+from .field import SNARK_SCALAR_FIELD
 
 
 def random_element():
-    return randint(1, curve_order-1)
+    return randint(1, SNARK_SCALAR_FIELD-1)
 
 
-def _make_constants(name, n, e):
+def int_to_big_endian(lnum):
+    if lnum == 0:
+        return b'\0'
+    s = hex(lnum)[2:].rstrip('L')
+    if len(s) & 1:
+        s = '0' + s
+    return unhexlify(s)
+
+
+def zpad(x, l):
+    return (b'\0' * max(0, l - len(x))) + x
+
+
+def uint256be(num):
+    return zpad(int_to_big_endian(num), 32)
+
+
+def make_constants(name, n):
     """
-    Generate round constants for a Longsight/MiMC family algorithm
+    Generate round constants for a prime field algorithm
+
+        seed = int(sha256("$name$n"))
+        for i in range(0, n):
+            constant[i] = int(sha256(seed + i)) % p
+
+    Bytes are converted to integers in big-endian format
+
+    @param name Name of algorithm
+    @param p Field modulus
+    @param e Exponent used in the algorithm
+    @param n Number of constants
     """
     output = []
-    name = "%s%dp%d" % (name, n, e)
+    name = ("%s%d" % (name, n)).encode('ascii')
+    seed = int.from_bytes(sha256(name).digest(), 'big')
     for i in range(0, n):
-        const_bytes = name.encode('ascii') + struct.pack('<L', i)
-        output.append(int.from_bytes(sha256(const_bytes).digest(), 'little') % curve_order)
+        round_bytes = sha256(uint256be(seed + i)).digest()
+        output.append(int.from_bytes(round_bytes, 'big') % SNARK_SCALAR_FIELD)
     return name, output
 
 
-def make_constants_L(name, n, e):
-    name, C = _make_constants(name, n, e)
-    C[0] = 0
-    C[-1] = 0
-    return name, C
-
-
-def _make_constants_cxx(name, constants_list):
+def _constants_cxx_format(name, constants_list):
     """
     Convert constants into a C++ function which populates a vector with them
     """
@@ -76,8 +100,8 @@ const std::vector<FieldT> %s_constants_assign( )
     return output
 
 
-def make_constants_cxx_L(name, n, e):
-    return _make_constants_cxx(*make_constants_L(name, n, e))
+def make_constants_cxx(name, n):
+    return _constants_cxx_format(*make_constants(name, n))
 
 
 def powmod(a, b, n):
@@ -105,7 +129,7 @@ def LongsightL(x, k, C, R, e, p):
     @param p field prime
     """
     assert math.gcd(p-1, e) == 1       # XXX: is a bijection required?
-    assert len(C) == R
+    assert len(C) == R - 2
 
     assert x > 0 and x < (p-1)
     if k != 0:
@@ -113,12 +137,21 @@ def LongsightL(x, k, C, R, e, p):
 
     x_i = x
 
-    for C_i in C:
+    for i, C_i in enumerate([0] + C):
         t = (x_i + k + C_i) % p
-        sq5 = powmod(t, e, p)
-        x_i = (x_i + sq5) % p
+        x_i = powmod(t, e, p)
 
-    return x_i
+    y = (x_i + k) % p
+
+    return y
+
+
+def LongsightL12p5(x, k):
+    p = SNARK_SCALAR_FIELD
+    e = 5
+    r = 12
+    _, C = make_constants("LongsightL", r-2)
+    return LongsightL(x, k, C, r, e, p)
 
 
 def MiyaguchiPreneel_OWF(M, IV, fn, p):
@@ -134,13 +167,14 @@ def MiyaguchiPreneel_OWF(M, IV, fn, p):
                  m_i
                   |
                   |----,
+                  |    |
                   v    |
-    H_{i-1}----->[E]   |
+    H_{i-1}--,-->[E]   |
              |    |    |
              `-->(+)<--'
                   |
                   v
-               m_{i+1}
+                 H_i
 
     @param M list of inputs
     @param IV initial key
@@ -158,56 +192,9 @@ def MiyaguchiPreneel_OWF(M, IV, fn, p):
     return H_i
 
 
-def LongsightL12p5(x, k):
-    p = curve_order
-    e = 5
-    R = 12
-    _, C = make_constants_L("LongsightL", R, e)
-    C[0] = 0
-    C[-1] = 0
-    return LongsightL(x, k, C, R, e, p)
-
-
 def LongsightL12p5_MP(M, IV):
-    return MiyaguchiPreneel_OWF(M, IV, LongsightL12p5, curve_order)
+    return MiyaguchiPreneel_OWF(M, IV, LongsightL12p5, SNARK_SCALAR_FIELD)
 
-
-
-"""
-From: https://keccak.team/files/SpongeIndifferentiability.pdf
-
-message `x` split into `r` bit blocks
-r = 253 (the bitrate)
-p = sequence of `r` bit blocks
-|p| = number of blocks
-n = output length (bits)
-c = capacity (bits)
-
-Section 5:
-
-The security parameter is the capacity `c` and not the output 
-length of the hash function. The indifferentiability bounds in
-terms of the capacity `c` permit to express up to which output length
-`n` such a hash function may offer the expected resistence. For example,
-it offers collision resistance (as a truncated random oracle would) for
-any output length smaller than the capacity, and (2nd) preimage resistance
-for any output length smaller than half the capacity.
-
-In other words, when for instance `c = 512`, a random sponge offers the same
-resistance as a random oracle but with a maximum of `2^256` in complexity.
-
-
-def sponge(p, n, r, F):
-    z = []
-    s_a, s_c = 0, 0
-    for i in range(0, len(p)):
-        s_a, s_c = F(s_a + p[i], s_c)
-    for j in range(0, (n/r) - 1):
-        z.append(s_a)
-        s_a, s_c = F(s_a, s_c)
-    # TODO: Discard the last `r[n/r] - n` bits
-    return z
-"""
 
 if __name__ == "__main__":
     print(make_constants_cxx_L("LongsightL", 12, 5))
