@@ -6,8 +6,6 @@ import "../contracts/JubJub.sol";
 
 contract TestJubJub
 {
-	using JubJub for JubJub.Point;
-
 	function testPointDouble()
 		public
 	{
@@ -20,5 +18,25 @@ contract TestJubJub
 		Assert.equal(d[0], 6890855772600357754907169075114257697580319025794532037257385534741338397365, "Bad double x coord");
 
 		Assert.equal(d[1], 4338620300185947561074059802482547481416142213883829469920100239455078257889, "Bad double y coord");
+	}
+
+
+	function testPointDoubleEtec()
+		public
+	{
+		uint256 x = 17777552123799933955779906779655732241715742912184938656739573121738514868268;
+		uint256 y = 2626589144620713026669568689430873010625803728049924121243784502389097019475;
+		uint256 t;
+		uint256 z = 1;
+
+		(x, y, t) = JubJub.pointToEac(x, y);
+
+		(x, y, t, z) = JubJub.etecDouble(x, y, t, z);
+
+		(x, y, t) = JubJub.etecToEac(x, y, t, z);
+
+		Assert.equal(x, 6890855772600357754907169075114257697580319025794532037257385534741338397365, "Bad double x coord");
+
+		Assert.equal(y, 4338620300185947561074059802482547481416142213883829469920100239455078257889, "Bad double y coord");
 	}
 }
