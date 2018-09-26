@@ -1,0 +1,24 @@
+pragma solidity ^0.4.24;
+
+import "truffle/Assert.sol";
+import "../contracts/JubJub.sol";
+
+
+contract TestJubJub
+{
+	using JubJub for JubJub.Point;
+
+	function testPointDouble()
+		public
+	{
+		JubJub.Point memory p = JubJub.Point(
+				17777552123799933955779906779655732241715742912184938656739573121738514868268,
+				2626589144620713026669568689430873010625803728049924121243784502389097019475);
+
+		JubJub.Point memory d = p.pointAdd(p);
+
+		Assert.equal(d.x, 6890855772600357754907169075114257697580319025794532037257385534741338397365, "Bad double x coord");
+
+		Assert.equal(d.y, 4338620300185947561074059802482547481416142213883829469920100239455078257889, "Bad double y coord");
+	}
+}
