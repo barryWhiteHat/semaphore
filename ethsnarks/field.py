@@ -93,6 +93,9 @@ class FQ(object):
         on = self._other_n(other)
         return FQ((self.n - on) % self.m, self.m)
 
+    def inv(self):
+        return inv(self.n, self.m)
+
     def __div__(self, other):
         on = self._other_n(other)
         return FQ(self.n * inv(on, self.m) % self.m, self.m)
