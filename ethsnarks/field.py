@@ -25,6 +25,7 @@
 
 import sys
 from random import randint
+from collections import defaultdict
 
 # python3 compatibility
 if sys.version_info.major == 2:
@@ -52,7 +53,26 @@ def inv(a, n):
 # A class for field elements in FQ. Wrap a number in this class,
 # and it becomes a field element.
 class FQ(object):
-    __slots__ = ('n', 'm')
+    _COUNTS = None
+
+    @classmethod
+    def _disable_counting(cls):
+        cls._COUNTS = None
+
+    @classmethod
+    def _print_counts(cls):
+        for k in sorted(cls._COUNTS.keys()):
+            print(k, "=", cls._COUNTS[k])
+        print()
+
+    @classmethod
+    def _count(cls, what):
+        if cls._COUNTS is not None:
+            cls._COUNTS[what] += 1
+
+    @classmethod
+    def _reset_counts(cls):
+        cls._COUNTS = defaultdict(int)
 
     def __init__(self, n, field_modulus=SNARK_SCALAR_FIELD):
         self.m = field_modulus
@@ -73,10 +93,12 @@ class FQ(object):
 
     def __add__(self, other):
         on = self._other_n(other)
+        self._count('add')
         return FQ((self.n + on) % self.m, self.m)
 
     def __mul__(self, other):
         on = self._other_n(other)
+        self._count('mul')
         return FQ((self.n * on) % self.m, self.m)
 
     def __rmul__(self, other):
@@ -87,17 +109,21 @@ class FQ(object):
 
     def __rsub__(self, other):
         on = self._other_n(other)
+        self._count('sub')
         return FQ((on - self.n) % self.m, self.m)
 
     def __sub__(self, other):
         on = self._other_n(other)
+        self._count('sub')
         return FQ((self.n - on) % self.m, self.m)
 
     def inv(self):
+        self._count('inv')
         return inv(self.n, self.m)
 
     def __div__(self, other):
         on = self._other_n(other)
+        self._count('inv')
         return FQ(self.n * inv(on, self.m) % self.m, self.m)
 
     def __truediv__(self, other):
@@ -105,6 +131,8 @@ class FQ(object):
 
     def __rdiv__(self, other):
         on = self._other_n(other)
+        self._count('inv')
+        self._count('mul')
         return FQ(inv(self.n, self.m) * on % self.m, self.m)
 
     def __rtruediv__(self, other):
