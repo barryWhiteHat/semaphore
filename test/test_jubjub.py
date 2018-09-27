@@ -16,8 +16,14 @@ class TestJubjub(unittest.TestCase):
 		y = 4338620300185947561074059802482547481416142213883829469920100239455078257889
 		return Point(FQ(x), FQ(y))
 
+	def test_mont_translate(self):
+		p = self._point_a()
+		m = p.as_mont()
+		q = m.as_point()
+		self.assertEqual(p, q)
+
 	def test_double_via_add(self):
-		print("Affible Double (via add):")
+		print("Affine Double (via add):")
 		a = self._point_a()
 		FQ._reset_counts()
 		a_dbl = a.add(a)
@@ -57,7 +63,7 @@ class TestJubjub(unittest.TestCase):
 		self.assertEqual(c_dbl.as_point(), self._point_a_double())
 
 	def test_mult_2(self):
-		print("Etec Mult 2")
+		print("ETEC Mult 2")
 		p = self._point_a().as_etec()
 		FQ._reset_counts()
 		q = p.mult(2)

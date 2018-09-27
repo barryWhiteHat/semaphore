@@ -13,6 +13,15 @@ By using the extended coordinate system we can avoid expensive modular exponenti
 calls, for example - a scalar multiplication call (or multiple...) may perform only
 one 3d->2d projection at the point where affine coordinates are necessary, and every
 intermediate uses a much faster form.
+
+------------------
+
+This also implements the mixed Edwards-Montgomery representation described in the
+paper:
+
+ "Efficient arithmetic on elliptic curves using a mixed Edwards-Montgomery represetation"
+ - https://eprint.iacr.org/2008/218.pdf
+   Wouter Gastryck, Steven Galbraith and Reza Rezaeian Farashahi
 """
 
 from collections import namedtuple
@@ -21,6 +30,9 @@ from .field import FQ
 
 JUBJUB_A = 168700
 JUBJUB_D = 168696
+
+MONT_A = 168698		#  2 * (JUBJUB_A + JUBJUB_D) / (JUBJUB_A - JUBJUB_D)
+MONT_B = 1			#  4 / (JUBJUB_A - JUBJUB_D)
 
 
 class AbstractCurveOps(object):
@@ -42,6 +54,17 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 	def as_etec(self):
 		return EtecPoint(self.x, self.y, self.x*self.y, 1)
 
+	def as_mont(self):
+		"""
+		From IACR 2008/218 section 2:
+
+		Every Edwards form is birationally equivalent to a Montgomery form via:
+
+			E_d --> M_{(2(1+d)/(1-d))} : (x,y) -> ((1+y)/(1-y), x * ((1+y)/(1-y)))
+		"""
+		delta = (1+self.y) / (1-self.y)
+		return MontPoint(delta, self.x * delta)
+
 	def as_point(self):
 		return self
 
@@ -62,6 +85,19 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 
 	def zero(self):
 		return Point(0, 0)
+
+
+class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('a', 'b'))):
+	def as_point(self):
+		"""
+		From IACR 2008/218 section 2:
+
+		Every Edwards form is birationally equivalent to a Montgomery form via:			
+			M_{(2(1+d)/(1-d))} --> E_d : (x,y) -> (x/y, (x-1)/(x+1))
+		"""
+		x = self.b / self.a
+		y = (self.a - 1) / (self.a + 1)
+		return Point(x, y)
 
 
 class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):

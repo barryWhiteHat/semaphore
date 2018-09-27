@@ -33,7 +33,27 @@ contract TestJubJub
 
 		(x, y, t, z) = JubJub.etecDouble(x, y, t, z);
 
-		(x, y, t) = JubJub.etecToEac(x, y, t, z);
+		(x, y) = JubJub.etecToPoint(x, y, t, z);
+
+		Assert.equal(x, 6890855772600357754907169075114257697580319025794532037257385534741338397365, "Bad double x coord");
+
+		Assert.equal(y, 4338620300185947561074059802482547481416142213883829469920100239455078257889, "Bad double y coord");
+	}
+
+
+	function testPointAddEtec()
+		public
+	{
+		uint256 x = 17777552123799933955779906779655732241715742912184938656739573121738514868268;
+		uint256 y = 2626589144620713026669568689430873010625803728049924121243784502389097019475;
+		uint256[4] memory q;
+		uint256[4] memory r;
+
+		(q[0], q[1], q[2]) = JubJub.pointToEac(x, y);
+		q[3] = 1;
+
+		r = JubJub.etecAdd(q, q);
+		(x, y) = JubJub.etecToPoint(r[0], r[1], r[2], r[3]);
 
 		Assert.equal(x, 6890855772600357754907169075114257697580319025794532037257385534741338397365, "Bad double x coord");
 

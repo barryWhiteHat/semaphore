@@ -89,56 +89,6 @@ library JubJub
 	*/
 
 
-	/*
-	function pointDouble(Point self)
-		internal view returns (Point)
-	{
-		return pointAdd(self, self);
-	}
-	*/
-
-
-	/**
-	* Convert extended affine coordinates to extended twisted edwards coordinates.
-	*
-	* The axuiliary coordinate is T = XY to represent a point (x,y)
-	* on a(x^2) + y^2 = 1 + d(x^2)(y^2) in extended affine coordinates
-	* (x,y,t). One can pass the projective representation using the map
-	* (x,y,t) -> (x : y : t : ). For all nonzero λ ∈ Q
-	*
-	*	(X : Y : T : Z) = (λX : λY : λT : λZ)
-	*
-	* Corresponds to the extended affine point
-	*
-	*	(X/Z, Y/Z, T/Z)
-	*
-	* With Z != 0
-	*
-	* The identity element is represented by (0 : 1 : 0 : 1)
-	*
-	* The negative of (X : Y : T : Z) is (-X : Y : -T : Z)
-	*
-	* Given (X : Y : Z) in ε passing to ε^e can be performed by computing:
-	*
-	*	(XZ, YZ, XY, Z^2)
-	*
-	* Given (X : Y : T : Z) passing in ε^e to ε is cost-free by simply ignoring T.
-	*
-	*/
-
-
-	function jcToEtec( uint256 X, uint256 Y, uint256 Z )
-		internal pure returns (uint256, uint256, uint256, uint256)
-	{
-		uint256 XZ = mulmod(X, Z, Q);
-		uint256 YZ = mulmod(Y, Z, Q);
-		uint256 XY = mulmod(X, Y, Q);
-		uint256 Z2 = mulmod(Z, Z, Q);
-
-		return (XZ, YZ, XY, Z2);
-	}
-
-
 	/**
 	* Project X,Y point to extended affine coordinates
 	*/
@@ -160,6 +110,17 @@ library JubJub
 	}
 
 
+	/**
+	* Extended twisted edwards coordinates to extended affine coordinates
+	*/
+	function etecToPoint( uint256 X, uint256 Y, uint256 T, uint256 Z )
+		internal view returns (uint256, uint256)
+	{
+		Z = inv(Z, Q);
+		return (mulmod(X, Z, Q), mulmod(Y, Z, Q));
+	}
+
+
 	function eacToPoint( uint256 X, uint256 Y, uint256 T )
 		internal pure returns (uint256, uint256)
 	{
@@ -167,73 +128,103 @@ library JubJub
 	}
 
 
+    /**
+     * @dev Add 2 etec points on baby jubjub curve
+     * x3 = (x1y2 + y1x2) * (z1z2 - dt1t2)
+     * y3 = (y1y2 - ax1x2) * (z1z2 + dt1t2)
+     * t3 = (y1y2 - ax1x2) * (x1y2 + y1x2)
+     * z3 = (z1z2 - dt1t2) * (z1z2 + dt1t2)
+     */
+    function etecAdd(uint256[4] _p1, uint256[4] _p2)
+    	internal pure returns (uint256[4] p3)
+    {
+        if (_p1[0] == 0 && _p1[1] == 0 && _p1[2] == 0 && _p1[3] == 0) {
+            return _p2;
+        }
+
+        if (_p2[0] == 0 && _p2[1] == 0 && _p2[2] == 0 && _p2[3] == 0) {
+            return _p1;
+        }
+
+        uint256[2] memory intermediates;
+        // A <- x1 * x2
+        intermediates[0] = mulmod(_p1[0], _p2[0], Q);
+
+        // B <- y1 * y2
+        intermediates[1] = mulmod(_p1[1], _p2[1], Q);
+
+        // C <- d * t1 * t2
+        uint256 C = mulmod(mulmod(JUBJUB_D, _p1[2], Q), _p2[2], Q);
+
+        // D <- z1 * x2
+        uint256 D = mulmod(_p1[3], _p2[3], Q);
+
+        // E <- (x1 + y1) * (x2 + y2) - A - B
+        uint256 E = submod(submod(mulmod(addmod(_p1[0], _p1[1], Q), addmod(_p2[0], _p2[1], Q), Q), intermediates[0], Q), intermediates[1], Q);
+
+        // F <- D - C
+        //uint256 F = submod(D, C, Q);
+        uint256 F = D;
+        if( F <= C )
+        	F += Q;
+        F = (F - C) % Q;
+
+        // G <- D + C
+        uint256 G = addmod(D, C, Q);
+
+        // H <- B - a * A
+        uint256 H = submod(intermediates[1], mulmod(JUBJUB_A, intermediates[0], Q), Q);
+
+        // x3
+        p3[0] = mulmod(E, F, Q);
+        // y3
+        p3[1] = mulmod(G, H, Q);
+        // t3
+        p3[2] = mulmod(E, H, Q);
+        // z3
+        p3[3] = mulmod(F, G, Q);
+    }
+
+
+	function etecDoubleIntermediate( uint256 X, uint256 Y, uint256 T, uint256 Z )
+		internal pure returns (uint256 E, uint256 F, uint256 G, uint256 H)
+	{
+		G = mulmod(X, X, Q);
+		F = mulmod(Y, Y, Q);
+		E = addmod(X, Y, Q);
+
+		//E = submod(mulmod(E, E, Q), G, Q);
+		E = mulmod(E, E, Q);
+		if( E <= G )
+			E += Q;
+		E = (E - G) % Q;
+
+		//E = submod(E, F, Q);
+		if( E <= F )
+			E += Q;
+		E = (E - F) % Q;
+
+		H = submod(F, mulmod(JUBJUB_A, G, Q), Q);
+
+		Z = mulmod(Z, Z, Q);
+		G = mulmod(mulmod(JUBJUB_D, T, Q), T, Q);
+
+		//F = submod(Z, G, Q);
+		F = Z;
+		if( F <= G )
+			F += Q;
+		F = (F - G) % Q;
+
+		G = addmod(Z, G, Q);
+	}
+
+
 	// section 3.1 - Unified addition
 	function etecDouble( uint256 X, uint256 Y, uint256 T, uint256 Z )
 		internal pure returns (uint256, uint256, uint256, uint256)
 	{
-		uint256 A = mulmod(X, X, Q);
-
-		uint256 B = mulmod(Y, Y, Q);
-
-		uint256 C = mulmod(mulmod(JUBJUB_D, T, Q), T, Q);
-
-		uint256 D = mulmod(Z, Z, Q);
-
-		uint256 E = addmod(X,Y,Q);
-		E = mulmod(E, E, Q);
-		E = submod(E, A, Q);
-		E = submod(E, B, Q);
-
-		uint256 F = submod(D, C, Q);
-
-		uint256 G = addmod(D, C, Q);
-
-		uint256 H = submod(B, mulmod(JUBJUB_A, A, Q), Q);
-
-		uint256 X3 = mulmod(E, F, Q);
-
-		uint256 Y3 = mulmod(G, H, Q);
-
-		uint256 T3 = mulmod(E, H, Q);
-
-		uint256 Z3 = mulmod(F, G, Q);
-
-		return (X3, Y3, T3, Z3);
-	}
-
-
-	/*
-	* Taken from https://cr.yp.to/newelliptic/newelliptic-20070906.pdf
-	* - section 4 page 10, "Doubling"
-	*/
-	function jcDouble(uint256 X, uint256 Y, uint256 Z)
-		internal view returns (uint256 X3, uint256 Y3, uint256 Z3)
-	{
-		uint256 c = 1;
-		uint256 B = addmod(X, Y, Q);
-		B = mulmod(B, B, Q);				// B = (X+Y)^2
-
-		uint256 C = mulmod(X, X, Q);		// C = X^2
-
-		uint256 D = mulmod(Y, Y, Q);		// D = Y^2
-
-		uint256 E = addmod(C, D, Q);		// E = C+D
-
-		uint256 H = mulmod(c, Z, Q);		//      c+Z
-		H = mulmod(H, H, Q);				// H = (c+Z)^2
-
-		uint256 J = addmod(H, H, Q);		//         2H
-		J = submod(E, J, Q);				// J = E - 2H
-
-		X3 = submod(B, E, Q);				//         B-E
-		X3 = mulmod(c, X3, Q);				//      c*(B-E)
-		X3 = mulmod(X3, J, Q);				// X3 = c*(B-E)*J
-
-		Y3 = submod(C, D, Q);				//           C-D
-		Y3 = mulmod(E, Y3, Q);				//        E*(C-D)
-		Y3 = mulmod(c, Y3, Q);				// Y3 = c*E*(C-D)
-
-		Z3 = mulmod(E, J, Q);				// Z3 = E*J
+		(X, Y, T, Z) = etecDoubleIntermediate(X, Y, T, Z);
+		return (mulmod(X, Y, Q), mulmod(T, Z, Q), mulmod(X, Z, Q), mulmod(Y, T, Q));
 	}
 
 
