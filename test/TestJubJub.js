@@ -1,3 +1,7 @@
+// Copyright (c) 2018 @HarryR
+// Copyright (c) 2018 @yondonfu
+// License: LGPL-3.0+
+
 const JubJubPublic = artifacts.require("JubJubPublic");
 
 contract("JubJubPublic", () => {
