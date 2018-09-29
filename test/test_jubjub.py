@@ -1,11 +1,14 @@
 import unittest
 
+from os import urandom
 
 from ethsnarks.field import FQ
-from ethsnarks.jubjub import Point, EtecPoint, ProjPoint
+from ethsnarks.jubjub import Point, EtecPoint, ProjPoint, JUBJUB_L, JUBJUB_C
 
 
 class TestJubjub(unittest.TestCase):
+	def _point_r(self):
+		return Point.from_hash(urandom(10))
 	def _point_a(self):
 		x = 0x274dbce8d15179969bc0d49fa725bddf9de555e0ba6a693c6adb52fc9ee7a82c
 		y = 0x5ce98c61b05f47fe2eae9a542bd99f6b2e78246231640b54595febfd51eb853
@@ -25,6 +28,10 @@ class TestJubjub(unittest.TestCase):
 		expected = Point(x=14447835080060184026016688399206371580541195409649120233292541285797925116718, y=6491210871329023843020152497494661717176702609200142392074344830880218876421)
 		self.assertEqual(p, expected)
 
+		for _ in range(0, 10):
+			entropy = urandom(10)
+			p = Point.from_hash(entropy)
+
 	def test_recover(self):
 		p = self._point_a()
 		q = Point.from_y(p.y)
@@ -37,6 +44,9 @@ class TestJubjub(unittest.TestCase):
 			self.assertEqual(r.as_point(), p.infinity())
 
 	def test_zero(self):
+		"""
+		Verify that operations on infinity result in infinity
+		"""
 		zero = Point.infinity()
 		etec_zero = EtecPoint.infinity()
 		proj_zero = ProjPoint.infinity()
@@ -54,10 +64,9 @@ class TestJubjub(unittest.TestCase):
 		self.assertEqual(etec_zero.add(etec_zero), etec_zero)
 		self.assertEqual(proj_zero.add(proj_zero), proj_zero)
 
-		# XXX: doubling zero may give incorrect results
 		self.assertEqual(zero.double(), zero)
-		#self.assertEqual(etec_zero.double(), etec_zero)
-		#self.assertEqual(proj_zero.double(), proj_zero)
+		self.assertEqual(etec_zero.double(), etec_zero)
+		self.assertEqual(proj_zero.double(), proj_zero)
 
 	def test_double_via_add(self):
 		a = self._point_a()
@@ -69,15 +78,27 @@ class TestJubjub(unittest.TestCase):
 		a_dbl = a.double()
 		self.assertEqual(a_dbl.as_point(), self._point_a_double())
 
+	def test_twist(self):
+		"""
+		Any point, multiplied by L results in a low-order point
+		Multiplying again by L results in the same point
+		The resulting point, multiplied by the cofactor results in infinity
+		"""
+		p = self._point_r()
+		for q in [p.as_point(), p.as_proj(), p.as_etec()]:
+			r = q.mult(JUBJUB_L).as_point()
+			s = r.mult(JUBJUB_L).as_point()
+			self.assertEqual(r, s)
+			self.assertEqual(s.mult(JUBJUB_C), s.infinity())
+
 	def test_equality(self):
 		p = self._point_a()
 		for q in [p.as_point(), p.as_proj(), p.as_etec()]:
 			a = q.mult(9).add(q.mult(5))
 			b = q.mult(12).add(q.mult(2))
-			
+
 			self.assertTrue(a.as_point().valid())
 			self.assertTrue(b.as_point().valid())
-			print(a)
 			self.assertTrue(a.valid())
 			self.assertTrue(b.valid())
 			self.assertEqual(a.as_point(), b.as_point())

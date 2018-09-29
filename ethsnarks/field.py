@@ -68,15 +68,6 @@ def inv(a, n):
     return lm % n
 
 
-def MakeOdd(x):
-    """
-    Removes factors of 2 from x
-    returns the number of 2's removed
-    returns 0 if x == 0
-    """
-    raise NotImplementedError()
-
-
 # A class for field elements in FQ. Wrap a number in this class,
 # and it becomes a field element.
 class FQ(object):
@@ -102,12 +93,18 @@ class FQ(object):
         cls._COUNTS = defaultdict(int)
 
     def __init__(self, n, field_modulus=SNARK_SCALAR_FIELD):
-        self.m = field_modulus
         if isinstance(n, self.__class__):
+            if n.m != field_modulus:
+                raise ValueError("Field modulus mismatch")
+            self.m = n.m
             self.n = n.n
         else:
+            if not isinstance(n, int_types):
+                raise ValueError("Invalid number type")
+            if not isinstance(field_modulus, int_types):
+                raise ValueError("Invalid modulus type")
+            self.m = field_modulus
             self.n = n % self.m
-        assert isinstance(self.n, int_types)
 
     def _other_n(self, other):
         if isinstance(other, FQ):

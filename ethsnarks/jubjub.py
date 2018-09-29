@@ -28,9 +28,13 @@ from hashlib import sha256
 from collections import namedtuple
 
 from .field import FQ, SNARK_SCALAR_FIELD
+from .numbertheory import SquareRootError
 
 
+JUBJUB_Q = SNARK_SCALAR_FIELD
+JUBJUB_L = 2736030358979909402780800718157159386076813972158567259200215660948447373041
 JUBJUB_A = 168700	# Coefficient A
+JUBJUB_C = 8		# Cofactor
 JUBJUB_D = 168696	# Coefficient D
 
 
@@ -55,14 +59,29 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		"""
 		x^2 = (y^2 - 1) / (y^2 * d - a)
 		"""
+		assert isinstance(y, FQ)
+		assert y.m == JUBJUB_Q
 		ysq = y * y
 		xx = (ysq - 1) / (ysq * JUBJUB_D - JUBJUB_A)
 		return cls(xx.sqrt(), y)
 
 	@classmethod
-	def from_hash(cls, data):
-		result = int.from_bytes(sha256(data).digest(), 'big')
-		return cls.from_y(FQ(result))
+	def from_hash(cls, entropy):
+		"""
+		HashToPoint (or Point.from_hash)
+
+		Hashes the input entropy repeatedly, and interprets it as the y
+		coordinate then recovers the x coordinate, if no valid point can be
+		recovered y is incremented until a matching X coordinate is found.
+		"""
+		entropy = sha256(entropy).digest()
+		y = FQ(int.from_bytes(entropy, 'big'))
+		while True:
+			try:
+				return cls.from_y(y)
+			except SquareRootError:
+				y += 1
+				continue
 
 	def as_proj(self):
 		return ProjPoint(self.x, self.y, 1)
@@ -82,6 +101,7 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		return (JUBJUB_A * xsq) + ysq == (1 + JUBJUB_D * xsq * ysq)
 
 	def add(self, other):
+		assert isinstance(other, Point)
 		if self.x == 0 and self.y == 0:
 			return other
 		(u1, v1) = (self.x, self.y)
@@ -130,6 +150,8 @@ class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
 		Strongly unified
 		"""
 		assert isinstance(other, ProjPoint)
+		if self == self.infinity():
+			return other
 		a = self.z * other.z
 		b = a * a
 		c = self.x * other.x
@@ -162,6 +184,8 @@ class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
 		> The following formulas compute (X3 : Y3 : Z3) = 2(X1 : Y1 : Z1)
 		> in 3M + 4S + 1D + 7add, where the 1D is a multiplication by `a`.
 		"""
+		if self == self.infinity():
+			return self.infinity()
 		t0 = self.x + self.y
 		b = t0 * t0
 		c = self.x * self.x
@@ -215,17 +239,14 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 		return EtecPoint(-self.x, self.y, -self.t, self.z)
 
 	def valid(self):
-		"""
-		Is point on curve
-		"""
-		return (self.z != 0 and
-				(self.x*self.y) == (self.z*self.t) and
-				(self.y*self.y - self.x*self.z - self.z*self.z - JUBJUB_D*self.t*self.t) == 0)
+		return self.as_point().valid()
 
 	def double(self):
 		"""
 		dbl-2008-hwcd
 		"""
+		if self == self.infinity():
+			return self.infinity()
 		a = self.x * self.x
 		b = self.y * self.y
 		t0 = self.z * self.z
