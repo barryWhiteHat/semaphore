@@ -62,8 +62,26 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		assert isinstance(y, FQ)
 		assert y.m == JUBJUB_Q
 		ysq = y * y
-		xx = (ysq - 1) / (ysq * JUBJUB_D - JUBJUB_A)
+		xx = (ysq - 1) / ((JUBJUB_D * ysq) - JUBJUB_A)
 		return cls(xx.sqrt(), y)
+
+	@classmethod
+	def from_x(cls, x):
+		"""
+		y^2 = ((a * x^2) / (d * x^2 - 1)) - (1 / (d * x^2 - 1))
+
+		For every x point, there are two possible y points
+		"""
+		assert isinstance(x, FQ)
+		assert x.m == JUBJUB_Q
+		xsq = x * x
+		ax2 = JUBJUB_A * xsq
+		dxsqm1 = (JUBJUB_D * xsq - 1).inv()
+		u = ax2 * dxsqm1
+		v = FQ(1) * dxsqm1
+		ysq = u - v
+		y = ysq.sqrt()
+		return cls(x, y)
 
 	@classmethod
 	def from_hash(cls, entropy):

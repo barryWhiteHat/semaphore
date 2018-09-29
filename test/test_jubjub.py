@@ -32,10 +32,18 @@ class TestJubjub(unittest.TestCase):
 			entropy = urandom(10)
 			p = Point.from_hash(entropy)
 
-	def test_recover(self):
-		p = self._point_a()
-		q = Point.from_y(p.y)
-		self.assertEqual(p, q)
+	def test_recover_x(self):
+		for _ in range(0, 10):
+			p = self._point_r()
+			q = Point.from_y(p.y)
+			self.assertEqual(p, q)
+
+	def test_recover_y(self):
+		for _ in range(0, 10):
+			p = self._point_r()
+			q = Point.from_x(p.x)
+			self.assertEqual(p.x, q.x)
+			self.assertTrue(p.y in [q.y, -q.y])
 
 	def test_negate(self):
 		p = self._point_a()
