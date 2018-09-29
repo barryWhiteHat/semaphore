@@ -66,28 +66,31 @@ library JubJub
 	}
 
 
-	/*
-	function scalarMult(Point self, uint256 value)
-		internal view returns (Point)
+	function scalarMult(uint256 x, uint256 y, uint256 value)
+		internal view returns (uint256, uint256)
 	{
-		Point memory p = Point(self.x, self.y);
-		Point memory a = Point(0, 0);
+		uint256 px;
+		uint256 py;
+		uint256 pt;
+		uint256 pz = 1;
+		(px, py, pt) = pointToEac(x, y);
+
+		uint256[4] memory a = [uint256(0), uint256(0), uint256(0), uint256(1)];
 
 		while( value != 0 )
 		{
 			if( (value & 1) != 0 )
 			{
-				a = pointAdd(a, p);
+				a = etecAdd(a, [px, py, pt, pz]);
 			}
 
-			p = pointAdd(p, p);
+			(px, py, pt, pz) = etecDouble(px, py, pt, pz);
 
 			value = value / 2;
 		}
 
-		return a;
+		return etecToPoint(px, py, pt, pz);
 	}
-	*/
 
 
 	/**
@@ -184,6 +187,69 @@ library JubJub
         p3[2] = mulmod(E, H, Q);
         // z3
         p3[3] = mulmod(F, G, Q);
+    }
+
+
+    /**
+     * @dev Double a etec point using dedicated double algorithm
+     */
+    function pointDoubleDedicatedASM(
+        uint256 _x, 
+        uint256 _y,
+        uint256 _t,
+        uint256 _z
+    ) 
+        internal 
+        pure
+        returns (uint256 x, uint256 y, uint256 t, uint256 z)
+    {
+        assembly {
+            let localQ := 0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001 
+            let localA := 0x292FC
+
+            // A <- x1 * x1
+            let a := mulmod(_x, _x, localQ)
+            // B <- y1 * y1
+            let b := mulmod(_y, _y, localQ)
+            // C <- 2 * z1 * z1
+            let c := mulmod(mulmod(2, _z, localQ), _z, localQ)
+            // D <- a * A
+            let d := mulmod(localA, a, localQ)
+            // E <- (x1 + y1)^2 - A - B
+            let e := addmod(_x, _y, localQ)
+            e := mulmod(e, e, localQ)
+            if lt(e, add(a, 1)) {
+                e := add(e, localQ)
+            }
+            e := mod(sub(e, a), localQ)
+            if lt(e, add(b, 1)) {
+                e := add(e, localQ)
+            }
+            e := mod(sub(e, b), localQ)
+            // G <- D + B
+            let g := addmod(d, b, localQ)
+            // F <- G - C
+            let f := g
+            if lt(f, add(c, 1)) {
+                f := add(f, localQ)
+            }
+            f := mod(sub(f, c), localQ)
+            // H <- D - B
+            let h := d
+            if lt(h, add(b, 1)) {
+                h := add(h, localQ)
+            }
+            h := mod(sub(h, b), localQ)
+
+            // x3 <- E * F
+            x := mulmod(e, f, localQ)
+            // y3 <- G * H
+            y := mulmod(g, h, localQ)
+            // t3 <- E * H
+            t := mulmod(e, h, localQ)
+            // z3 <- F * G
+            z := mulmod(f, g, localQ)
+        }
     }
 
 

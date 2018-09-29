@@ -2,7 +2,7 @@ import unittest
 
 
 from ethsnarks.field import FQ
-from ethsnarks.jubjub import Point
+from ethsnarks.jubjub import Point, EtecPoint, ProjPoint
 
 
 class TestJubjub(unittest.TestCase):
@@ -16,76 +16,102 @@ class TestJubjub(unittest.TestCase):
 		y = 4338620300185947561074059802482547481416142213883829469920100239455078257889
 		return Point(FQ(x), FQ(y))
 
-	def test_mont_translate(self):
+	def test_validity(self):
+		self.assertTrue(self._point_a().valid())
+		self.assertTrue(Point.infinity().valid())
+
+	def test_hash_to_point(self):
+		p = Point.from_hash(b'test')
+		expected = Point(x=14447835080060184026016688399206371580541195409649120233292541285797925116718, y=6491210871329023843020152497494661717176702609200142392074344830880218876421)
+		self.assertEqual(p, expected)
+
+	def test_recover(self):
 		p = self._point_a()
-		m = p.as_mont()
-		q = m.as_point()
+		q = Point.from_y(p.y)
 		self.assertEqual(p, q)
 
+	def test_negate(self):
+		p = self._point_a()
+		for q in [p.as_point(), p.as_etec(), p.as_proj()]:
+			r = q.add( q.neg() )
+			self.assertEqual(r.as_point(), p.infinity())
+
+	def test_zero(self):
+		zero = Point.infinity()
+		etec_zero = EtecPoint.infinity()
+		proj_zero = ProjPoint.infinity()
+
+		self.assertEqual(zero.as_etec(), etec_zero)
+		self.assertEqual(zero.as_proj(), proj_zero)
+
+		self.assertEqual(etec_zero.as_point(), zero)
+		self.assertEqual(etec_zero.as_proj(), proj_zero)
+
+		self.assertEqual(proj_zero.as_point(), zero)
+		self.assertEqual(proj_zero.as_etec(), etec_zero)
+
+		self.assertEqual(zero.add(zero), zero)
+		self.assertEqual(etec_zero.add(etec_zero), etec_zero)
+		self.assertEqual(proj_zero.add(proj_zero), proj_zero)
+
+		# XXX: doubling zero may give incorrect results
+		self.assertEqual(zero.double(), zero)
+		#self.assertEqual(etec_zero.double(), etec_zero)
+		#self.assertEqual(proj_zero.double(), proj_zero)
+
 	def test_double_via_add(self):
-		print("Affine Double (via add):")
 		a = self._point_a()
-		FQ._reset_counts()
 		a_dbl = a.add(a)
-		FQ._print_counts()
 		self.assertEqual(a_dbl.as_point(), self._point_a_double())
 
 	def test_etec_double(self):
-		print("ETEC Double:")
 		a = self._point_a().as_etec()
-		FQ._reset_counts()
 		a_dbl = a.double()
-		FQ._print_counts()
 		self.assertEqual(a_dbl.as_point(), self._point_a_double())
 
+	def test_equality(self):
+		p = self._point_a()
+		for q in [p.as_point(), p.as_proj(), p.as_etec()]:
+			a = q.mult(9).add(q.mult(5))
+			b = q.mult(12).add(q.mult(2))
+			
+			self.assertTrue(a.as_point().valid())
+			self.assertTrue(b.as_point().valid())
+			print(a)
+			self.assertTrue(a.valid())
+			self.assertTrue(b.valid())
+			self.assertEqual(a.as_point(), b.as_point())
+
 	def test_etec_double_via_add(self):
-		print("ETEC Double (via add):")
 		a = self._point_a().as_etec()
-		FQ._reset_counts()
 		a_dbl = a.add(a)
-		FQ._print_counts()
 		self.assertEqual(a_dbl.as_point(), self._point_a_double())
 
 	def test_projective_double(self):
-		print("Projected Double:")
 		b = self._point_a().as_proj()
-		FQ._reset_counts()
 		b_dbl = b.double()
-		FQ._print_counts()
 		self.assertEqual(b_dbl.as_point(), self._point_a_double())
 
 	def test_projective_double_via_add(self):
-		print("Projected Double (via add):")
 		c = self._point_a().as_proj()
-		FQ._reset_counts()
 		c_dbl = c.add(c)
-		FQ._print_counts()
 		self.assertEqual(c_dbl.as_point(), self._point_a_double())
 
 	def test_mult_2(self):
-		print("ETEC Mult 2")
 		p = self._point_a().as_etec()
-		FQ._reset_counts()
 		q = p.mult(2)
-		FQ._print_counts()
 		self.assertEqual(q.as_point(), self._point_a_double())
 
 	def test_etec_mult_n(self):
-		print("ETEC Mult n")
 		p = self._point_a().as_etec()
-		FQ._reset_counts()
 		q = p.mult(6890855772600357754907169075114257697580319025794532037257385534741338397365)
-		FQ._print_counts()
 		q = q.as_point()
 		self.assertEqual(q.x, 6317123931401941284657971611369077243307682877199795030160588338302336995127)
 		self.assertEqual(q.y, 17705894757276775630165779951991641206660307982595100429224895554788146104270)
 
 	def test_proj_mult_n(self):
-		print("Projective Mult n")
 		p = self._point_a().as_proj()
-		FQ._reset_counts()
 		q = p.mult(6890855772600357754907169075114257697580319025794532037257385534741338397365)
-		FQ._print_counts()
 		q = q.as_point()
 		self.assertEqual(q.x, 6317123931401941284657971611369077243307682877199795030160588338302336995127)
 		self.assertEqual(q.y, 17705894757276775630165779951991641206660307982595100429224895554788146104270)

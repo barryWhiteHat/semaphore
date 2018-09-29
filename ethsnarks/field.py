@@ -24,8 +24,10 @@
 #
 
 import sys
+import math
 from random import randint
 from collections import defaultdict
+from .numbertheory import square_root_mod_prime
 
 # python3 compatibility
 if sys.version_info.major == 2:
@@ -35,6 +37,22 @@ else:
 
 
 SNARK_SCALAR_FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617
+
+
+def powmod(a, b, n):
+    """Modulo exponentiation"""
+    c = 0
+    f = 1
+    k = int(math.log(b, 2))
+    while k >= 0:
+        c *= 2
+        f = (f*f)%n
+        if b & (1 << k):
+            c += 1
+            f = (f*a) % n
+        k -= 1
+    return f
+
 
 # Extended euclidean algorithm to find modular inverses for
 # integers
@@ -48,6 +66,15 @@ def inv(a, n):
         nm, new = hm - lm * r, high - low * r
         lm, low, hm, high = nm, new, lm, low
     return lm % n
+
+
+def MakeOdd(x):
+    """
+    Removes factors of 2 from x
+    returns the number of 2's removed
+    returns 0 if x == 0
+    """
+    raise NotImplementedError()
 
 
 # A class for field elements in FQ. Wrap a number in this class,
@@ -119,7 +146,14 @@ class FQ(object):
 
     def inv(self):
         self._count('inv')
-        return inv(self.n, self.m)
+        return FQ(inv(self.n, self.m), self.m)
+
+    def sqrt(self):
+        return FQ(square_root_mod_prime(self.n, self.m), self.m)
+
+    def exp(self, e):
+        e = self._other_n(e)
+        return FQ(powmod(self.n, e, self.m), self.m)
 
     def __div__(self, other):
         on = self._other_n(other)
@@ -163,13 +197,21 @@ class FQ(object):
         return repr(self.n)
 
     @classmethod
-    def random(cls, modulus=SNARK_SCALAR_FIELD):        
+    def random(cls, modulus=SNARK_SCALAR_FIELD):
         return FQ(randint(1, modulus - 1), modulus)
 
     @classmethod
     def one(cls, modulus=SNARK_SCALAR_FIELD):
         return cls(1, modulus)
 
+    @property
+    def ONE(self):
+        return self.one(self.m)
+
     @classmethod
     def zero(cls, modulus=SNARK_SCALAR_FIELD):
         return cls(0, modulus)
+
+    @property
+    def MINUS_ONE(self):
+        return FQ(-1, self.m)

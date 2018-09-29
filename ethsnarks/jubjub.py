@@ -24,21 +24,23 @@ paper:
    Wouter Gastryck, Steven Galbraith and Reza Rezaeian Farashahi
 """
 
+from hashlib import sha256
 from collections import namedtuple
 
-from .field import FQ
+from .field import FQ, SNARK_SCALAR_FIELD
 
-JUBJUB_A = 168700
-JUBJUB_D = 168696
 
-MONT_A = 168698		#  2 * (JUBJUB_A + JUBJUB_D) / (JUBJUB_A - JUBJUB_D)
-MONT_B = 1			#  4 / (JUBJUB_A - JUBJUB_D)
+JUBJUB_A = 168700	# Coefficient A
+JUBJUB_D = 168696	# Coefficient D
 
 
 class AbstractCurveOps(object):
+	def double(self):
+		return self.add(self)
+
 	def mult(self, scalar):
 		p = self
-		a = self.zero()
+		a = self.infinity()
 		while scalar != 0:
 			if (scalar & 1) != 0:
 				a = a.add(p)
@@ -48,28 +50,36 @@ class AbstractCurveOps(object):
 
 
 class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
+	@classmethod
+	def from_y(cls, y):
+		"""
+		x^2 = (y^2 - 1) / (y^2 * d - a)
+		"""
+		ysq = y * y
+		xx = (ysq - 1) / (ysq * JUBJUB_D - JUBJUB_A)
+		return cls(xx.sqrt(), y)
+
+	@classmethod
+	def from_hash(cls, data):
+		result = int.from_bytes(sha256(data).digest(), 'big')
+		return cls.from_y(FQ(result))
+
 	def as_proj(self):
 		return ProjPoint(self.x, self.y, 1)
 
 	def as_etec(self):
 		return EtecPoint(self.x, self.y, self.x*self.y, 1)
 
-	def as_mont(self):
-		"""
-		From IACR 2008/218 section 2:
-
-		Every Edwards form is birationally equivalent to a Montgomery form via:
-
-			E_d --> M_{(2(1+d)/(1-d))} : (x,y) -> ((1+y)/(1-y), x * ((1+y)/(1-y)))
-		"""
-		delta = (1+self.y) / (1-self.y)
-		return MontPoint(delta, self.x * delta)
-
 	def as_point(self):
 		return self
 
-	def double(self):
-		return self.add(self)
+	def neg(self):
+		return Point(-self.x, self.y)
+
+	def valid(self):
+		xsq = self.x*self.x
+		ysq = self.y*self.y
+		return (JUBJUB_A * xsq) + ysq == (1 + JUBJUB_D * xsq * ysq)
 
 	def add(self, other):
 		if self.x == 0 and self.y == 0:
@@ -80,24 +90,9 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		v3 = (v1*v2 - JUBJUB_A*u1*u2) / (FQ.one() - JUBJUB_D*u1*u2*v1*v2)
 		return Point(u3, v3)
 
-	def one(self):
-		return Point(0, 1)
-
-	def zero(self):
-		return Point(0, 0)
-
-
-class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('a', 'b'))):
-	def as_point(self):
-		"""
-		From IACR 2008/218 section 2:
-
-		Every Edwards form is birationally equivalent to a Montgomery form via:			
-			M_{(2(1+d)/(1-d))} --> E_d : (x,y) -> (x/y, (x-1)/(x+1))
-		"""
-		x = self.b / self.a
-		y = (self.a - 1) / (self.a + 1)
-		return Point(x, y)
+	@staticmethod
+	def infinity():
+		return Point(FQ(0), FQ(1))
 
 
 class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
@@ -105,6 +100,9 @@ class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
 		return self
 
 	def as_etec(self):
+		"""
+		(X, Y, Z) -> (X, Y, X*Y, Z)
+		"""
 		return EtecPoint(self.x, self.y, self.x*self.y, self.z)
 
 	def as_point(self):
@@ -112,11 +110,18 @@ class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
 		inv_z = self.z.inv()
 		return Point(self.x*inv_z, self.y*inv_z)
 
-	def one(self):
-		return Point(0, 1)
+	def valid(self):
+		return self.as_point().valid()
 
-	def zero(self):
-		return Point(0, 0)
+	@staticmethod
+	def infinity():
+		return ProjPoint(FQ(0), FQ(1), FQ(1))
+
+	def neg(self):
+		"""
+		-(X : Y : Z) = (-X : Y : Z)
+		"""
+		return ProjPoint(-self.x, self.y, self.z)
 
 	def add(self, other):
 		"""
@@ -180,15 +185,42 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 		return self
 
 	def as_point(self):
-		assert self.z != 0
+		"""
+		Ignoring the T value, project from 3d X,Y,Z to 2d X,Y coordinates
+
+			(X : Y : T : Z) -> (X/Z, Y/Z)
+		"""
 		inv_z = self.z.inv()
 		return Point(self.x*inv_z, self.y*inv_z)
 
-	def zero(self):
-		return EtecPoint(0, 0, 0, 0)
+	def as_proj(self):
+		"""
+		The T value is dropped when converting from extended
+		twisted edwards to projective edwards coordinates.
 
-	def one(self):
-		return EtecPoint(0, 1, 0, 1)
+			(X : Y : T : Z) -> (X, Y, Z)
+		"""
+		return ProjPoint(self.x, self.y, self.z)
+
+	@staticmethod
+	def infinity():
+		return EtecPoint(FQ(0), FQ(1), FQ(0), FQ(1))
+
+	def neg(self):
+		"""
+		Twisted Edwards Curves Revisited - HWCD, pg 5, section 3
+
+			-(X : Y : T : Z) = (-X : Y : -T : Z)
+		"""
+		return EtecPoint(-self.x, self.y, -self.t, self.z)
+
+	def valid(self):
+		"""
+		Is point on curve
+		"""
+		return (self.z != 0 and
+				(self.x*self.y) == (self.z*self.t) and
+				(self.y*self.y - self.x*self.z - self.z*self.z - JUBJUB_D*self.t*self.t) == 0)
 
 	def double(self):
 		"""
@@ -213,7 +245,7 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 		3.1 Unified addition in ε^e
 		"""
 		assert isinstance(other, EtecPoint)
-		if self.x == 0 and self.y == 0 and self.t == 0 and self.z == 0:
+		if self == self.infinity():
 			return other
 
 		assert self.z != 0
