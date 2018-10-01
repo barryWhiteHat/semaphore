@@ -13,15 +13,6 @@ By using the extended coordinate system we can avoid expensive modular exponenti
 calls, for example - a scalar multiplication call (or multiple...) may perform only
 one 3d->2d projection at the point where affine coordinates are necessary, and every
 intermediate uses a much faster form.
-
-------------------
-
-This also implements the mixed Edwards-Montgomery representation described in the
-paper:
-
- "Efficient arithmetic on elliptic curves using a mixed Edwards-Montgomery represetation"
- - https://eprint.iacr.org/2008/218.pdf
-   Wouter Gastryck, Steven Galbraith and Reza Rezaeian Farashahi
 """
 
 from hashlib import sha256
@@ -33,9 +24,27 @@ from .numbertheory import SquareRootError
 
 JUBJUB_Q = SNARK_SCALAR_FIELD
 JUBJUB_L = 2736030358979909402780800718157159386076813972158567259200215660948447373041
-JUBJUB_A = 168700	# Coefficient A
 JUBJUB_C = 8		# Cofactor
+JUBJUB_A = 168700	# Coefficient A
 JUBJUB_D = 168696	# Coefficient D
+
+
+"""
+From "Twisted Edwards Curves", 2008-BBJLP
+Theorem 3.2
+"""
+MONT_A = int(2*(JUBJUB_A+JUBJUB_D)/(JUBJUB_D-JUBJUB_A))	#	21888242871839275222246405745257275088548364400416034343698204186575808326919
+MONT_B = int(4/(JUBJUB_A-JUBJUB_D))						#	1
+MONT_A = -MONT_A 										#	168698
+
+
+"""
+2017-BL - "Montgomery curves and the Montgomery ladder"
+- https://eprint.iacr.org/2017/293.pdf
+4.3.5, The curve parameters satisfy:
+"""
+assert JUBJUB_A == (MONT_A+2)/MONT_B
+assert JUBJUB_D == (MONT_A-2)/MONT_B
 
 
 class AbstractCurveOps(object):
@@ -43,6 +52,10 @@ class AbstractCurveOps(object):
 		return self.add(self)
 
 	def mult(self, scalar):
+		if isinstance(scalar, FQ):
+			if scalar.m != SNARK_SCALAR_FIELD:
+				raise ValueError("Invalid field modulus")
+			scalar = scalar.n
 		p = self
 		a = self.infinity()
 		while scalar != 0:
@@ -70,7 +83,11 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		"""
 		y^2 = ((a * x^2) / (d * x^2 - 1)) - (1 / (d * x^2 - 1))
 
-		For every x point, there are two possible y points
+		Alternatively?
+
+		y^2 = (a * x^2 - 1) / (d * x^2 - 1)
+
+		For every x coordinates, there are two possible points: (x, y) and (x, -y)
 		"""
 		assert isinstance(x, FQ)
 		assert x.m == JUBJUB_Q
@@ -104,6 +121,18 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 	def as_proj(self):
 		return ProjPoint(self.x, self.y, 1)
 
+	def as_mont(self):
+		u = (1 + self.y) / (1 - self.y)
+		v = (1 + self.y) / ( (1 - self.y) * self.x )
+		return MontPoint(u, v)
+
+	"""
+	def as_mont_2(self):
+		u = (1 + self.x) / (1 - self.x)
+		v = (1 + self.x) / ( (1 - self.x) * self.y )
+		return MontPoint(u, v)
+	"""
+
 	def as_etec(self):
 		return EtecPoint(self.x, self.y, self.x*self.y, 1)
 
@@ -111,9 +140,17 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		return self
 
 	def neg(self):
+		"""
+		Twisted Edwards Curves, BBJLP-2008, section 2 pg 2
+		"""
 		return Point(-self.x, self.y)
 
 	def valid(self):
+		"""
+		Satisfies the relationship
+
+			ax^2 + y^2 = 1 + d x^2 y^2
+		"""
 		xsq = self.x*self.x
 		ysq = self.y*self.y
 		return (JUBJUB_A * xsq) + ysq == (1 + JUBJUB_D * xsq * ysq)
@@ -133,7 +170,97 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		return Point(FQ(0), FQ(1))
 
 
+class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('u', 'v'))):
+	"""
+	This also implements the mixed Edwards-Montgomery representation described in the
+	paper:
+
+	 "Efficient arithmetic on elliptic curves using a mixed Edwards-Montgomery represetation"
+	 - https://eprint.iacr.org/2008/218.pdf
+	   Wouter Gastryck, Steven Galbraith and Reza Rezaeian Farashahi
+
+	And:
+
+	 "Montgomery curves and the Montgomery ladder"
+	  - https://eprint.iacr.org/2017/293.pdf
+	    Daniel J. Bernstein and Tanja Lange
+   	"""
+	def valid(self):
+		"""
+		From https://eprint.iacr.org/2017/293.pdf
+		4.2 Fast scalar multiplication on the clock
+
+			A twisted clock as a curve on `au^2+v^2 = 1` with
+			specified point `(0,1)`, where `a` is nonzero
+		"""		
+		u = self.u
+		v = self.v
+		uu = u * u
+		vv = v * v
+		return uu + vv == 1
+
+	def as_point(self):
+		x = self.u / self.v
+		y = (self.u - 1) / (self.u + 1)
+		return Point(x, y)
+
+	"""
+	def as_point_2(self):
+		y = self.u / self.v
+		x = (self.u - 1) / (self.u + 1)
+		return Point(x, y)
+	"""
+
+	def as_proj(self):
+		return self.as_point().as_proj()
+
+	def as_etec(self):
+		return self.as_point().as_etec()
+
+	def add(self, other):
+		"""
+		From https://eprint.iacr.org/2017/293.pdf
+		4.2 Fast scalar multiplication on the clock
+
+			Then Clock_a(k) is an abelian group under the
+			following operations, The neutral element is the
+			specified point (0,1). The negative -(u,v) of a
+			point (u,v) is (-uv,). The sum (u5,v5) of (u2,v2)
+			and (u3,v3) is given by:
+
+				(u5, v5) = (u2, v2) + (u3, v3) = (u2v3 + u3v2, v2v3 − au2u3)
+		"""
+		u2, v2 = self.u, self.v
+		u3, v3 = other.u, other.v
+		u5 = u2*v3 + u3*v2
+		v5 = v2*v3 - MONT_A*u2*u3
+		return MontPoint(u5, v5)
+
+	def double(self):
+		x1 = self.u
+		z1 = self.v
+		xx = x1 * x1
+		zz = z1 * z1
+		xxmzz = xx - zz
+		x3 = xxmzz * xxmzz
+
+		z3 = 4 * x1 * z1 * (xx * MONT_A * x1 * z1 * xx)
+		return MontPoint(x3, z3)
+
+
 class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
+	def valid(self):
+		"""
+			Also, the follwing should also be valid
+
+			(x^2 + y^2) * z^2 = z^4 + (d * x^2 * y^2)
+		"""
+		xx = self.x * self.x
+		yy = self.y * self.y
+		zz = self.z * self.z
+		z4 = zz * zz
+		return (xx + yy) * zz == z4 * (JUBJUB_D * xx * yy)
+
 	def as_proj(self):
 		return self
 
