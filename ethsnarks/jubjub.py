@@ -60,11 +60,14 @@ class AbstractCurveOps(object):
 			scalar = scalar.n
 		p = self
 		a = self.infinity()
+		i = 0
 		while scalar != 0:
 			if (scalar & 1) != 0:
 				a = a.add(p)
+				print(i, a)
 			p = p.double()
 			scalar = scalar // 2
+			i += 1
 		return a
 
 
@@ -72,12 +75,12 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 	@classmethod
 	def from_y(cls, y):
 		"""
-		x^2 = (y^2 - 1) / (y^2 * d - a)
+		x^2 = (y^2 - 1) / (d * y^2 - a)
 		"""
 		assert isinstance(y, FQ)
 		assert y.m == JUBJUB_Q
 		ysq = y * y
-		xx = (ysq - 1) / ((JUBJUB_D * ysq) - JUBJUB_A)
+		xx = (ysq - 1) / (JUBJUB_D * ysq - JUBJUB_A)
 		return cls(xx.sqrt(), y)
 
 	@classmethod
@@ -85,16 +88,14 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		"""
 		y^2 = ((a * x^2) / (d * x^2 - 1)) - (1 / (d * x^2 - 1))
 
-		For every x coordinates, there are two possible points: (x, y) and (x, -y)
+		For every x coordinate, there are two possible points: (x, y) and (x, -y)
 		"""
 		assert isinstance(x, FQ)
 		assert x.m == JUBJUB_Q
 		xsq = x * x
 		ax2 = JUBJUB_A * xsq
 		dxsqm1 = (JUBJUB_D * xsq - 1).inv()
-		u = ax2 * dxsqm1
-		v = FQ(1) * dxsqm1
-		ysq = u - v
+		ysq = dxsqm1 * (ax2 - 1)
 		y = ysq.sqrt()
 		return cls(x, y)
 
@@ -161,6 +162,10 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		return Point(FQ(0), FQ(1))
 
 
+class XZPoint(AbstractCurveOps, namedtuple('_XZPoint', ('x', 'z'))):
+	pass
+
+
 class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
 	"""
 	This also implements the mixed Edwards-Montgomery representation described in the
@@ -178,12 +183,24 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
    	"""
 	def valid(self):
 		"""
-		y^2 = x^3 + A*x^2 + x
+		B*y^2 = x^3 + A*x^2 + x
 		"""
 		y2 = self.y * self.y
 		x2 = self.x * self.x
 		x3 = x2 * self.x
-		return y2 == x3 + MONT_A*x2 + self.x
+		return MON_B * y2 == x3 + MONT_A*x2 + self.x
+
+	@classmethod
+	def from_x(cls, x):
+		"""
+		There are two valid y points for every x:
+
+			(x, y) and (x, -y)
+		"""
+		x2 = x * x
+		x3 = x2 * x
+		y2 = x3 + MONT_A*x2 + x
+		return cls(x, y2.sqrt())
 
 	def as_point(self):
 		"""

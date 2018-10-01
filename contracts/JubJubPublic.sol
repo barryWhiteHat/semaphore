@@ -30,14 +30,9 @@ contract JubJubPublic
 		return JubJub.pointAdd(a, b);
 	}
 
-
-	function pointDoubleViaEtec(uint256[2] p)
-		public view returns (uint256 x, uint256 y)
+	function scalarMult(uint256[2] a, uint256 s)
+		public view returns (uint256, uint256)
 	{
-		uint256 t;
-		uint256 z;
-		(x, y, t) = JubJub.pointToEac(p[0], p[1]);
-		(x, y, t, z) = JubJub.pointDoubleDedicatedASM(x, y, t, 1);
-		return JubJub.etecToPoint(x, y, t, z);
+		return JubJub.scalarMult(a[0], a[1], s);
 	}
 }

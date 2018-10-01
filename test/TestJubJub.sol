@@ -10,6 +10,7 @@ import "../contracts/JubJub.sol";
 
 contract TestJubJub
 {
+
 	function testScalarMult()
 		public
 	{
@@ -39,7 +40,7 @@ contract TestJubJub
 		Assert.equal(d[1], 4338620300185947561074059802482547481416142213883829469920100239455078257889, "Bad double y coord");
 	}
 
-
+	/*
 	function testPointDoubleEtec()
 		public
 	{
@@ -58,7 +59,7 @@ contract TestJubJub
 
 		Assert.equal(y, 4338620300185947561074059802482547481416142213883829469920100239455078257889, "Bad double y coord");
 	}
-
+	*/
 
 	function testPointAddEtec()
 		public

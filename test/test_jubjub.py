@@ -21,12 +21,6 @@ class TestJubjub(unittest.TestCase):
 		y = 4338620300185947561074059802482547481416142213883829469920100239455078257889
 		return Point(FQ(x), FQ(y))
 
-	def test_1_negation2(self):
-		for _ in range(0, 10):
-			p = self._point_r()
-			q = Point(p.x, -p.y)
-			r = Point(-p.x, p.y)
-
 	def test_2_mont_form(self):
 		for p in [self._point_r(), self._point_a()]:
 			d = p.double().as_point()
@@ -73,8 +67,18 @@ class TestJubjub(unittest.TestCase):
 		"""
 		p = self._point_a()
 		for q in [p.as_point(), p.as_etec(), p.as_proj()]:
+			self.assertEqual(q.infinity().neg(), q.infinity())
+			# (x,y) + (-(x,y)) = infinity
 			r = q.add( q.neg() )
 			self.assertEqual(r.as_point(), p.infinity())
+
+			# (x,y) + infinity = (x,y)
+			s = q.add( q.infinity() )
+			self.assertEqual(s.as_point(), q.as_point())
+
+			# infinity + (x,y) = (x,y)
+			s = q.infinity().add(q)
+			self.assertEqual(s.as_point(), q.as_point())
 
 	def test_8_hash_to_point(self):
 		p = Point.from_hash(b'test')
@@ -112,7 +116,7 @@ class TestJubjub(unittest.TestCase):
 
 	def test_10_twist(self):
 		"""
-		Any point, multiplied by L results in a low-order point
+		Any point, multiplied by L results in a weird point
 		Multiplying again by L results in the same point
 		The resulting point, multiplied by the cofactor results in infinity
 		"""
@@ -177,27 +181,14 @@ class TestJubjub(unittest.TestCase):
 			self.assertTrue(b.valid())
 			self.assertEqual(a.as_point(), b.as_point())
 
-	"""
-	def test_14_mont_double_via_add(self):
-		p = self._point_a().as_mont_2()
-		p_dbl = p.add(p)
-
-		q = self._point_a().as_mont()
-		q_dbl = q.add(q)
-
-		a_dbl = self._point_a_double()
-
-		print(p_dbl)
-		print(q_dbl)
-		print(a_dbl.as_mont())
-	"""
-
-	"""
-	def test_15_random_mont_clock(self):
+	def test_15_random_mont(self):
 		for _ in range(0, 10):
 			r = self._point_r().as_mont()
 			self.assertTrue(r.valid())
-	"""
+			s = MontPoint.from_x(r.x)
+			self.assertTrue(s.valid())
+			self.assertEqual(s.x, r.x)
+			self.assertTrue(s.y, [r.x, -r.y])
 
 	def test_double_via_add(self):
 		a = self._point_a()
