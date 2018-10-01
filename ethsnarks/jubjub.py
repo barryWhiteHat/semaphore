@@ -23,7 +23,8 @@ from .numbertheory import SquareRootError
 
 
 JUBJUB_Q = SNARK_SCALAR_FIELD
-JUBJUB_L = 2736030358979909402780800718157159386076813972158567259200215660948447373041
+JUBJUB_ORDER = 21888242871839275222246405745257275088614511777268538073601725287587578984328
+JUBJUB_L = JUBJUB_ORDER//8
 JUBJUB_C = 8		# Cofactor
 JUBJUB_A = 168700	# Coefficient A
 JUBJUB_D = 168696	# Coefficient D
@@ -33,9 +34,10 @@ JUBJUB_D = 168696	# Coefficient D
 From "Twisted Edwards Curves", 2008-BBJLP
 Theorem 3.2
 """
-MONT_A = int(2*(JUBJUB_A+JUBJUB_D)/(JUBJUB_D-JUBJUB_A))	#	21888242871839275222246405745257275088548364400416034343698204186575808326919
-MONT_B = int(4/(JUBJUB_A-JUBJUB_D))						#	1
-MONT_A = -MONT_A 										#	168698
+MONT_A = 168698	# -int(2*(JUBJUB_A+JUBJUB_D)/(JUBJUB_A-JUBJUB_D))
+MONT_B = 1		# int(4/(JUBJUB_A-JUBJUB_D))
+MONT_A24 = int((MONT_A+2)/4)
+assert MONT_A24*4 == MONT_A+2
 
 
 """
@@ -83,10 +85,6 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		"""
 		y^2 = ((a * x^2) / (d * x^2 - 1)) - (1 / (d * x^2 - 1))
 
-		Alternatively?
-
-		y^2 = (a * x^2 - 1) / (d * x^2 - 1)
-
 		For every x coordinates, there are two possible points: (x, y) and (x, -y)
 		"""
 		assert isinstance(x, FQ)
@@ -119,22 +117,15 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 				continue
 
 	def as_proj(self):
-		return ProjPoint(self.x, self.y, 1)
+		return ProjPoint(self.x, self.y, FQ(1))
 
 	def as_mont(self):
 		u = (1 + self.y) / (1 - self.y)
 		v = (1 + self.y) / ( (1 - self.y) * self.x )
 		return MontPoint(u, v)
 
-	"""
-	def as_mont_2(self):
-		u = (1 + self.x) / (1 - self.x)
-		v = (1 + self.x) / ( (1 - self.x) * self.y )
-		return MontPoint(u, v)
-	"""
-
 	def as_etec(self):
-		return EtecPoint(self.x, self.y, self.x*self.y, 1)
+		return EtecPoint(self.x, self.y, self.x*self.y, FQ(1))
 
 	def as_point(self):
 		return self
@@ -170,7 +161,7 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		return Point(FQ(0), FQ(1))
 
 
-class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('u', 'v'))):
+class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
 	"""
 	This also implements the mixed Edwards-Montgomery representation described in the
 	paper:
@@ -187,29 +178,32 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('u', 'v'))):
    	"""
 	def valid(self):
 		"""
-		From https://eprint.iacr.org/2017/293.pdf
-		4.2 Fast scalar multiplication on the clock
-
-			A twisted clock as a curve on `au^2+v^2 = 1` with
-			specified point `(0,1)`, where `a` is nonzero
-		"""		
-		u = self.u
-		v = self.v
-		uu = u * u
-		vv = v * v
-		return uu + vv == 1
+		y^2 = x^3 + A*x^2 + x
+		"""
+		y2 = self.y * self.y
+		x2 = self.x * self.x
+		x3 = x2 * self.x
+		return y2 == x3 + MONT_A*x2 + self.x
 
 	def as_point(self):
-		x = self.u / self.v
-		y = (self.u - 1) / (self.u + 1)
-		return Point(x, y)
+		"""
+		IACR 2008/218
+		2.Switching to Edwards curves and back
 
-	"""
-	def as_point_2(self):
-		y = self.u / self.v
-		x = (self.u - 1) / (self.u + 1)
+			Phi : M -> Ed : (x,y) -> (x/y, (x-1)/(x+1))
+			Psi : Ed -> M : (X,Y) -> ((1+Y)/(1-Y), X * ((1+Y)/(1-Y)))
+
+		In projective coordinates this correspondence becomes remarkably simple:
+
+			Phi : (x, z) -> (x - z, x + z)
+			Psi : (Y, Z) -> (Z + Y, Z - Y)
+
+		Therefore, from the x/Y-coordinate-only viewpoint, switching between
+		Edwards curves and Montgomery curves is quasi cost-free.
+		"""
+		x = self.x / self.y
+		y = (self.x - 1) / (self.x + 1)
 		return Point(x, y)
-	"""
 
 	def as_proj(self):
 		return self.as_point().as_proj()
@@ -217,49 +211,22 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('u', 'v'))):
 	def as_etec(self):
 		return self.as_point().as_etec()
 
-	def add(self, other):
-		"""
-		From https://eprint.iacr.org/2017/293.pdf
-		4.2 Fast scalar multiplication on the clock
-
-			Then Clock_a(k) is an abelian group under the
-			following operations, The neutral element is the
-			specified point (0,1). The negative -(u,v) of a
-			point (u,v) is (-uv,). The sum (u5,v5) of (u2,v2)
-			and (u3,v3) is given by:
-
-				(u5, v5) = (u2, v2) + (u3, v3) = (u2v3 + u3v2, v2v3 − au2u3)
-		"""
-		u2, v2 = self.u, self.v
-		u3, v3 = other.u, other.v
-		u5 = u2*v3 + u3*v2
-		v5 = v2*v3 - MONT_A*u2*u3
-		return MontPoint(u5, v5)
-
-	def double(self):
-		x1 = self.u
-		z1 = self.v
-		xx = x1 * x1
-		zz = z1 * z1
-		xxmzz = xx - zz
-		x3 = xxmzz * xxmzz
-
-		z3 = 4 * x1 * z1 * (xx * MONT_A * x1 * z1 * xx)
-		return MontPoint(x3, z3)
+	def neg(self):
+		return MontPoint(self.x, -self.y)
 
 
 class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
 	def valid(self):
 		"""
-			Also, the follwing should also be valid
+		From Twisted Curves Revisited:
 
-			(x^2 + y^2) * z^2 = z^4 + (d * x^2 * y^2)
+			(a * x^2 + y^2) * z^2 = z^4 + (d * x^2 * y^2)
 		"""
 		xx = self.x * self.x
 		yy = self.y * self.y
 		zz = self.z * self.z
 		z4 = zz * zz
-		return (xx + yy) * zz == z4 * (JUBJUB_D * xx * yy)
+		return (JUBJUB_A * xx + yy) * zz == z4 * (JUBJUB_D * xx * yy)
 
 	def as_proj(self):
 		return self
