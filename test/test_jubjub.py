@@ -190,6 +190,24 @@ class TestJubjub(unittest.TestCase):
 			self.assertEqual(s.x, r.x)
 			self.assertTrue(s.y, [r.x, -r.y])
 
+	def test_mont_double(self):
+		"""
+		Verified in Sage, using `ejubjub.py`
+		Ensure that addition laws remain the same between Montgomery and Edwards coordinates
+		"""
+		q = Point.from_hash(b'x')
+		mq = MontPoint(FQ(4828722366376575650251607168518886976429844446767098803596167689250506416759),
+					   FQ(12919092401030192644826086113396919334232812611316996694878363256143428656958))
+		self.assertEqual(q.as_mont(), mq)
+
+		q2 = MontPoint(FQ(760569539648116659146730905587051427168718890872716379895718021693339839266),
+					   FQ(19523163946365579499783218718995636854804792079073783994015125253921919723342))
+		self.assertEqual(q.double().as_mont(), q2)
+
+		for _ in range(0, 10):
+			p = Point.from_hash(urandom(32))
+			self.assertEqual(p.as_mont().double().as_edwards_yz().as_point().as_edwards_yz(), p.double().as_edwards_yz())
+
 	def test_double_via_add(self):
 		a = self._point_a()
 		a_dbl = a.add(a)

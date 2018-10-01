@@ -302,7 +302,7 @@ pointMultiplication::pointMultiplication(ProtoboardT &pb,
     this->pb.add_r1cs_constraint(ConstraintT(coef[0], 1-coef[0], 0),
                            FMT(annotation_prefix, " boolean_r1cs_constraint canAdd"));
 
-    for(uint i=1; i<coef_size; i++) { 
+    for(int i=1; i<coef_size; i++) { 
         //boolean constarin coef[i]       
         this->pb.add_r1cs_constraint(ConstraintT(coef[i], 1-coef[i], 0),
                        FMT(annotation_prefix, " boolean_r1cs_constraint canAdd"));
@@ -316,7 +316,7 @@ pointMultiplication::pointMultiplication(ProtoboardT &pb,
 
 void pointMultiplication::generate_r1cs_constraints()
 {
-    for(uint i=0; i<coef_size; i++) {
+    for(int i=0; i<coef_size; i++) {
 
        this->doub[i]->generate_r1cs_constraints();
        this->add[i]->generate_r1cs_constraints();   
@@ -326,7 +326,7 @@ void pointMultiplication::generate_r1cs_constraints()
 
 void pointMultiplication::generate_r1cs_witness()
 {
-    for(uint i=0; i<coef_size; i++) {
+    for(int i=0; i<coef_size; i++) {
         this->doub[i]->generate_r1cs_witness();
         this->add[i]->generate_r1cs_witness();
         /*

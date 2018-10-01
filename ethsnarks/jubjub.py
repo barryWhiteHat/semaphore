@@ -50,6 +50,18 @@ assert JUBJUB_D == (MONT_A-2)/MONT_B
 
 
 class AbstractCurveOps(object):
+	def __neg__(self):
+		return self.neg()
+
+	def __add__(self, other):
+		return self.add(other)
+
+	def __sub__(self, other):
+		return self.add(other.neg())
+
+	def __mul__(self, n):
+		return self.mult(n)
+
 	def double(self):
 		return self.add(self)
 
@@ -64,7 +76,6 @@ class AbstractCurveOps(object):
 		while scalar != 0:
 			if (scalar & 1) != 0:
 				a = a.add(p)
-				print(i, a)
 			p = p.double()
 			scalar = scalar // 2
 			i += 1
@@ -117,6 +128,9 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 				y += 1
 				continue
 
+	def as_edwards_yz(self):
+		return EdwardsYZPoint(self.y, FQ(1))
+
 	def as_proj(self):
 		return ProjPoint(self.x, self.y, FQ(1))
 
@@ -162,8 +176,33 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		return Point(FQ(0), FQ(1))
 
 
-class XZPoint(AbstractCurveOps, namedtuple('_XZPoint', ('x', 'z'))):
-	pass
+
+class EdwardsYZPoint(AbstractCurveOps, namedtuple('_EdwardsYZPoint', ('y', 'z'))):
+	def as_point(self):
+		return Point.from_y(self.y / self.z)
+
+	def as_mont_xy(self):
+		return MontXZPoint(self.z + self.y, self.z - self.y)
+
+
+class MontXZPoint(AbstractCurveOps, namedtuple('_MontXZPoint', ('x', 'z'))):
+	def as_edwards_yz(self):
+		return EdwardsYZPoint(self.x - self.z, self.x + self.z)
+
+	def double(self):
+		"""
+		dbl-1987-m-3
+		Source: 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization",
+		page 261, sixth display, plus common-subexpression elimination
+		"""
+		A = self.x + self.z
+		AA = A**2
+		B = self.x - self.z
+		BB = B**2
+		C = AA-BB
+		xz = AA*BB
+		z = C*(BB+MONT_A24*C)
+		return MontXZPoint(xz, z)
 
 
 class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
@@ -188,7 +227,7 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
 		y2 = self.y * self.y
 		x2 = self.x * self.x
 		x3 = x2 * self.x
-		return MON_B * y2 == x3 + MONT_A*x2 + self.x
+		return MONT_B * y2 == x3 + MONT_A*x2 + self.x
 
 	@classmethod
 	def from_x(cls, x):
@@ -222,6 +261,9 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
 		y = (self.x - 1) / (self.x + 1)
 		return Point(x, y)
 
+	def as_edwards_yz(self):
+		return EdwardsYZPoint(self.x - 1, self.x + 1)
+
 	def as_proj(self):
 		return self.as_point().as_proj()
 
@@ -230,6 +272,21 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
 
 	def neg(self):
 		return MontPoint(self.x, -self.y)
+
+	def double(self):
+		"""
+		dbl-1987-m-3
+		Source: 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization",
+		page 261, sixth display, plus common-subexpression elimination
+		"""
+		A = self.x + 1
+		AA = A**2
+		B = self.x-1
+		BB = B**2
+		C = AA-BB
+		xz = AA*BB
+		z = C*(BB+MONT_A24*C)
+		return MontXZPoint(xz, z)
 
 
 class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
@@ -373,6 +430,17 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 	def double(self):
 		"""
 		dbl-2008-hwcd
+
+		R1CS Constraints:
+
+			constraint x1 * x1 = A
+			constraint y1 * y1 = B
+			constraint z1 * z1 = T0
+			constraint [ x1 + y1 ] * [ x1 + y1 ] = T2
+			constraint [ T2 - A - B ] * ( [ a*A + B ] - [ 2*T0 ] ) = new_x
+			constraint [ a*A + B ] * [ a*A - B ] = new_y
+			constraint [ T2 - A - B ] * [ a*A - B ] = new_t
+			constraint ( [ a*A + B ] - [ 2*T0 ] ) * [ a*A + B ] = new_z
 		"""
 		if self == self.infinity():
 			return self.infinity()
@@ -393,6 +461,18 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 	def add(self, other):
 		"""
 		3.1 Unified addition in ε^e
+
+		R1CS Constraints:
+
+			constraint [ 1*x1 ] * [ 1*x2 ] = x1x2
+			constraint [ 1*y1 ] * [ 1*y2 ] = y1y2
+			constraint [ 1*z1 ] * [ 1*z2 ] = z1z2
+			constraint [ d*t1 ] * [ 1*t2 ] = dt1t2
+			constraint [ x1+y1 ] * [ x2+y2 ] = e + [ -1*x1x2 + -2*y1y2 ]
+			constraint e * [ z1z2 + -dt1t2 ] = new_x
+			constraint [ z1z2 + dt1t2 ] * [ y1y2 + -a*x1x2 ] = new_y
+			constraint e * [ y1y2 + -a*x1x2 ] = new_t
+			constraint [ z1z2 + -dt1t2 ] * [ z1z2 + dt1t2 ] = new_z
 		"""
 		assert isinstance(other, EtecPoint)
 		if self == self.infinity():
@@ -401,13 +481,13 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 		assert self.z != 0
 		assert other.z != 0
 
-		a = self.x * other.x
-		b = self.y * other.y
-		c = (JUBJUB_D * self.t) * other.t
-		d = self.z * other.z
-		e = ((self.x + self.y) * (other.x + other.y)) - a - b
-		f = d - c
-		g = d + c
-		h = b - (JUBJUB_A * a)
+		x1x2 = self.x * other.x
+		y1y2 = self.y * other.y
+		dt1t2 = (JUBJUB_D * self.t) * other.t
+		z1z2 = self.z * other.z
+		e = ((self.x + self.y) * (other.x + other.y)) - x1x2 - y1y2
+		f = z1z2 - dt1t2
+		g = z1z2 + dt1t2
+		h = y1y2 - (JUBJUB_A * x1x2)
 
 		return EtecPoint(e*f, g*h, e*h, f*g)

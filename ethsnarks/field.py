@@ -131,6 +131,9 @@ class FQ(object):
     def __radd__(self, other):
         return self + other
 
+    def __pow__(self, e):
+        return FQ(powmod(self.n, e, self.m), self.m)
+
     def __rsub__(self, other):
         on = self._other_n(other)
         self._count('sub')
@@ -156,6 +159,9 @@ class FQ(object):
         on = self._other_n(other)
         self._count('inv')
         return FQ(self.n * inv(on, self.m) % self.m, self.m)
+
+    def __floordiv__(self, other):
+        return self.__div__(other)
 
     def __truediv__(self, other):
         return self.__div__(other)
