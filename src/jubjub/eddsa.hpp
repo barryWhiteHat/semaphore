@@ -50,15 +50,12 @@ public:
     //input variables 
     VariableArrayT pk_x;
     VariableArrayT pk_y;
-    VariableArrayT A;
     VariableT b_x;
     VariableT b_y;
-    VariableArrayT message;
-    VariableArrayT S;
     VariableArrayT r_x;
     VariableArrayT r_y;
-    VariableT s_x;
-    VariableT s_y;
+    VariableArrayT message;
+    VariableArrayT S;
 
     //intermeidate variables 
 

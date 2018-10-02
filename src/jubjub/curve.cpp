@@ -31,7 +31,7 @@ isOnCurve::isOnCurve(ProtoboardT &pb,
                    const VariableT &x, const VariableT &y,
                    const VariableT &a, const VariableT &d,
                    const std::string &annotation_prefix):
-        GadgetT(pb, annotation_prefix) , x(x), y(y), a(a), d(d) 
+        GadgetT(pb, annotation_prefix), x(x), y(y), a(a), d(d) 
 {
     xx.allocate(this->pb, "xx");
     yy.allocate(this->pb, "yy");

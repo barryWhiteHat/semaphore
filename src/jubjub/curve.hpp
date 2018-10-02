@@ -70,14 +70,19 @@ public:
     VariableT d;
 
     std::shared_ptr<isOnCurve> jubjub_isOnCurve;
-    //intermeditate variables 
+
+    // Inputs
     VariableT x1;
-    VariableT x2;
-    VariableT x3;
-    VariableT x1x2;
     VariableT y1;
+    VariableT x2;
     VariableT y2;
+
+    // Outputs
+    VariableT x3;
     VariableT y3;
+
+    //intermeditate variables
+    VariableT x1x2;
     VariableT x1y2;
     VariableT y1y2;
     VariableT y1x2;
@@ -152,26 +157,31 @@ class pointMultiplication : public GadgetT {
 private:
     /* no internal variables */
 public:
-    int coef_size; //coeffient size
     VariableT a;
     VariableT d;
 
-    std::shared_ptr<isOnCurve> jubjub_isOnCurve;
-    //intermeditate variables 
     VariableT x;
     VariableT y;
-    VariableT x_zero;
-    VariableT y_zero;
 
+    VariableArrayT coef;
+
+    // outputs
     VariableArrayT x_ret;
     VariableArrayT y_ret;
 
+    int coef_size; //coeffient size
+
+    //intermeditate variables
+    VariableT x_zero;
+    VariableT y_zero;
+
+
+    std::shared_ptr<isOnCurve> jubjub_isOnCurve;
 
     // store the result of the current iteration
     VariableArrayT x_intermediary;
     VariableArrayT y_intermediary;
 
-    VariableArrayT coef;
 
     std::vector<std::shared_ptr<pointAddition > > doub; //double
     std::vector<std::shared_ptr<conditionalPointAddition > > add; //double

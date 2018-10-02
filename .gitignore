@@ -3,6 +3,7 @@ bin/
 *.pyc
 *.swp
 *.swo
+htmlcov/
 depends/Makefile
 *.pc
 src/Makefile

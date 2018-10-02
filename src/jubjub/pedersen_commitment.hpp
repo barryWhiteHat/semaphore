@@ -37,24 +37,23 @@ public:
     VariableT a;
     VariableT d;
 
-
     //input variables 
     VariableT base_x;
     VariableT base_y;
-    VariableArrayT A;
     VariableT H_x;
     VariableT H_y;
+    VariableT commitment_x;
+    VariableT commitment_y;
     VariableArrayT m;
     VariableArrayT r;
+
+    // Intermediate variables
     VariableT r_x;
     VariableT r_y;
     VariableT s_x;
     VariableT s_y;
-    VariableT commitment_x; 
-    VariableT commitment_y;
 
-    //intermeidate variables 
-
+    // More intermediate variables
     VariableT res_x;
     VariableT res_y;
 

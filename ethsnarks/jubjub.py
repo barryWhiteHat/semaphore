@@ -115,10 +115,11 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		"""
 		HashToPoint (or Point.from_hash)
 
-		Hashes the input entropy repeatedly, and interprets it as the y
-		coordinate then recovers the x coordinate, if no valid point can be
-		recovered y is incremented until a matching X coordinate is found.
+		Hashes the input entropy repeatedly, and interprets it as the Y
+		coordinate then recovers the X coordinate, if no valid point can be
+		recovered Y is incremented until a matching X coordinate is found.
 		"""
+		assert isinstance(entropy, bytes)
 		entropy = sha256(entropy).digest()
 		y = FQ(int.from_bytes(entropy, 'big'))
 		while True:
@@ -176,31 +177,61 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 		return Point(FQ(0), FQ(1))
 
 
-
 class EdwardsYZPoint(AbstractCurveOps, namedtuple('_EdwardsYZPoint', ('y', 'z'))):
 	def as_point(self):
+		"""
+		Rescale the y coordinate, then recover the point
+		"""
 		return Point.from_y(self.y / self.z)
 
 	def as_mont_xy(self):
+		"""
+		IACR 2008/218
+		2.Switching to Edwards curves and back
+		"""
 		return MontXZPoint(self.z + self.y, self.z - self.y)
+
+	def double(self):
+		return self.as_mont_xy().double()
+
+	def infinity(self):
+		return EdwardsYZPoint(FQ(1), FQ(1))
 
 
 class MontXZPoint(AbstractCurveOps, namedtuple('_MontXZPoint', ('x', 'z'))):
 	def as_edwards_yz(self):
+		"""
+		IACR 2008/218
+		2.Switching to Edwards curves and back
+		"""
 		return EdwardsYZPoint(self.x - self.z, self.x + self.z)
+
+	def as_mont(self):
+		"""
+		Rescale the point, then recover the Y coordinate
+		"""
+		return MontPoint.from_x(self.x / self.z)
 
 	def double(self):
 		"""
 		dbl-1987-m-3
 		Source: 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization",
 		page 261, sixth display, plus common-subexpression elimination
+
+		R1CS Constraints:
+
+			AA = [x + z] * [x + z]
+			BB = [x - z] * [x - z]
+			xz = AA * BB
+			C = AA - BB
+			z = C * [BB + a24*C]
 		"""
 		A = self.x + self.z
 		AA = A**2
 		B = self.x - self.z
 		BB = B**2
-		C = AA-BB
 		xz = AA*BB
+		C = AA-BB
 		z = C*(BB+MONT_A24*C)
 		return MontXZPoint(xz, z)
 
@@ -274,19 +305,7 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
 		return MontPoint(self.x, -self.y)
 
 	def double(self):
-		"""
-		dbl-1987-m-3
-		Source: 1987 Montgomery "Speeding the Pollard and elliptic curve methods of factorization",
-		page 261, sixth display, plus common-subexpression elimination
-		"""
-		A = self.x + 1
-		AA = A**2
-		B = self.x-1
-		BB = B**2
-		C = AA-BB
-		xz = AA*BB
-		z = C*(BB+MONT_A24*C)
-		return MontXZPoint(xz, z)
+		return MontXZPoint(self.x, FQ(1)).double()
 
 
 class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
@@ -433,14 +452,14 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 
 		R1CS Constraints:
 
-			constraint x1 * x1 = A
-			constraint y1 * y1 = B
-			constraint z1 * z1 = T0
-			constraint [ x1 + y1 ] * [ x1 + y1 ] = T2
-			constraint [ T2 - A - B ] * ( [ a*A + B ] - [ 2*T0 ] ) = new_x
-			constraint [ a*A + B ] * [ a*A - B ] = new_y
-			constraint [ T2 - A - B ] * [ a*A - B ] = new_t
-			constraint ( [ a*A + B ] - [ 2*T0 ] ) * [ a*A + B ] = new_z
+			x1 * x1 = A
+			y1 * y1 = B
+			z1 * z1 = T0
+			[ x1 + y1 ] * [ x1 + y1 ] = T2
+			[ T2 - A - B ] * ( [ a*A + B ] - [ 2*T0 ] ) = new_x
+			[ a*A + B ] * [ a*A - B ] = new_y
+			[ T2 - A - B ] * [ a*A - B ] = new_t
+			( [ a*A + B ] - [ 2*T0 ] ) * [ a*A + B ] = new_z
 		"""
 		if self == self.infinity():
 			return self.infinity()
@@ -464,15 +483,15 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 
 		R1CS Constraints:
 
-			constraint [ 1*x1 ] * [ 1*x2 ] = x1x2
-			constraint [ 1*y1 ] * [ 1*y2 ] = y1y2
-			constraint [ 1*z1 ] * [ 1*z2 ] = z1z2
-			constraint [ d*t1 ] * [ 1*t2 ] = dt1t2
-			constraint [ x1+y1 ] * [ x2+y2 ] = e + [ -1*x1x2 + -2*y1y2 ]
-			constraint e * [ z1z2 + -dt1t2 ] = new_x
-			constraint [ z1z2 + dt1t2 ] * [ y1y2 + -a*x1x2 ] = new_y
-			constraint e * [ y1y2 + -a*x1x2 ] = new_t
-			constraint [ z1z2 + -dt1t2 ] * [ z1z2 + dt1t2 ] = new_z
+			[ 1*x1 ] * [ 1*x2 ] = x1x2
+			[ 1*y1 ] * [ 1*y2 ] = y1y2
+			[ 1*z1 ] * [ 1*z2 ] = z1z2
+			[ d*t1 ] * [ 1*t2 ] = dt1t2
+			[ x1+y1 ] * [ x2+y2 ] = e + [ -1*x1x2 + -2*y1y2 ]
+			e * [ z1z2 + -dt1t2 ] = new_x
+			[ z1z2 + dt1t2 ] * [ y1y2 + -a*x1x2 ] = new_y
+			e * [ y1y2 + -a*x1x2 ] = new_t
+			[ z1z2 + -dt1t2 ] * [ z1z2 + dt1t2 ] = new_z
 		"""
 		assert isinstance(other, EtecPoint)
 		if self == self.infinity():

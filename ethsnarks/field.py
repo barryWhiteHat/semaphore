@@ -132,7 +132,7 @@ class FQ(object):
         return self + other
 
     def __pow__(self, e):
-        return FQ(powmod(self.n, e, self.m), self.m)
+        return self.exp(e)
 
     def __rsub__(self, other):
         on = self._other_n(other)
@@ -175,16 +175,6 @@ class FQ(object):
     def __rtruediv__(self, other):
         return self.__rdiv__(other)
 
-    def __pow__(self, other):
-        if other == 0:
-            return FQ(1, self.m)
-        elif other == 1:
-            return FQ(self.n, self.m)
-        elif other % 2 == 0:
-            return (self * self) ** (other // 2)
-        else:
-            return ((self * self) ** int(other // 2)) * self
-
     def __eq__(self, other):
         if other == 0.:
             other = 0
@@ -201,20 +191,10 @@ class FQ(object):
 
     @classmethod
     def random(cls, modulus=SNARK_SCALAR_FIELD):
+        # XXX: use stronger random source of data
+        # e.g. int.from_bytes(urandom(int(ceil(log2(n)))), 'little')
         return FQ(randint(1, modulus - 1), modulus)
 
     @classmethod
-    def one(cls, modulus=SNARK_SCALAR_FIELD):
-        return cls(1, modulus)
-
-    @property
-    def ONE(self):
-        return self.one(self.m)
-
-    @classmethod
-    def zero(cls, modulus=SNARK_SCALAR_FIELD):
-        return cls(0, modulus)
-
-    @property
-    def MINUS_ONE(self):
-        return FQ(-1, self.m)
+    def one(self, modulus=SNARK_SCALAR_FIELD):
+        return FQ(1, modulus)
