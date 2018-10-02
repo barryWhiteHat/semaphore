@@ -8,6 +8,7 @@ matrix:
       language: cpp
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make mac-dependencies ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then nvm install --lts ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update  ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make ubuntu-dependencies ; fi
   - make PIP_ARGS= python-dependencies
