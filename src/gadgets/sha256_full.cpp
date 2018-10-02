@@ -60,15 +60,14 @@ static const libff::bit_vector _final_padding_512 = libff::int_list_to_bits({
 /**
 * Perform full round of SHA-256 on a 512 bit input
 */
-template<typename FieldT>
 class sha256_full_gadget_512 : public GadgetT
 {
 public:
     libsnark::digest_variable<FieldT> intermediate_hash;
 
-    const libsnark::block_variable<FieldT> input_block;
+    libsnark::block_variable<FieldT> input_block;
 
-    const libsnark::digest_variable<FieldT> output;
+    libsnark::digest_variable<FieldT> output;
 
     libsnark::sha256_compression_function_gadget<FieldT> input_hasher;
 
@@ -104,11 +103,12 @@ public:
                      in_output,                 // output
                      FMT(annotation_prefix, " final_hasher"))
     {
-        assert( in_input_block.block_size == 512 );
+        assert( in_input_block.bits.size() == libsnark::SHA256_block_size );
     }
 
-    void generate_r1cs_constraints()
+    void generate_r1cs_constraints(const bool ensure_output_bitness=false)
     {
+        libff::UNUSED(ensure_output_bitness);
         input_hasher.generate_r1cs_constraints();
         final_hasher.generate_r1cs_constraints();
     }

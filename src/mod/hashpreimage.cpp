@@ -44,7 +44,7 @@ public:
 
     libsnark::digest_variable<FieldT> output;
 
-    sha256_full_gadget_512<FieldT> full_hasher;
+    sha256_full_gadget_512 full_hasher;
 
 
     mod_hashpreimage(

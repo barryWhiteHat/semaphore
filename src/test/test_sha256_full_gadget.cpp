@@ -76,7 +76,7 @@ bool test_sha256_full_gadget()
     // Then run a full SHA256 round, via R1CS SNARK circuit
     block_variable<FieldT> full_input(pb, left, right, "full_input");
     digest_variable<FieldT> full_output(pb, SHA256_digest_size, "full_output");
-    sha256_full_gadget_512<FieldT> full_gadget(pb, full_input, full_output, "full_gadget");
+    sha256_full_gadget_512 full_gadget(pb, full_input, full_output, "full_gadget");
 
     full_gadget.generate_r1cs_constraints();
     full_gadget.generate_r1cs_witness();

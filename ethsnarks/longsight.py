@@ -30,7 +30,7 @@ from random import randint
 
 from hashlib import sha256
 
-from .field import SNARK_SCALAR_FIELD
+from .field import SNARK_SCALAR_FIELD, powmod
 
 
 def random_element():
@@ -102,21 +102,6 @@ const std::vector<FieldT> %s_constants_assign( )
 
 def make_constants_cxx(name, n):
     return _constants_cxx_format(*make_constants(name, n))
-
-
-def powmod(a, b, n):
-    """Modulo exponentiation"""
-    c = 0
-    f = 1
-    k = int(math.log(b, 2))
-    while k >= 0:
-        c *= 2
-        f = (f*f)%n
-        if b & (1 << k):
-            c += 1
-            f = (f*a) % n
-        k -= 1
-    return f
 
 
 def LongsightL(x, k, C, R, e, p):
