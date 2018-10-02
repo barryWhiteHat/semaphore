@@ -81,7 +81,7 @@ option(
 option(
   VERBOSE
   "Print internal messages"
-  ON
+  OFF
 )
 
 option(
