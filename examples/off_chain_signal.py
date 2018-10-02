@@ -55,7 +55,7 @@ if __name__ == "__main__":
     signal_variables = sha256(str(1))
 
 
-    # Here we do the actual voteing 
+    # Here we do the actual voting
     proofs = []
     for address, (nullifier , sk) in enumerate(zip(nullifiers, sks)):
         rand = int(random.uniform(1, 3)) 
