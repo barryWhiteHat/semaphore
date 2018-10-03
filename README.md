@@ -1,19 +1,20 @@
 # EthSnarks
 
-EthSnarks is a collection of zkSNARK circuits and supporting libraries to use them with Ethereum smart contracts, it aims to:
+Zero-Knowledge proofs are coming to Ethereum and Dapps in 2018/2019!
 
- * support creating proofs on 'common-spec' smart phones and the web
- * be easy for developers to integrate into their projects
- * be auditable, have comprehensive code coverage and tests
- * support a wide variety of use cases
- * cheap to run on-chain with Ethereum compatible blockchains
+EthSnarks is a collection of zkSNARK circuits and supporting libraries to use them with Ethereum smart contracts, it aims to help solve one of the biggest problems facing zkSNARKS on Ethereum - cross-platform on desktop, mobile and in-browser, cheap enough to run on-chain, and with algorithms that significantly reduces the time it takes to run the prover.
 
 The notable advantages of using EthSnarks are:
 
  * Reduced cost, 500k gas with 1 input, using [Groth16](https://eprint.iacr.org/2016/260.pdf).
  * Prove zkSNARKs in-browser, with WebAssembly and Emscripten
+ * Linux, Mac and (soon) Windows builds
  * Solidity, Python and C++ support in one place
  * A growing library of gadgets and algorithms
+
+EthSnarks is participating in the Ethereum Foundation's grants program Wave 4, for more information see [our grant announcement](...TODO...). Over the next 6 months development will continue, we will be working with companies and developers to help overcome the common challenges and hurdles that we all face.
+
+**WARNING: EthSnarks is alpha quality software, improvements and fixes are made frequently, and documentation doesn't yet exist**
 
 ## Examples
 
