@@ -12,7 +12,7 @@ The notable advantages of using EthSnarks are:
  * Solidity, Python and C++ support in one place
  * A growing library of gadgets and algorithms
 
-EthSnarks is participating in the Ethereum Foundation's grants program Wave 4, for more information see [our grant announcement](...TODO...). Over the next 6 months development will continue, we will be working with companies and developers to help overcome the common challenges and hurdles that we all face.
+EthSnarks is participating in the Ethereum Foundation's grants program Wave 4, over the next 6-8 months development will continue full-time, and we will be working with companies and developers to help overcome the common challenges and hurdles that we all face. Get in-touch for more information.
 
 **WARNING: EthSnarks is alpha quality software, improvements and fixes are made frequently, and documentation doesn't yet exist**
 
