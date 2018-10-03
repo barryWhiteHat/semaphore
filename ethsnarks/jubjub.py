@@ -65,6 +65,9 @@ class AbstractCurveOps(object):
 	def double(self):
 		return self.add(self)
 
+	def rescale(self):
+		return self
+
 	def mult(self, scalar):
 		if isinstance(scalar, FQ):
 			if scalar.m != SNARK_SCALAR_FIELD:
@@ -132,6 +135,13 @@ class Point(AbstractCurveOps, namedtuple('_Point', ('x', 'y'))):
 	def as_edwards_yz(self):
 		return EdwardsYZPoint(self.y, FQ(1))
 
+	def as_mont_xz(self):
+		"""
+		IACR 2008/218
+		2.Switching to Edwards curves and back
+		"""
+		return MontXZPoint(FQ(1) + self.y, FQ(1) - self.y)
+
 	def as_proj(self):
 		return ProjPoint(self.x, self.y, FQ(1))
 
@@ -184,18 +194,36 @@ class EdwardsYZPoint(AbstractCurveOps, namedtuple('_EdwardsYZPoint', ('y', 'z'))
 		"""
 		return Point.from_y(self.y / self.z)
 
-	def as_mont_xy(self):
+	def as_edwards_yz(self):
+		return self
+
+	def rescale(self):
+		return EdwardsYZPoint(self.y / self.z, FQ(1))
+
+	def as_proj(self):
+		return self.as_point().as_proj()
+
+	def as_mont_xz(self):
 		"""
 		IACR 2008/218
 		2.Switching to Edwards curves and back
 		"""
 		return MontXZPoint(self.z + self.y, self.z - self.y)
 
+	def as_mont(self):
+		return self.as_mont_xz().as_mont()
+
+	def as_etec(self):
+		return self.as_point().as_etec()
+
 	def double(self):
-		return self.as_mont_xy().double()
+		return self.as_mont_xz().double()
 
 	def infinity(self):
 		return EdwardsYZPoint(FQ(1), FQ(1))
+
+	def valid(self):
+		return self.as_point().valid()
 
 
 class MontXZPoint(AbstractCurveOps, namedtuple('_MontXZPoint', ('x', 'z'))):
@@ -210,7 +238,26 @@ class MontXZPoint(AbstractCurveOps, namedtuple('_MontXZPoint', ('x', 'z'))):
 		"""
 		Rescale the point, then recover the Y coordinate
 		"""
-		return MontPoint.from_x(self.x / self.z)
+		# XXX: needs conversion via Edwards YZ, then to full point, then back to Montgomery form!!
+		return self.as_edwards_yz().as_point().as_mont()
+
+	def as_mont_xz(self):
+		return self
+
+	def as_etec(self):
+		return self.as_point().as_etec()
+
+	def as_proj(self):
+		return self.as_point().as_etec().as_proj()
+
+	def as_point(self):
+		return self.as_edwards_yz().as_point()
+
+	def valid(self):
+		return self.as_point().valid()
+
+	def rescale(self):
+		return MontXZPoint(self.x / self.z, FQ(1))
 
 	def double(self):
 		"""
@@ -272,6 +319,12 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
 		y2 = x3 + MONT_A*x2 + x
 		return cls(x, y2.sqrt())
 
+	def as_mont(self):
+		return self
+
+	def as_mont_xz(self):
+		return MontXZPoint(self.x, FQ(1))
+
 	def as_point(self):
 		"""
 		IACR 2008/218
@@ -321,8 +374,24 @@ class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
 		z4 = zz * zz
 		return (JUBJUB_A * xx + yy) * zz == z4 * (JUBJUB_D * xx * yy)
 
+	def rescale(self):
+		return ProjPoint(self.x / self.z, self.y / self.z, FQ(1))
+
 	def as_proj(self):
 		return self
+
+	def as_mont(self):
+		return self.as_point().as_mont()
+
+	def as_mont_xz(self):
+		"""
+		IACR 2008/218
+		2.Switching to Edwards curves and back
+		"""
+		return MontXZPoint(self.z + self.y, self.z - self.y)
+
+	def as_edwards_yz(self):
+		return EdwardsYZPoint(self.y, self.z)
 
 	def as_etec(self):
 		"""
@@ -413,6 +482,16 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 	def as_etec(self):
 		return self
 
+	def as_mont_xz(self):
+		"""
+		IACR 2008/218
+		2.Switching to Edwards curves and back
+		"""
+		return MontXZPoint(self.z + self.y, self.z - self.y)
+
+	def as_edwards_yz(self):
+		return EdwardsYZPoint(self.y, self.z)
+
 	def as_point(self):
 		"""
 		Ignoring the T value, project from 3d X,Y,Z to 2d X,Y coordinates
@@ -430,6 +509,11 @@ class EtecPoint(AbstractCurveOps, namedtuple('_EtecPoint', ('x', 'y', 't', 'z'))
 			(X : Y : T : Z) -> (X, Y, Z)
 		"""
 		return ProjPoint(self.x, self.y, self.z)
+
+	def as_mont(self):
+		u = (1 + self.y) / (1 - self.y)
+		v = (1 + self.y) / ( (1 - self.y) * self.x )
+		return MontPoint(u, v)
 
 	@staticmethod
 	def infinity():
