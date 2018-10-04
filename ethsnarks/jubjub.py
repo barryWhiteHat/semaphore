@@ -34,7 +34,7 @@ JUBJUB_D = 168696	# Coefficient D
 From "Twisted Edwards Curves", 2008-BBJLP
 Theorem 3.2
 """
-MONT_A = 168698	# -int(2*(JUBJUB_A+JUBJUB_D)/(JUBJUB_A-JUBJUB_D))
+MONT_A = 168698	# int(2*(JUBJUB_A+JUBJUB_D)/(JUBJUB_A-JUBJUB_D))
 MONT_B = 1		# int(4/(JUBJUB_A-JUBJUB_D))
 MONT_A24 = int((MONT_A+2)/4)
 assert MONT_A24*4 == MONT_A+2
@@ -68,9 +68,17 @@ class AbstractCurveOps(object):
 	def rescale(self):
 		return self
 
+	def is_negative(self):
+		p = self.as_point()
+		q = Point.from_y(p.y)
+		return p.x == -q.x
+
+	def sign(self):
+		return 1 if self.is_negative() else 0
+
 	def mult(self, scalar):
 		if isinstance(scalar, FQ):
-			if scalar.m != SNARK_SCALAR_FIELD:
+			if scalar.m not in [SNARK_SCALAR_FIELD, JUBJUB_L]:
 				raise ValueError("Invalid field modulus")
 			scalar = scalar.n
 		p = self

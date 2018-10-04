@@ -79,7 +79,13 @@ class TestJubjub(unittest.TestCase):
 		"""
 		p = self._point_a()
 		for q in [p.as_point(), p.as_etec(), p.as_proj()]:
+			self.assertFalse(q.is_negative())
+			r = q.neg()
+			self.assertTrue(r.valid())
+			self.assertTrue(r.is_negative())
+
 			self.assertEqual(q.infinity().neg(), q.infinity())
+
 			# (x,y) + (-(x,y)) = infinity
 			r = q.add( q.neg() )
 			self.assertEqual(r.as_point(), p.infinity())
