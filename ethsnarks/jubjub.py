@@ -78,7 +78,7 @@ class AbstractCurveOps(object):
 
 	def mult(self, scalar):
 		if isinstance(scalar, FQ):
-			if scalar.m not in [SNARK_SCALAR_FIELD, JUBJUB_L]:
+			if scalar.m not in [SNARK_SCALAR_FIELD, JUBJUB_ORDER, JUBJUB_L]:
 				raise ValueError("Invalid field modulus")
 			scalar = scalar.n
 		p = self

@@ -208,6 +208,12 @@ class TestJubjub(unittest.TestCase):
 			self.assertEqual(s.x, r.x)
 			self.assertTrue(s.y, [r.x, -r.y])
 
+	def test_negate_order(self):
+		p = self._point_r()
+		self.assertEqual(p * (JUBJUB_ORDER+1), p)
+		self.assertEqual(p * (JUBJUB_ORDER-1), p.neg())
+		self.assertEqual(p - p - p, p.neg())
+
 	def test_multiplicative(self):
 		G = self._point_r()
 		a = FQ.random()
