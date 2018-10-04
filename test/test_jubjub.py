@@ -3,7 +3,7 @@ import unittest
 from os import urandom
 
 from ethsnarks.field import FQ
-from ethsnarks.jubjub import Point, MontPoint, EtecPoint, ProjPoint, JUBJUB_L, JUBJUB_C, MONT_A, MONT_B
+from ethsnarks.jubjub import Point, MontPoint, EtecPoint, ProjPoint, JUBJUB_L, JUBJUB_C, MONT_A, MONT_B, JUBJUB_ORDER
 from ethsnarks.numbertheory import SquareRootError
 
 
@@ -207,6 +207,22 @@ class TestJubjub(unittest.TestCase):
 			self.assertTrue(s.valid())
 			self.assertEqual(s.x, r.x)
 			self.assertTrue(s.y, [r.x, -r.y])
+
+	def test_multiplicative(self):
+		G = self._point_r()
+		a = FQ.random()
+		A = G*a
+		b = FQ.random()
+		B = G*b
+
+		ab = (a.n * b.n) % JUBJUB_ORDER
+		AB = G*ab
+		self.assertEqual(A*b, AB)
+		self.assertEqual(B*a, AB)
+
+	def test_cyclic(self):
+		G = self._point_r()
+		self.assertEqual(G * (JUBJUB_ORDER+1), G)
 
 	def test_loworder_points_mont(self):
 		"""
