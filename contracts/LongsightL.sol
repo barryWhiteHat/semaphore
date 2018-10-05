@@ -20,14 +20,12 @@ library LongsightL
     function LongsightL_round( uint256 in_x, uint256 in_k, uint256 in_C )
         internal pure returns (uint256 out_x)
     {
-        uint256 t;
-        uint256 j;
-
-        t = addmod(in_x, in_C, SCALAR_FIELD);
-        t = addmod(t, in_k, SCALAR_FIELD);
-        j = mulmod(t, t, SCALAR_FIELD);  // t^2
-        j = mulmod(j, j, SCALAR_FIELD);  // t^4
-        out_x = mulmod(j, t, SCALAR_FIELD);  // t^5
+        assembly {
+            let localQ := 0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001
+            let t := addmod(addmod(in_x, in_C, localQ), in_k, localQ)
+            let j := mulmod(t, t, localQ)
+            out_x := mulmod(mulmod(j, j, localQ), t, localQ)
+        }
     }
 
 
@@ -40,6 +38,8 @@ library LongsightL
         require( C.length == 10 );
 
         uint256 i;
+
+        // TODO: convert to assembly for faster running / lower gas
 
         in_x = LongsightL_round(in_x, in_k, 0);
 
