@@ -1,5 +1,5 @@
+import math
 from hashlib import sha256
-
 from .field import FQ
 from .jubjub import Point, JUBJUB_L, JUBJUB_Q, JUBJUB_ORDER
 
@@ -51,7 +51,15 @@ def HashToBytes(*args):
 
 
 def HashToInt(*args):
-	return int.from_bytes(HashToBytes(*args), 'little')
+	"""
+	Hashes arguments, returns first 250 least significant bits
+	"""
+	# Verify that any 250 bits will be less than `L`
+	assert math.ceil(math.log2(JUBJUB_L)) > 250
+	data = HashToBytes(*args)
+	value = int.from_bytes(data, 'big')
+	mask = (2<<249) - 1
+	return value & mask
 
 
 def eddsa_verify(A, R, s, m, B):
@@ -69,7 +77,7 @@ def eddsa_verify(A, R, s, m, B):
 	assert s < JUBJUB_Q
 
 	mhash = HashToBytes(m)
-	t = FQ(HashToInt(R, A, mhash), JUBJUB_L)
+	t = HashToInt(R, A, mhash)
 	lhs = B * s
 	rhs = R + (A * t)
 	return lhs == rhs
@@ -90,8 +98,8 @@ def eddsa_sign(m, k, B, A=None):
 
 	mhash = HashToBytes(m)
 	khash = HashToBytes(k)
-	r = HashToInt(khash, mhash) % JUBJUB_L
+	r = HashToInt(khash, mhash)
 	R = B * r
-	t = HashToInt(R, A, mhash) % JUBJUB_L
+	t = HashToInt(R, A, mhash)
 	s = ((k.n*t) + r) % JUBJUB_ORDER
 	return [R, s]
