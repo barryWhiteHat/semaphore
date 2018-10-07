@@ -1,7 +1,7 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
-pragma solidity ^0.4.24;
+pragma solidity 0.4.24;
 
 library SnarkUtils
 {
@@ -44,19 +44,19 @@ library SnarkUtils
         uint256 dest = 0;
         uint dest_offset = 0;
 
-        for( o = 0; o < out_words.length; o++ )
+        for (o = 0; o < out_words.length; o++)
         {
-            while( dest_offset < 253 )
+            while (dest_offset < 253)
             {                
                 uint bits_needed = 253 - dest_offset;
                 uint bits_avail = 256 - source_offset;
                 uint bits_to_copy;
 
-                if( bits_needed < bits_avail )
+                if (bits_needed < bits_avail)
                 {
                     bits_to_copy = bits_needed;
-                }
-                else {
+                } else
+                {
                     bits_to_copy = bits_avail;
                 }
 
@@ -66,10 +66,10 @@ library SnarkUtils
                 dest_offset += bits_to_copy;
 
                 // When all bits in source have been read, go to next source
-                if( source_offset >= 256 )
+                if (source_offset >= 256)
                 {
                     i += 1;
-                    if( i >= in_words.length ) {
+                    if (i >= in_words.length) {
                         break;
                     }
                     source = ReverseBits(in_words[i]);
@@ -94,7 +94,7 @@ library SnarkUtils
         uint256 s = 256;
         uint256 mask = ~uint(0);
 
-        while( (s >>= 1) > 0 )
+        while ((s >>= 1) > 0)
         {
             mask ^= (mask << s);
             v = ((v >> s) & mask) | ((v << s) & ~mask);

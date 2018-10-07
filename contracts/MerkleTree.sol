@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.4.24;
 
 import "./LongsightL.sol";
 
@@ -94,15 +94,15 @@ library MerkleTree
 
         uint256[29] memory proof_path;
 
-        for (uint depth=0 ; depth < TREE_DEPTH; depth++)
+        for (uint depth=0; depth < TREE_DEPTH; depth++)
         {
             address_bits[depth] = index % 2 == 0 ? false : true;
 
             if (index%2 == 0)
             {
                 proof_path[depth] = GetUniqueLeaf(depth, index, self.leaves[depth][index + 1]);
-            }
-            else {
+            } else
+            {
                 proof_path[depth] = GetUniqueLeaf(depth, index, self.leaves[depth][index - 1]);
             }
 
@@ -147,8 +147,7 @@ library MerkleTree
                 leaf1 = self.leaves[depth][CurrentIndex];
 
                 leaf2 = GetUniqueLeaf(depth, CurrentIndex + 1, self.leaves[depth][CurrentIndex + 1]);
-            }
-            else
+            } else
             {
                 leaf1 = GetUniqueLeaf(depth, CurrentIndex - 1, self.leaves[depth][CurrentIndex - 1]);
 

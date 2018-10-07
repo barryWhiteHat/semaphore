@@ -105,7 +105,7 @@ coverage-html:
 #######################################################################
 
 
-lint: python-pyflakes python-pylint cxx-lint
+lint: python-pyflakes python-pylint cxx-lint solidity-lint
 
 python-pyflakes:
 	$(PYTHON) -mpyflakes $(NAME)
@@ -136,6 +136,13 @@ ubuntu-dependencies:
 
 mac-dependencies:
 	brew install pkg-config boost cmake gmp openssl || true
+
+
+#######################################################################
+
+
+solidity-lint:
+	$(NPM) run lint
 
 
 #######################################################################

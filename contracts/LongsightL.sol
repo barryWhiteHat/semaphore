@@ -1,12 +1,12 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
-pragma solidity ^0.4.24;
+pragma solidity 0.4.24;
 
 library LongsightL
 {
     // altBN curve order
-    uint256 constant SCALAR_FIELD = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
+    uint256 constant public SCALAR_FIELD = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
 
     function GetScalarField()
         internal pure returns (uint256)
@@ -43,8 +43,7 @@ library LongsightL
 
         in_x = LongsightL_round(in_x, in_k, 0);
 
-        for( i = 0; i < 10; i++ )
-        {
+        for (i = 0; i < 10; i++) {
             in_x = LongsightL_round(in_x, in_k, C[i]);
         }
 
@@ -83,7 +82,7 @@ library LongsightL
         uint256 k_i = in_IV;
         H_i = 0;
 
-        for( i = 0; i < in_M.length; i++ ) {
+        for (i = 0; i < in_M.length; i++) {
             k_i = LongsightL12p5(in_M[i], k_i, in_C);
             H_i = addmod(H_i, in_M[i], SCALAR_FIELD);
             H_i = addmod(H_i, k_i, SCALAR_FIELD);
