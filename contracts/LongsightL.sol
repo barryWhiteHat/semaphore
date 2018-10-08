@@ -1,12 +1,12 @@
 // Copyright (c) 2018 HarryR
 // License: LGPL-3.0+
 
-pragma solidity ^0.4.24;
+pragma solidity 0.4.24;
 
 library LongsightL
 {
     // altBN curve order
-    uint256 constant SCALAR_FIELD = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
+    uint256 constant public SCALAR_FIELD = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001;
 
     function GetScalarField()
         internal pure returns (uint256)
@@ -20,14 +20,12 @@ library LongsightL
     function LongsightL_round( uint256 in_x, uint256 in_k, uint256 in_C )
         internal pure returns (uint256 out_x)
     {
-        uint256 t;
-        uint256 j;
-
-        t = addmod(in_x, in_C, SCALAR_FIELD);
-        t = addmod(t, in_k, SCALAR_FIELD);
-        j = mulmod(t, t, SCALAR_FIELD);  // t^2
-        j = mulmod(j, j, SCALAR_FIELD);  // t^4
-        out_x = mulmod(j, t, SCALAR_FIELD);  // t^5
+        assembly {
+            let localQ := 0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001
+            let t := addmod(addmod(in_x, in_C, localQ), in_k, localQ)
+            let j := mulmod(t, t, localQ)
+            out_x := mulmod(mulmod(j, j, localQ), t, localQ)
+        }
     }
 
 
@@ -41,10 +39,11 @@ library LongsightL
 
         uint256 i;
 
+        // TODO: convert to assembly for faster running / lower gas
+
         in_x = LongsightL_round(in_x, in_k, 0);
 
-        for( i = 0; i < 10; i++ )
-        {
+        for (i = 0; i < 10; i++) {
             in_x = LongsightL_round(in_x, in_k, C[i]);
         }
 
@@ -83,7 +82,7 @@ library LongsightL
         uint256 k_i = in_IV;
         H_i = 0;
 
-        for( i = 0; i < in_M.length; i++ ) {
+        for (i = 0; i < in_M.length; i++) {
             k_i = LongsightL12p5(in_M[i], k_i, in_C);
             H_i = addmod(H_i, in_M[i], SCALAR_FIELD);
             H_i = addmod(H_i, k_i, SCALAR_FIELD);

@@ -12,3 +12,5 @@ __pycache__
 .coverage.*
 /node_modules
 package-lock.json
+lextab.py
+yacctab.py

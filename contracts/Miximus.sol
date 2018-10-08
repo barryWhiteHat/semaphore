@@ -17,7 +17,7 @@
     along with Miximus.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity ^0.4.24;
+pragma solidity 0.4.24;
 pragma experimental ABIEncoderV2;
 
 import "./Verifier.sol";
@@ -29,14 +29,11 @@ contract Miximus
 {
     using MerkleTree for MerkleTree.Data;
 
-    uint constant AMOUNT = 1 ether;
+    uint constant public AMOUNT = 1 ether;
 
-    mapping (uint256 => bool) nullifiers;
+    mapping (uint256 => bool) public nullifiers;
 
-    MerkleTree.Data tree;
-
-    function GetVerifyingKey ()
-        internal pure returns (Verifier.VerifyingKey memory);
+    MerkleTree.Data internal tree;
 
     function Deposit(uint256 leaf)
         public payable returns (uint256)
@@ -78,4 +75,8 @@ contract Miximus
 
         msg.sender.transfer(AMOUNT);
     }
+
+    function GetVerifyingKey ()
+        internal pure returns (Verifier.VerifyingKey memory);
+
 }

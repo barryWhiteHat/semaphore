@@ -3,7 +3,7 @@ import unittest
 from os import urandom
 
 from ethsnarks.field import FQ
-from ethsnarks.jubjub import Point, MontPoint, EtecPoint, ProjPoint, JUBJUB_L, JUBJUB_C, MONT_A, MONT_B
+from ethsnarks.jubjub import Point, MontPoint, EtecPoint, ProjPoint, JUBJUB_L, JUBJUB_C, MONT_A, MONT_B, JUBJUB_ORDER
 from ethsnarks.numbertheory import SquareRootError
 
 
@@ -30,7 +30,20 @@ class TestJubjub(unittest.TestCase):
 			self.assertTrue(r.valid())
 			self.assertTrue(q.valid())
 
+	def _verify_via_all(self, p):
+		points = [p.as_point(), p.as_mont(), p.as_etec(), p.as_proj(), p.as_mont_xz(), p.as_edwards_yz()]
+		for q in points:
+			self.assertTrue(q.valid())
+			qoints = [q.as_point(), q.as_mont(), q.as_etec(), q.as_proj(), q.as_mont_xz(), q.as_edwards_yz()]
+			for i, r in enumerate(qoints):
+				self.assertTrue(r.valid())
+				self.assertEqual(r.rescale(), points[i].rescale())
+
 	def test_3_validity(self):
+		"""
+		Verify that 10 random points can be converted to and from every other
+		coordinate system without losing information or corruption.
+		"""
 		self.assertTrue(self._point_a().valid())
 		self.assertTrue(Point.infinity().valid())
 		self.assertTrue(EtecPoint.infinity().valid())
@@ -38,9 +51,8 @@ class TestJubjub(unittest.TestCase):
 
 		for _ in range(0, 10):
 			p = self._point_r()
-			for q in [p.as_point(), p.as_mont(), p.as_etec(), p.as_proj()]:
-				self.assertTrue(q.valid())
-				self.assertTrue(q.neg().valid())
+			self._verify_via_all(p)
+
 
 	def test_5_recover_x(self):
 		"""
@@ -67,7 +79,13 @@ class TestJubjub(unittest.TestCase):
 		"""
 		p = self._point_a()
 		for q in [p.as_point(), p.as_etec(), p.as_proj()]:
+			self.assertFalse(q.is_negative())
+			r = q.neg()
+			self.assertTrue(r.valid())
+			self.assertTrue(r.is_negative())
+
 			self.assertEqual(q.infinity().neg(), q.infinity())
+
 			# (x,y) + (-(x,y)) = infinity
 			r = q.add( q.neg() )
 			self.assertEqual(r.as_point(), p.infinity())
@@ -163,8 +181,8 @@ class TestJubjub(unittest.TestCase):
 		of order 4 at infinity of the desingularization of E_{E,a,d}
 		"""
 		try:
-			x = (MONT_A-2) / MONT_B
-			FQ(int(x)).sqrt()
+			x = int((MONT_A-2) / MONT_B)
+			FQ(x).sqrt()
 			self.assertTrue(False)
 		except SquareRootError:
 			pass
@@ -189,6 +207,85 @@ class TestJubjub(unittest.TestCase):
 			self.assertTrue(s.valid())
 			self.assertEqual(s.x, r.x)
 			self.assertTrue(s.y, [r.x, -r.y])
+
+	def test_negate_order(self):
+		p = self._point_r()
+		self.assertEqual(p * (JUBJUB_ORDER+1), p)
+		self.assertEqual(p * (JUBJUB_ORDER-1), p.neg())
+		self.assertEqual(p - p - p, p.neg())
+
+	def test_multiplicative(self):
+		G = self._point_r()
+		a = FQ.random()
+		A = G*a
+		b = FQ.random()
+		B = G*b
+
+		ab = (a.n * b.n) % JUBJUB_ORDER
+		AB = G*ab
+		self.assertEqual(A*b, AB)
+		self.assertEqual(B*a, AB)
+
+	def test_cyclic(self):
+		G = self._point_r()
+		self.assertEqual(G * (JUBJUB_ORDER+1), G)
+
+	def test_loworder_points_mont(self):
+		"""
+		From "Twisted Edwards Curves" - BBJLP
+		 - Exceptional Points for the Birational Equivalence
+
+		The birational equivalence is undefined where `y = 0` or `x + 1 = 0`
+		"""
+		# Both Montgomery and twisted Edwards forms are valid
+		# EM(0,0) -> EE(0,-1)
+		p1m = MontPoint(FQ(0), FQ(0))
+		p1e = p1m.as_point()
+		self.assertEqual(p1e.x, FQ(0))
+		self.assertEqual(p1e.y, FQ(-1))
+		self.assertTrue(p1m.valid())
+		self.assertTrue(p1e.valid())
+		self.assertEqual(p1e.as_mont(), p1m)
+
+		# Both Montgomery and twisted Edwards forms are valid
+		# Theorem 3.4 case 1
+		# EM(1, sqrt(A+2)) -> EE(?, 0)
+		p2m = MontPoint(FQ(1), FQ(MONT_A+2).sqrt())
+		self.assertTrue(p2m.valid())
+		self.assertTrue(p2m.as_point().valid())
+		self.assertEqual(p2m.as_point().as_mont(), p2m)
+
+		# Montgomery form is invalid
+		# EM(0,-1) -> EE(0,-1)
+		p2m = MontPoint(FQ(0), FQ(-1))
+		p2e = p2m.as_point()
+		self.assertEqual(p2e.x, FQ(0))
+		self.assertEqual(p2e.y, FQ(-1))
+		self.assertFalse(p2m.valid())
+		self.assertTrue(p2e.valid())
+		self.assertNotEqual(p2e.as_mont(), p2m)
+
+		# Montgomery form is invalid
+		# EM(0,-1) -> EE(0,-1)
+		p3m = MontPoint(FQ(0), FQ(1))
+		p3e = p3m.as_point()
+		self.assertEqual(p3e.x, FQ(0))
+		self.assertEqual(p3e.y, FQ(-1))
+		self.assertFalse(p3m.valid())
+		self.assertTrue(p3e.valid())
+		self.assertNotEqual(p3e.as_mont(), p3m)
+
+		# Montgomery form is invalid
+		# EM(-1,?) -> EE(?,0)
+		p4my = FQ.random()
+		p4m = MontPoint(FQ(-1), p4my)
+		p4e = p4m.as_point()
+		p4mb = p4e.as_mont()
+		self.assertNotEqual(p4mb, p4m)
+		self.assertNotEqual(p4e.x, p4my)
+		self.assertEqual(p4e.y, FQ(0))
+		self.assertFalse(p4m.valid())
+		self.assertTrue(p3e.valid())
 
 	def test_mont_double(self):
 		"""

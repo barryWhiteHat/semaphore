@@ -13,7 +13,6 @@ from __future__ import division, print_function
 
 import sys
 import math
-import types
 from functools import reduce
 
 if sys.version_info.major == 2:
@@ -503,17 +502,17 @@ def __main__():
   # p = square_root_mod_prime( 2, 3 )
 
 
-  print_("Testing gcd...")
+  print("Testing gcd...")
   assert gcd( 3*5*7, 3*5*11, 3*5*13 )     == 3*5
   assert gcd( [ 3*5*7, 3*5*11, 3*5*13 ] ) == 3*5
   assert gcd( 3 ) == 3
 
-  print_("Testing lcm...")
+  print("Testing lcm...")
   assert lcm( 3, 5*3, 7*3 )     == 3*5*7
   assert lcm( [ 3, 5*3, 7*3 ] ) == 3*5*7
   assert lcm( 3 ) == 3
 
-  print_("Testing next_prime...")
+  print("Testing next_prime...")
   bigprimes = ( 999671,
                 999683,
                 999721,
@@ -543,7 +542,7 @@ def __main__():
   # Test the square_root_mod_prime function:
 
   for p in smallprimes:
-    print_("Testing square_root_mod_prime for modulus p = %d." % p)
+    print("Testing square_root_mod_prime for modulus p = %d." % p)
     squares = []
 
     for root in range( 0, 1+p//2 ):
@@ -552,7 +551,7 @@ def __main__():
       calculated = square_root_mod_prime( sq, p )
       if ( calculated * calculated ) % p != sq:
         error_tally = error_tally + 1
-        print_("Failed to find %d as sqrt( %d ) mod %d. Said %d." % \
+        print("Failed to find %d as sqrt( %d ) mod %d. Said %d." % \
               ( root, sq, p, calculated ))
 
     for nonsquare in range( 0, p ):
@@ -563,24 +562,24 @@ def __main__():
           pass
         else:
           error_tally = error_tally + 1
-          print_("Failed to report no root for sqrt( %d ) mod %d." % \
+          print("Failed to report no root for sqrt( %d ) mod %d." % \
                 ( nonsquare, p ))
 
   # Test the jacobi function:
   for m in range( 3, 400, 2 ):
-    print_("Testing jacobi for modulus m = %d." % m)
+    print("Testing jacobi for modulus m = %d." % m)
     if is_prime( m ):
       squares = []
       for root in range( 1, m ):
         if jacobi( root * root, m ) != 1:
           error_tally = error_tally + 1
-          print_("jacobi( %d * %d, %d ) != 1" % ( root, root, m ))
+          print("jacobi( %d * %d, %d ) != 1" % ( root, root, m ))
         squares.append( root * root % m )
       for i in range( 1, m ):
         if not i in squares:
           if jacobi( i, m ) != -1:
             error_tally = error_tally + 1
-            print_("jacobi( %d, %d ) != -1" % ( i, m ))
+            print("jacobi( %d, %d ) != -1" % ( i, m ))
     else:       # m is not prime.
       f = factorization( m )
       for a in range( 1, m ):
@@ -589,11 +588,11 @@ def __main__():
           c = c * jacobi( a, i[0] ) ** i[1]
         if c != jacobi( a, m ):
           error_tally = error_tally + 1
-          print_("%d != jacobi( %d, %d )" % ( c, a, m ))
+          print("%d != jacobi( %d, %d )" % ( c, a, m ))
 
 
 # Test the inverse_mod function:
-  print_("Testing inverse_mod . . .")
+  print("Testing inverse_mod . . .")
   import random
   n_tests = 0
   for i in range( 100 ):
@@ -605,12 +604,12 @@ def __main__():
         inv = inverse_mod( a, m )
         if inv <= 0 or inv >= m or ( a * inv ) % m != 1:
           error_tally = error_tally + 1
-          print_("%d = inverse_mod( %d, %d ) is wrong." % ( inv, a, m ))
+          print("%d = inverse_mod( %d, %d ) is wrong." % ( inv, a, m ))
   assert n_tests > 1000
-  print_(n_tests, " tests of inverse_mod completed.")
+  print(n_tests, " tests of inverse_mod completed.")
 
   class FailedTest(Exception): pass
-  print_(error_tally, "errors detected.")
+  print(error_tally, "errors detected.")
   if error_tally != 0:
     raise FailedTest("%d errors detected" % error_tally)
 

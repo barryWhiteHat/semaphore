@@ -1,6 +1,6 @@
 // This code is taken from https://github.com/JacobEberhardt/ZoKrates
 
-pragma solidity ^0.4.19;
+pragma solidity 0.4.24;
 
 library Pairing {
     struct G1Point {
