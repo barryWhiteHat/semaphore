@@ -2,8 +2,8 @@ import unittest
 from os import urandom
 
 
-from ethsnarks.jubjub import JUBJUB_L
-from ethsnarks.eddsa import *
+from ethsnarks.jubjub import JUBJUB_L, Point, FQ
+from ethsnarks.eddsa import eddsa_sign, eddsa_verify
 
 
 class TestEdDSA(unittest.TestCase):

@@ -34,7 +34,6 @@ To homomorphically hash the two points:
 """
 
 import math
-from hashlib import sha256
 from struct import pack
 
 from .jubjub import Point, JUBJUB_L

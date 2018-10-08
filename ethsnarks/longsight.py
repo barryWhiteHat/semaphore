@@ -24,7 +24,6 @@ The number of rounds for constructing the keyed permutation is
 from __future__ import print_function
 
 import math
-import struct
 from binascii import unhexlify
 from random import randint
 
@@ -182,4 +181,4 @@ def LongsightL12p5_MP(M, IV):
 
 
 if __name__ == "__main__":
-    print(make_constants_cxx_L("LongsightL", 12, 5))
+    print(make_constants_cxx("LongsightL", 12))

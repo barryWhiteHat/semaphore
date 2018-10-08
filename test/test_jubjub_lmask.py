@@ -2,7 +2,7 @@ import unittest
 
 from collections import defaultdict
 
-from ethsnarks.jubjub import *
+from ethsnarks.jubjub import FQ, JUBJUB_L
 
 
 class TestJubJubLMask(unittest.TestCase):
@@ -25,6 +25,7 @@ class TestJubJubLMask(unittest.TestCase):
 				histogram[i] += 1
 
 		"""
+		# Display histogram of bit probablities
 		for i in range(0, 256):
 			print(i, histogram[i], histogram[i] / n_samples)
 		"""

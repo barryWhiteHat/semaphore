@@ -370,18 +370,6 @@ class MontPoint(AbstractCurveOps, namedtuple('_MontPoint', ('x', 'y'))):
 
 
 class ProjPoint(AbstractCurveOps, namedtuple('_ProjPoint', ('x', 'y', 'z'))):
-	def valid(self):
-		"""
-		From Twisted Curves Revisited:
-
-			(a * x^2 + y^2) * z^2 = z^4 + (d * x^2 * y^2)
-		"""
-		xx = self.x * self.x
-		yy = self.y * self.y
-		zz = self.z * self.z
-		z4 = zz * zz
-		return (JUBJUB_A * xx + yy) * zz == z4 * (JUBJUB_D * xx * yy)
-
 	def rescale(self):
 		return ProjPoint(self.x / self.z, self.y / self.z, FQ(1))
 
