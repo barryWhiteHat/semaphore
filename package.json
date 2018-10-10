@@ -7,7 +7,7 @@
 	"author": "HarryR@noreply.users.gihub.com",
 	"license": "GPL-3.0+",
 	"dependencies": {
-		"solc": "^0.4.24",
+		"solc": "^0.4.25",
 		"truffle": "^4.1.13"
 	},
 	"devDependencies": {

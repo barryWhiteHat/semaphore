@@ -35,12 +35,27 @@ contract Miximus
 
     MerkleTree.Data internal tree;
 
+
     function Deposit(uint256 leaf)
-        public payable returns (uint256)
+        public payable returns (uint256, uint256)
     {
         require( msg.value == AMOUNT );
 
         return tree.Insert(leaf);
+    }
+
+
+    function GetPath(uint256 leaf)
+        public view returns (uint256[29], bool[29])
+    {
+        return tree.GetProof(leaf);
+    }
+
+
+    function IsSpent(uint256 nullifier)
+        public view returns (bool)
+    {
+        return nullifiers[nullifier];
     }
 
 
@@ -65,7 +80,8 @@ contract Miximus
                 msg.sender
             )))) % Verifier.ScalarField();
 
-        Verifier.VerifyingKey memory vk = GetVerifyingKey();
+        Verifier.VerifyingKey memory vk;
+        GetVerifyingKey(vk);
 
         bool is_valid = Verifier.Verify( vk, in_proof, snark_input );
 
@@ -76,7 +92,6 @@ contract Miximus
         msg.sender.transfer(AMOUNT);
     }
 
-    function GetVerifyingKey ()
-        internal pure returns (Verifier.VerifyingKey memory);
-
+    function GetVerifyingKey (Verifier.VerifyingKey memory out_vk)
+        internal view;
 }

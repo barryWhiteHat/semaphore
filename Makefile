@@ -163,6 +163,9 @@ $(GANACHE): node_modules
 truffle-test: $(TRUFFLE)
 	$(NPM) run test
 
+truffle-migrate: $(TRUFFLE)
+	$(TRUFFLE) migrate
+
 truffle-compile: $(TRUFFLE)
 	$(TRUFFLE) compile
 

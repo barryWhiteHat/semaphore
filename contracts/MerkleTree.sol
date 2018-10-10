@@ -63,7 +63,7 @@ library MerkleTree
 
 
     function Insert(Data storage self, uint256 leaf)
-        internal returns (uint256)
+        internal returns (uint256, uint256)
     {
         require( leaf != 0 );
 
@@ -83,7 +83,7 @@ library MerkleTree
 
         self.cur = offset + 1;
    
-        return new_root;
+        return (new_root, offset);
     }
 
 
