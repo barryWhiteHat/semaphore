@@ -38,6 +38,7 @@ class MerkleHasherLongsight(object):
         return LongsightL12p5_MP([left, right], IV)
 
     def unique(self, depth, index):
+        assert depth < self._tree_depth
         item = int(depth).to_bytes(2, 'big') + int(index).to_bytes(30, 'big')
         hasher = hashlib.sha256()
         hasher.update(item)

@@ -29,9 +29,9 @@ contract TestableMiximus is Miximus
         }
     }
 
-    function GetVerifyingKey (Verifier.VerifyingKey memory out_vk)
-        internal view
+    function GetVerifyingKey ()
+        internal view returns (Verifier.VerifyingKey memory)
     {
-        out_vk = m_vk;
+        return m_vk;
     }
 }

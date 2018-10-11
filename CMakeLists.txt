@@ -79,15 +79,9 @@ option(
 )
 
 option(
-  VERBOSE
-  "Print internal messages"
-  OFF
-)
-
-option(
   DEBUG
   "Enable debugging mode"
-  ON
+  OFF
 )
 
 option(
@@ -103,17 +97,12 @@ if(${CURVE} STREQUAL "BN128")
   add_definitions(-DBN_SUPPORT_SNARK=1)
 endif()
 
-if("${VERBOSE}")
-  add_definitions(-DVERBOSE=1)
-endif()
-
 if("${MULTICORE}")
   add_definitions(-DMULTICORE=1)
 endif()
 
-if("${DEBUG}")
+if("${DEBUG}" OR "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   add_definitions(-DDEBUG=1)
-  add_compile_options(-g)
 else()
   add_compile_options(-O3)
 endif()

@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./Verifier.sol";
 import "./SnarkUtils.sol";
 import "./MerkleTree.sol";
+import "./LongsightL.sol";
 
 
 contract Miximus
@@ -36,8 +37,18 @@ contract Miximus
     MerkleTree.Data internal tree;
 
 
+    function GetRoot()
+        public view returns (uint256)
+    {
+        return tree.GetRoot();
+    }
+
+
+    /**
+    * Returns leaf offset
+    */
     function Deposit(uint256 leaf)
-        public payable returns (uint256, uint256)
+        public payable returns (uint256 new_root, uint256 new_offset)
     {
         require( msg.value == AMOUNT );
 
@@ -45,10 +56,32 @@ contract Miximus
     }
 
 
+    function MakeLeafHash(uint256 spend_preimage, uint256 nullifier)
+        public pure returns (uint256)
+    {
+        uint256[10] memory round_constants;
+        LongsightL.ConstantsL12p5(round_constants);
+
+        uint256 spend_hash = LongsightL.LongsightL12p5_MP([spend_preimage, nullifier], 0, round_constants);
+
+        return LongsightL.LongsightL12p5_MP([nullifier, spend_hash], 0, round_constants);
+    }
+
+
     function GetPath(uint256 leaf)
-        public view returns (uint256[29], bool[29])
+        public view returns (uint256[29] out_path, bool[29] out_addr)
     {
         return tree.GetProof(leaf);
+    }
+
+    function GetExtHash()
+        public view returns (uint256)
+    {
+        return uint256(sha256(
+            abi.encodePacked(
+                address(this),
+                msg.sender
+            ))) % Verifier.ScalarField();
     }
 
 
@@ -59,31 +92,41 @@ contract Miximus
     }
 
 
-    function Withdraw(
-        uint256 in_root,
-        uint256 in_nullifier,
-        Verifier.Proof in_proof
-    )
-        public
+    function VerifyProof( uint256 in_root, uint256 in_nullifier, uint256 in_exthash, uint256[2] proof_A, uint256[2][2] proof_B, uint256[2] proof_C )
+        public view returns (bool)
     {
-        require( false == nullifiers[in_nullifier] );
-
         uint256[] memory snark_input = new uint256[](3);
 
         snark_input[0] = SnarkUtils.ReverseBits(in_root);
 
         snark_input[1] = SnarkUtils.ReverseBits(in_nullifier);
 
-        snark_input[2] = SnarkUtils.ReverseBits(uint256(sha256(
-            abi.encodePacked(
-                address(this),
-                msg.sender
-            )))) % Verifier.ScalarField();
+        snark_input[2] = SnarkUtils.ReverseBits(in_exthash);
 
-        Verifier.VerifyingKey memory vk;
-        GetVerifyingKey(vk);
+        Verifier.Proof memory proof = Verifier.Proof(
+            Pairing.G1Point(proof_A[0], proof_A[1]),
+            Pairing.G2Point(proof_B[0], proof_B[1]),
+            Pairing.G1Point(proof_C[0], proof_C[1])
+        );
 
-        bool is_valid = Verifier.Verify( vk, in_proof, snark_input );
+        Verifier.VerifyingKey memory vk = GetVerifyingKey();
+
+        return Verifier.Verify( vk, proof, snark_input );
+    }
+
+
+    function Withdraw(
+        uint256 in_root,
+        uint256 in_nullifier,
+        uint256[2] proof_A,
+        uint256[2][2] proof_B,
+        uint256[2] proof_C
+    )
+        public
+    {
+        require( false == nullifiers[in_nullifier] );
+
+        bool is_valid = VerifyProof(in_root, in_nullifier, GetExtHash(), proof_A, proof_B, proof_C);
 
         require( is_valid );
 
@@ -92,6 +135,6 @@ contract Miximus
         msg.sender.transfer(AMOUNT);
     }
 
-    function GetVerifyingKey (Verifier.VerifyingKey memory out_vk)
-        internal view;
+    function GetVerifyingKey ()
+        internal view returns (Verifier.VerifyingKey memory);
 }
