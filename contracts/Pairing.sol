@@ -50,8 +50,6 @@ library Pairing {
         bool success;
         assembly {
             success := staticcall(sub(gas, 2000), 6, input, 0xc0, r, 0x60)
-            // Use "invalid" to make gas estimation work
-            switch success case 0 { invalid }
         }
         require(success);
     }
@@ -68,8 +66,6 @@ library Pairing {
         bool success;
         assembly {
             success := staticcall(sub(gas, 2000), 7, input, 0x80, r, 0x60)
-            // Use "invalid" to make gas estimation work
-            switch success case 0 { invalid }
         }
         require (success);
     }
@@ -98,8 +94,6 @@ library Pairing {
         bool success;
         assembly {
             success := staticcall(sub(gas, 2000), 8, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
-            // Use "invalid" to make gas estimation work
-            switch success case 0 { invalid }
         }
         require(success);
         return out[0] != 0;

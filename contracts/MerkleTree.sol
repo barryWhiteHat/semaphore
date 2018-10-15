@@ -93,14 +93,20 @@ library MerkleTree
     function VerifyPath(uint256 leaf, uint256[29] in_path, bool[29] address_bits)
         internal pure returns (uint256)
     {
+        uint256[10] memory C;
+        LongsightL.ConstantsL12p5(C);
+
+        uint256[29] memory IVs;
+        FillLevelIVs(IVs);
+
         uint256 item = leaf;
 
         for (uint depth = 0; depth < TREE_DEPTH; depth++)
         {
             if (address_bits[depth]) {
-                item = GetUniqueLeaf(depth, in_path[depth], item);
+                item = HashImpl(in_path[depth], item, C, IVs[depth]);
             } else {
-                item = GetUniqueLeaf(depth, item, in_path[depth]);
+                item = HashImpl(item, in_path[depth], C, IVs[depth]);
             }
         }
 

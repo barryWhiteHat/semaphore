@@ -40,8 +40,8 @@ var libmiximus = ffi.Library('build/src/libmiximus', {
 
 
 let fq2_to_sol = (o) => {
-    //return [o[1], o[0]];
-    return [o[0], o[1]];
+    return [o[1], o[0]];
+    //return [o[0], o[1]];
 };
 
 
@@ -132,14 +132,10 @@ contract("TestableMiximus", () => {
 
             // Verify VK and Proof together
             let [vk_flat, vk_flat_IC] = vk_to_flat(vk);
-            let proof_flat = proof_to_flat(proof);
-            console.log("VK flat: ", vk_flat);
-            console.log("VK flat IC:", vk_flat_IC);
-            console.log("Proof flat:", proof_flat);
             let test_verify_args = [
-                vk_flat,
-                vk_flat_IC,
-                proof_flat,
+                vk_flat,                // (alpha, beta, gamma, delta)
+                vk_flat_IC,             // gammaABC[]
+                proof_to_flat(proof),   // A B C
                 [  
                     proof.input[0],
                     proof.input[1],
