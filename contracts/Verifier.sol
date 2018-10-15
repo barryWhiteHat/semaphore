@@ -38,13 +38,13 @@ library Verifier
     }
 
     function Verify (VerifyingKey memory vk, ProofWithInput memory pwi)
-        internal returns (bool)
+        internal view returns (bool)
     {
         return Verify(vk, pwi.proof, pwi.input);
     }
 
     function Verify (VerifyingKey memory vk, Proof memory proof, uint256[] memory input)
-        internal returns (bool)
+        internal view returns (bool)
     {
         require(input.length + 1 == vk.gammaABC.length);
 

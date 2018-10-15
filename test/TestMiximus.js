@@ -39,6 +39,44 @@ var libmiximus = ffi.Library('build/src/libmiximus', {
 });
 
 
+let fq2_to_sol = (o) => {
+    //return [o[1], o[0]];
+    return [o[0], o[1]];
+};
+
+
+let g2_to_sol = (o) => {
+    return [fq2_to_sol(o[0]), fq2_to_sol(o[1])];
+};
+
+
+let list_flatten = (l) => {
+    return [].concat.apply([], l);
+};
+
+
+let vk_to_flat = (vk) => {
+    return [
+        list_flatten([
+            vk.alpha[0], vk.alpha[0],
+            list_flatten(g2_to_sol(vk.beta)),
+            list_flatten(g2_to_sol(vk.gamma)),
+            list_flatten(g2_to_sol(vk.delta)),
+        ]),
+        list_flatten(vk.gammaABC)
+    ];
+};
+
+
+let proof_to_flat = (proof) => {
+    return list_flatten([
+        proof.A,
+        list_flatten(g2_to_sol(proof.B)),
+        proof.C
+    ]);
+};
+
+
 
 contract("TestableMiximus", () => {
     describe("Deposit", () => {
@@ -63,10 +101,9 @@ contract("TestableMiximus", () => {
             }
             let proof_root = await obj.GetRoot.call();
             proof_root = new_root_and_offset[0];
-
             let proof_exthash = await obj.GetExtHash.call();
 
-            // Run prover
+            // Run prover to generate proof
             let args = [
                 "zksnark_element/miximus.pk.raw",
                 proof_root.toString(10),
@@ -79,14 +116,46 @@ contract("TestableMiximus", () => {
             let proof_json = libmiximus.miximus_prove(...args);
             assert.notStrictEqual(proof_json, null);
             let proof = JSON.parse(proof_json);
+            console.log("Proof:", proof);
 
-            console.log(proof);
+            // Ensure proof inputs match ours
+            assert.strictEqual('0x' + proof_root.toString(16), proof.input[0]);
+            assert.strictEqual('0x' + nullifier.toString(16), proof.input[1]);
+            assert.strictEqual('0x' + proof_exthash.toString(16), proof.input[2]);
+
+
+            // Re-verify proof using native library
+            let vk_json = fs.readFileSync('zksnark_element/miximus.vk.json');
+            let proof_valid_native = libmiximus.miximus_verify(vk_json, proof_json);
+            assert.strictEqual(proof_valid_native, true);
+            let vk = JSON.parse(vk_json);
+
+            // Verify VK and Proof together
+            let [vk_flat, vk_flat_IC] = vk_to_flat(vk);
+            let proof_flat = proof_to_flat(proof);
+            console.log("VK flat: ", vk_flat);
+            console.log("VK flat IC:", vk_flat_IC);
+            console.log("Proof flat:", proof_flat);
+            let test_verify_args = [
+                vk_flat,
+                vk_flat_IC,
+                proof_flat,
+                [  
+                    proof.input[0],
+                    proof.input[1],
+                    proof.input[2]
+                ]
+            ];
+            console.log("Test args:", test_verify_args);
+            let test_verify_result = await obj.TestVerify(...test_verify_args);
+            console.log("Test Result: ", test_verify_result);
 
             // Verify whether or not our proof would be valid
+            console.log("Checking if proof is valid")
             let proof_valid = obj.VerifyProof.call(
-                proof_root.toString(10),
-                nullifier.toString(10),
-                proof_exthash.toString(10),
+                proof.input[0],
+                proof.input[1],
+                proof.input[2],
                 proof.A,
                 proof.B,
                 proof.C);
@@ -94,7 +163,12 @@ contract("TestableMiximus", () => {
             
             // Then perform the withdraw
             console.log("Performing transaction!!");
-            await obj.Withdraw(proof_root, nullifier, proof.A, proof.B, proof.C);
+            await obj.Withdraw(
+                proof_root.toString(10),
+                nullifier.toString(10),
+                proof.A,
+                proof.B,
+                proof.C);
         });
     });
 });

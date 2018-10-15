@@ -24,38 +24,25 @@
 #
 
 import sys
-import math
 from random import randint
 from collections import defaultdict
 from .numbertheory import square_root_mod_prime
 
 # python3 compatibility
-if sys.version_info.major == 2:
-    int_types = (int, long)  # noqa: F821
-else:
+if sys.version_info.major > 2:
     int_types = (int,)
+    long = int
+else:
+    int_types = (int, long)  # noqa: F821
 
 
 SNARK_SCALAR_FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617
 
 
-def powmod(a, b, n):
-    """Modulo exponentiation"""
-    c = 0
-    f = 1
-    k = int(math.log(b, 2))
-    while k >= 0:
-        c *= 2
-        f = (f*f)%n
-        if b & (1 << k):
-            c += 1
-            f = (f*a) % n
-        k -= 1
-    return f
-
 
 # Extended euclidean algorithm to find modular inverses for
 # integers
+# equivalent to pow(a, n-2, n)
 def inv(a, n):
     if a == 0:
         return 0
@@ -146,14 +133,14 @@ class FQ(object):
 
     def inv(self):
         self._count('inv')
-        return FQ(inv(self.n, self.m), self.m)
+        return FQ(pow(self.n, self.m - 2, self.m), self.m)
 
     def sqrt(self):
         return FQ(square_root_mod_prime(self.n, self.m), self.m)
 
     def exp(self, e):
         e = self._other_n(e)
-        return FQ(powmod(self.n, e, self.m), self.m)
+        return FQ(pow(self.n, e, self.m), self.m)
 
     def __div__(self, other):
         on = self._other_n(other)

@@ -39,7 +39,9 @@ library Pairing {
     }
 
     /// @return the sum of two points of G1
-    function pointAdd(G1Point p1, G1Point p2) internal returns (G1Point r) {
+    function pointAdd(G1Point p1, G1Point p2)
+        internal view returns (G1Point r)
+    {
         uint[4] memory input;
         input[0] = p1.X;
         input[1] = p1.Y;
@@ -47,7 +49,7 @@ library Pairing {
         input[3] = p2.Y;
         bool success;
         assembly {
-            success := call(sub(gas, 2000), 6, 0, input, 0xc0, r, 0x60)
+            success := staticcall(sub(gas, 2000), 6, input, 0xc0, r, 0x60)
             // Use "invalid" to make gas estimation work
             switch success case 0 { invalid }
         }
@@ -56,14 +58,16 @@ library Pairing {
 
     /// @return the product of a point on G1 and a scalar, i.e.
     /// p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
-    function pointMul(G1Point p, uint s) internal returns (G1Point r) {
+    function pointMul(G1Point p, uint s)
+        internal view returns (G1Point r)
+    {
         uint[3] memory input;
         input[0] = p.X;
         input[1] = p.Y;
         input[2] = s;
         bool success;
         assembly {
-            success := call(sub(gas, 2000), 7, 0, input, 0x80, r, 0x60)
+            success := staticcall(sub(gas, 2000), 7, input, 0x80, r, 0x60)
             // Use "invalid" to make gas estimation work
             switch success case 0 { invalid }
         }
@@ -74,7 +78,9 @@ library Pairing {
     /// e(p1[0], p2[0]) *  .... * e(p1[n], p2[n]) == 1
     /// For example pairing([P1(), P1().negate()], [P2(), P2()]) should
     /// return true.
-    function pairing(G1Point[] p1, G2Point[] p2) internal returns (bool) {
+    function pairing(G1Point[] p1, G2Point[] p2)
+        internal view returns (bool)
+    {
         require(p1.length == p2.length);
         uint elements = p1.length;
         uint inputSize = elements * 6;
@@ -91,7 +97,7 @@ library Pairing {
         uint[1] memory out;
         bool success;
         assembly {
-            success := call(sub(gas, 2000), 8, 0, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
+            success := staticcall(sub(gas, 2000), 8, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
             // Use "invalid" to make gas estimation work
             switch success case 0 { invalid }
         }
@@ -100,7 +106,9 @@ library Pairing {
     }
 
     /// Convenience method for a pairing check for two pairs.
-    function pairingProd2(G1Point a1, G2Point a2, G1Point b1, G2Point b2) internal returns (bool) {
+    function pairingProd2(G1Point a1, G2Point a2, G1Point b1, G2Point b2)
+        internal view returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](2);
         G2Point[] memory p2 = new G2Point[](2);
         p1[0] = a1;
@@ -114,7 +122,9 @@ library Pairing {
             G1Point a1, G2Point a2,
             G1Point b1, G2Point b2,
             G1Point c1, G2Point c2
-    ) internal returns (bool) {
+    )
+        internal view returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](3);
         G2Point[] memory p2 = new G2Point[](3);
         p1[0] = a1;
@@ -125,13 +135,16 @@ library Pairing {
         p2[2] = c2;
         return pairing(p1, p2);
     }
+
     /// Convenience method for a pairing check for four pairs.
     function pairingProd4(
             G1Point a1, G2Point a2,
             G1Point b1, G2Point b2,
             G1Point c1, G2Point c2,
             G1Point d1, G2Point d2
-    ) internal returns (bool) {
+    )
+        internal view returns (bool)
+    {
         G1Point[] memory p1 = new G1Point[](4);
         G2Point[] memory p2 = new G2Point[](4);
         p1[0] = a1;

@@ -44,13 +44,14 @@ public:
     typedef LongsightL12p5_MP_gadget HashT;
     const size_t tree_depth = MIXIMUS_TREE_DEPTH;
 
-    // public constants
-    const VariableArrayT m_IVs;
 
     // public inputs
     const VariableT root_var;
     const VariableT nullifier_var;
     const VariableT external_hash_var;
+
+    // public constants
+    const VariableArrayT m_IVs;
 
     // constant inputs
     const VariableT spend_hash_IV;
@@ -74,12 +75,12 @@ public:
     ) :
         GadgetT(in_pb, annotation_prefix),
 
-        m_IVs(merkle_tree_IVs(in_pb)),
-
         // public inputs
         root_var(make_variable(in_pb, FMT(annotation_prefix, ".root_var"))),
         nullifier_var(make_variable(in_pb, FMT(annotation_prefix, ".nullifier_var"))),
         external_hash_var(make_variable(in_pb, FMT(annotation_prefix, ".external_hash_var"))),
+
+        m_IVs(merkle_tree_IVs(in_pb)),
 
         // constant inputs
         spend_hash_IV(make_variable(in_pb, FMT(annotation_prefix, ".spend_hash_IV"))),
@@ -96,6 +97,8 @@ public:
         m_authenticator(in_pb, tree_depth, address_bits, m_IVs, leaf_hash.result(), root_var, path_var, FMT(annotation_prefix, ".authenticator"))
     {
         in_pb.set_input_sizes( 3 );
+
+        // TODO: verify that inputs are expected publics
     }
 
     void generate_r1cs_constraints()

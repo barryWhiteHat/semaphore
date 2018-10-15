@@ -97,11 +97,9 @@ contract Miximus
     {
         uint256[] memory snark_input = new uint256[](3);
 
-        snark_input[0] = SnarkUtils.ReverseBits(in_root);
-
-        snark_input[1] = SnarkUtils.ReverseBits(in_nullifier);
-
-        snark_input[2] = SnarkUtils.ReverseBits(in_exthash);
+        snark_input[0] = in_root;
+        snark_input[1] = in_nullifier;
+        snark_input[2] = in_exthash;
 
         Verifier.Proof memory proof = Verifier.Proof(
             Pairing.G1Point(proof_A[0], proof_A[1]),
@@ -109,7 +107,8 @@ contract Miximus
             Pairing.G1Point(proof_C[0], proof_C[1])
         );
 
-        Verifier.VerifyingKey memory vk = GetVerifyingKey();
+        Verifier.VerifyingKey memory vk;
+        GetVerifyingKey(vk);
 
         return Verifier.Verify( vk, proof, snark_input );
     }
@@ -135,6 +134,6 @@ contract Miximus
         msg.sender.transfer(AMOUNT);
     }
 
-    function GetVerifyingKey ()
-        internal view returns (Verifier.VerifyingKey memory);
+    function GetVerifyingKey (Verifier.VerifyingKey memory out_vk)
+        internal view;
 }

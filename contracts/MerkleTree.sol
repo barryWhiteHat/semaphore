@@ -95,12 +95,11 @@ library MerkleTree
     {
         uint256 item = leaf;
 
-        for ( uint depth = 0; depth < TREE_DEPTH; depth++ )
+        for (uint depth = 0; depth < TREE_DEPTH; depth++)
         {
             if (address_bits[depth]) {
                 item = GetUniqueLeaf(depth, in_path[depth], item);
-            }
-            else {
+            } else {
                 item = GetUniqueLeaf(depth, item, in_path[depth]);
             }
         }
@@ -134,19 +133,9 @@ library MerkleTree
         {
             address_bits[depth] = index % 2 == 0 ? false : true;
 
-            /*
-            if (index%2 == 0)
-            {
-                proof_path[depth] = GetUniqueLeaf(depth, index, self.leaves[depth][index + 1]);
-            } else
-            {
-                proof_path[depth] = GetUniqueLeaf(depth, index, self.leaves[depth][index - 1]);
-            }
-            */
-            if( index%2 == 0 ) {
+            if (index%2 == 0) {
                 proof_path[depth] = GetLeaf(self, depth, index + 1);
-            }
-            else {
+            } else {
                 proof_path[depth] = GetLeaf(self, depth, index - 1);
             }
 
