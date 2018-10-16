@@ -18,7 +18,6 @@
 */
 
 pragma solidity 0.4.24;
-pragma experimental ABIEncoderV2;
 
 import "./Verifier.sol";
 import "./SnarkUtils.sol";
@@ -74,6 +73,7 @@ contract Miximus
         return tree.GetProof(leaf);
     }
 
+
     function GetExtHash()
         public view returns (uint256)
     {
@@ -92,40 +92,32 @@ contract Miximus
     }
 
 
-    function VerifyProof( uint256 in_root, uint256 in_nullifier, uint256 in_exthash, uint256[2] proof_A, uint256[2][2] proof_B, uint256[2] proof_C )
+    function VerifyProof( uint256 in_root, uint256 in_nullifier, uint256 in_exthash, uint256[8] proof )
         public view returns (bool)
     {
         uint256[] memory snark_input = new uint256[](3);
-
         snark_input[0] = in_root;
         snark_input[1] = in_nullifier;
         snark_input[2] = in_exthash;
 
-        Verifier.Proof memory proof = Verifier.Proof(
-            Pairing.G1Point(proof_A[0], proof_A[1]),
-            Pairing.G2Point(proof_B[0], proof_B[1]),
-            Pairing.G1Point(proof_C[0], proof_C[1])
-        );
+        uint256[14] memory vk;
+        uint256[] memory vk_gammaABC;
+        (vk, vk_gammaABC) = GetVerifyingKey();
 
-        Verifier.VerifyingKey memory vk;
-        GetVerifyingKey(vk);
-
-        return Verifier.Verify( vk, proof, snark_input );
+        return Verifier.Verify( vk, vk_gammaABC, proof, snark_input );
     }
 
 
     function Withdraw(
         uint256 in_root,
         uint256 in_nullifier,
-        uint256[2] proof_A,
-        uint256[2][2] proof_B,
-        uint256[2] proof_C
+        uint256[8] proof
     )
         public
     {
         require( false == nullifiers[in_nullifier] );
 
-        bool is_valid = VerifyProof(in_root, in_nullifier, GetExtHash(), proof_A, proof_B, proof_C);
+        bool is_valid = VerifyProof(in_root, in_nullifier, GetExtHash(), proof);
 
         require( is_valid );
 
@@ -134,6 +126,7 @@ contract Miximus
         msg.sender.transfer(AMOUNT);
     }
 
-    function GetVerifyingKey (Verifier.VerifyingKey memory out_vk)
-        internal view;
+
+    function GetVerifyingKey ()
+        public view returns (uint256[14] out_vk, uint256[] out_gammaABC);
 }
