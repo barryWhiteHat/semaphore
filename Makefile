@@ -47,6 +47,16 @@ bin/miximus_genKeys: build/Makefile
 build/src/libmiximus.$(DLL_EXT): build/Makefile
 	make -C build
 
+cmake-debug:
+	cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+cmake-release:
+	cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
+
+release: cmake-release all
+
+debug: cmake-debug all
+
 build/Makefile: build CMakeLists.txt
 	cd build && cmake ..
 

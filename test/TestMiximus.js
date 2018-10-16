@@ -40,8 +40,8 @@ var libmiximus = ffi.Library('build/src/libmiximus', {
 
 
 let fq2_to_sol = (o) => {
-    return [o[1], o[0]];
-    //return [o[0], o[1]];
+    //return [o[1], o[0]];
+    return [o[0], o[1]];
 };
 
 
@@ -58,7 +58,7 @@ let list_flatten = (l) => {
 let vk_to_flat = (vk) => {
     return [
         list_flatten([
-            vk.alpha[0], vk.alpha[0],
+            vk.alpha[0], vk.alpha[1],
             list_flatten(g2_to_sol(vk.beta)),
             list_flatten(g2_to_sol(vk.gamma)),
             list_flatten(g2_to_sol(vk.delta)),
