@@ -1,39 +1,39 @@
 const TestableMiximus = artifacts.require("TestableMiximus");
 
-const crypto = require('crypto');
+const crypto = require("crypto");
 
-const fs = require('fs');
-const ffi = require('ffi');
-const ref = require('ref');
-const ArrayType = require('ref-array');
-const BigNumber = require('bignumber.js');
+const fs = require("fs");
+const ffi = require("ffi");
+const ref = require("ref");
+const ArrayType = require("ref-array");
+const BigNumber = require("bignumber.js");
 
 var StringArray = ArrayType(ref.types.CString);
 
-var libmiximus = ffi.Library('build/src/libmiximus', {
+var libmiximus = ffi.Library("build/src/libmiximus", {
     // Retrieve depth of tree
-    'miximus_tree_depth': [
-        'size_t', []
+    "miximus_tree_depth": [
+        "size_t", []
     ],
 
     // Create a proof for the parameters
-    'miximus_prove': [
-        'string', [
-            'string',       // pk_file
-            'string',       // in_root
-            'string',       // in_nullifier
-            'string',       // in_exthash
-            'string',       // in_spend_preimage
-            'string',       // in_address
+    "miximus_prove": [
+        "string", [
+            "string",       // pk_file
+            "string",       // in_root
+            "string",       // in_nullifier
+            "string",       // in_exthash
+            "string",       // in_spend_preimage
+            "string",       // in_address
             StringArray,    // in_path
         ]
     ],
 
     // Verify a proof
-    'miximus_verify': [
-        'bool', [
-            'string',   // vk_json
-            'string',   // proof_json
+    "miximus_verify": [
+        "bool", [
+            "string",   // vk_json
+            "string",   // proof_json
         ]
     ]
 });
@@ -67,15 +67,14 @@ let proof_to_flat = (proof) => {
 };
 
 
-
 contract("TestableMiximus", () => {
     describe("Deposit", () => {
         it("deposits then withdraws", async () => {
             let obj = await TestableMiximus.deployed();
 
             // Parameters for deposit
-            let spend_preimage = new BigNumber(crypto.randomBytes(30).toString('hex'), 16);
-            let nullifier = new BigNumber(crypto.randomBytes(30).toString('hex'), 16);
+            let spend_preimage = new BigNumber(crypto.randomBytes(30).toString("hex"), 16);
+            let nullifier = new BigNumber(crypto.randomBytes(30).toString("hex"), 16);
             let leaf_hash = await obj.MakeLeafHash.call(spend_preimage, nullifier);
 
 
@@ -84,9 +83,12 @@ contract("TestableMiximus", () => {
             await obj.Deposit.sendTransaction([leaf_hash], {value: 1000000000000000000});
 
 
+            // TODO: verify amount has been transferred
+
+
             // Build parameters for proving
             let tmp = await obj.GetPath.call(new_root_and_offset[1]);
-            let proof_address = tmp[1].map((_) => _ ? '1' : '0').join('');
+            let proof_address = tmp[1].map((_) => _ ? "1" : "0").join("");
             let proof_path = [];
             for( var i = 0; i < proof_address.length; i++ ) {
                 proof_path.push( tmp[0][i].toString(10) );
@@ -109,17 +111,16 @@ contract("TestableMiximus", () => {
             let proof_json = libmiximus.miximus_prove(...args);
             assert.notStrictEqual(proof_json, null);
             let proof = JSON.parse(proof_json);
-            console.log("Proof:", proof);
 
 
             // Ensure proof inputs match ours
-            assert.strictEqual('0x' + proof_root.toString(16), proof.input[0]);
-            assert.strictEqual('0x' + nullifier.toString(16), proof.input[1]);
-            assert.strictEqual('0x' + proof_exthash.toString(16), proof.input[2]);
+            assert.strictEqual("0x" + proof_root.toString(16), proof.input[0]);
+            assert.strictEqual("0x" + nullifier.toString(16), proof.input[1]);
+            assert.strictEqual("0x" + proof_exthash.toString(16), proof.input[2]);
 
 
             // Re-verify proof using native library
-            let vk_json = fs.readFileSync('zksnark_element/miximus.vk.json');
+            let vk_json = fs.readFileSync("zksnark_element/miximus.vk.json");
             let proof_valid_native = libmiximus.miximus_verify(vk_json, proof_json);
             assert.strictEqual(proof_valid_native, true);
             let vk = JSON.parse(vk_json);
@@ -165,6 +166,9 @@ contract("TestableMiximus", () => {
             // Verify nullifier exists
             let is_spent = await obj.IsSpent(nullifier.toString(10));
             assert.strictEqual(is_spent, true);
+
+
+            // TODO: verify balance has been increased
         });
     });
 });

@@ -157,6 +157,7 @@ library Verifier
         return Verify(vk, pwi.proof, pwi.input);
     }
 
+
     function Verify (VerifyingKey memory vk, Proof memory proof, uint256[] memory input)
         internal view returns (bool)
     {

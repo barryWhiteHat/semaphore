@@ -1,11 +1,12 @@
+add_executable(benchmark_mpz_mul benchmark_mpz_mul.cpp)
+target_link_libraries(benchmark_mpz_mul ff)
 
+add_executable(benchmark_pairing benchmark_pairing.cpp)
+target_link_libraries(benchmark_pairing ff)
 
 add_executable(test_vk_raw2json test_vk_raw2json.cpp)
 target_link_libraries(test_vk_raw2json ethsnarks_common)
 
-
-add_executable(test_shootout test_shootout.cpp)
-target_link_libraries(test_shootout ff)
 
 add_executable(test_load_proofkey test_load_proofkey.cpp)
 target_link_libraries(test_load_proofkey ethsnarks_common)

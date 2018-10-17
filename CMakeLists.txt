@@ -4,14 +4,6 @@ project(ethsnarks)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # Common compilation flags and warning configuration
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wfatal-errors -Wno-unused-variable")
-   if("${MULTICORE}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-  endif()
-    # Default optimizations flags (to override, use -DOPT_FLAGS=...)
-endif()
 
 
 set(
@@ -61,16 +53,23 @@ option(
 )
 
 option(
+  USE_MIXED_ADDITION
+  "Convert each element of the key pair to affine coordinates"
+  OFF
+)
+
+option(
   BINARY_OUTPUT
   "Use binary output for serialisation"
   ON
 )
 
 option(
-  PERFORMANCE
-  "Enable link-time and aggressive optimizations"
-  OFF
+  MONTGOMERY_OUTPUT
+  "Serialize Fp elements as their Montgomery representations (faster but not human-readable)"
+  ON
 )
+
 
 option(
   WITH_PROCPS
@@ -103,8 +102,6 @@ endif()
 
 if("${DEBUG}" OR "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   add_definitions(-DDEBUG=1)
-else()
-  add_compile_options(-O3)
 endif()
 
 
@@ -141,6 +138,15 @@ else()
   add_definitions(
     -DNO_PROCPS
   )
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # Common compilation flags and warning configuration
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wfatal-errors -Wno-unused-variable")
+   if("${MULTICORE}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+  endif()
+    # Default optimizations flags (to override, use -DOPT_FLAGS=...)
 endif()
 
 
@@ -194,6 +200,4 @@ add_library(
 
 target_link_libraries(ff GMP::gmp gmpxx ${PROCPS_LIBRARIES})
 
-#add_subdirectory(depends)
 add_subdirectory(src)
-

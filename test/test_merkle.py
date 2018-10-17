@@ -58,7 +58,6 @@ class TestMerkleTree(unittest.TestCase):
 
         proof_a = tree.proof(0)
         self.assertTrue(proof_a.verify(tree.root))
-        print(proof_a.address)
 
         proof_b = tree.proof(1)
         self.assertTrue(proof_b.verify(tree.root))
