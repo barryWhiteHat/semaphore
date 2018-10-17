@@ -63,7 +63,7 @@ library MerkleTree
 
 
     function Insert(Data storage self, uint256 leaf)
-        internal returns (uint256)
+        internal returns (uint256, uint256)
     {
         require( leaf != 0 );
 
@@ -83,7 +83,48 @@ library MerkleTree
 
         self.cur = offset + 1;
    
-        return new_root;
+        return (new_root, offset);
+    }
+
+
+    /**
+    * Returns calculated merkle root
+    */
+    function VerifyPath(uint256 leaf, uint256[29] in_path, bool[29] address_bits)
+        internal pure returns (uint256)
+    {
+        uint256[10] memory C;
+        LongsightL.ConstantsL12p5(C);
+
+        uint256[29] memory IVs;
+        FillLevelIVs(IVs);
+
+        uint256 item = leaf;
+
+        for (uint depth = 0; depth < TREE_DEPTH; depth++)
+        {
+            if (address_bits[depth]) {
+                item = HashImpl(in_path[depth], item, C, IVs[depth]);
+            } else {
+                item = HashImpl(item, in_path[depth], C, IVs[depth]);
+            }
+        }
+
+        return item;
+    }
+
+
+    function VerifyPath(Data storage self, uint256 leaf, uint256[29] in_path, bool[29] address_bits)
+        internal view returns (bool)
+    {
+        return VerifyPath(leaf, in_path, address_bits) == GetRoot(self);
+    }
+
+
+    function GetLeaf(Data storage self, uint depth, uint offset)
+        internal view returns (uint256)
+    {
+        return GetUniqueLeaf(depth, offset, self.leaves[depth][offset]);
     }
 
 
@@ -98,12 +139,10 @@ library MerkleTree
         {
             address_bits[depth] = index % 2 == 0 ? false : true;
 
-            if (index%2 == 0)
-            {
-                proof_path[depth] = GetUniqueLeaf(depth, index, self.leaves[depth][index + 1]);
-            } else
-            {
-                proof_path[depth] = GetUniqueLeaf(depth, index, self.leaves[depth][index - 1]);
+            if (index%2 == 0) {
+                proof_path[depth] = GetLeaf(self, depth, index + 1);
+            } else {
+                proof_path[depth] = GetLeaf(self, depth, index - 1);
             }
 
             index = uint(index / 2);
@@ -160,13 +199,6 @@ library MerkleTree
         }
 
         return self.leaves[TREE_DEPTH][0];
-    }
-    
-   
-    function GetLeaf(Data storage self, uint depth, uint offset)
-        internal view returns (uint256)
-    {
-        return self.leaves[depth][offset];
     }
 
 

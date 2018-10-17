@@ -29,7 +29,7 @@ from random import randint
 
 from hashlib import sha256
 
-from .field import SNARK_SCALAR_FIELD, powmod
+from .field import SNARK_SCALAR_FIELD
 
 
 def random_element():
@@ -123,7 +123,7 @@ def LongsightL(x, k, C, R, e, p):
 
     for i, C_i in enumerate([0] + C):
         t = (x_i + k + C_i) % p
-        x_i = powmod(t, e, p)
+        x_i = pow(t, e, p)
 
     y = (x_i + k) % p
 

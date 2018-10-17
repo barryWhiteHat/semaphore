@@ -47,6 +47,16 @@ bin/miximus_genKeys: build/Makefile
 build/src/libmiximus.$(DLL_EXT): build/Makefile
 	make -C build
 
+cmake-debug: build
+	cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+cmake-release: build
+	cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
+
+release: cmake-release all
+
+debug: cmake-debug all
+
 build/Makefile: build CMakeLists.txt
 	cd build && cmake ..
 
@@ -162,6 +172,9 @@ $(GANACHE): node_modules
 .PHONY: truffle-test
 truffle-test: $(TRUFFLE)
 	$(NPM) run test
+
+truffle-migrate: $(TRUFFLE)
+	$(TRUFFLE) migrate
 
 truffle-compile: $(TRUFFLE)
 	$(TRUFFLE) compile

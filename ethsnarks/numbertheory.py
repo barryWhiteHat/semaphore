@@ -15,10 +15,11 @@ import sys
 import math
 from functools import reduce
 
-if sys.version_info.major == 2:
-    integer_types = (int, long)  # noqa: F821
-else:
+if sys.version_info.major > 2:
     integer_types = (int,)
+    long = int
+else:
+    integer_types = (int, long)  # noqa: F821
 
 
 class Error( Exception ):
