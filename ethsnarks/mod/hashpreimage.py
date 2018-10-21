@@ -51,7 +51,7 @@ class HashPreimage(object):
         data = self._prove(pk_file_cstr, preimage_cstr)
         if data is None:
             raise RuntimeError("Could not prove!")
-        return Proof.from_json(data)
+        return Proof.from_json(data.decode("utf-8"))
 
     def verify(self, proof):
         if not isinstance(proof, Proof):
