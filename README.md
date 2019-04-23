@@ -5,7 +5,7 @@ General Zero Knoledge Identity and Signaling, on and off chain.
 
 # Zero Knowledge Identity and Signaling
 
-## Motiation
+## Motivation
 
 Having finished Miximus and deployed it to the testnet I was planning to move onto my next zksnark project. However, given that I am able to make proofs about merkle trees I decided that it would be a good idea to hack together an anonymous Identity and signaling protocol using zkSNARKs because it seemed it would take quite a little amount of work after having figure out how to make Miximus. And it would be fun if a zero knowledge social network existed. This is a generatlization of Miximus.
 
