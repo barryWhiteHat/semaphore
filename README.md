@@ -25,7 +25,7 @@ Each leaf can only be used once, the uniqueness tag prevents double-spends witho
 
 The leaf is defined as being the hash of two peices of information
 
-1.  The nullfier (256 bits) which we will reveal later to prevent double spends
+1.  The nullifier (256 bits) which we will reveal later to prevent double spends
 2.  The secret key (256 bits) which is a random number that we will never reveal.
 
 ```
