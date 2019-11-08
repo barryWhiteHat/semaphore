@@ -1,3 +1,5 @@
+# DEPRECATED ---> https://github.com/kobigurk/semaphore
+
 # Semaphore
 General Zero Knoledge Identity and Signaling, on and off chain.
 
